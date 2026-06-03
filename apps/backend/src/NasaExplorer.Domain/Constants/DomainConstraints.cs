@@ -24,6 +24,20 @@ public static class DomainConstraints
         public const int UrlMaxLength = 2_048;
     }
 
+    public static class SpaceImages
+    {
+        public const int NasaIdMaxLength = 180;
+        public const int TitleMaxLength = 300;
+        public const int DescriptionMaxLength = 4_000;
+        public const int UrlMaxLength = 2_048;
+        public const int MediaTypeMaxLength = 50;
+        public const int CenterMaxLength = 120;
+        public const int MissionMaxLength = 120;
+        public const int RoverMaxLength = 120;
+        public const int CameraMaxLength = 120;
+        public const int KeywordsMaxLength = 2_000;
+    }
+
     public static class ImageEnrichments
     {
         public const int TypeMaxLength = 40;
