@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using NasaExplorer.Domain.Constants;
 using NasaExplorer.Domain.Entities.Images;
 
 namespace NasaExplorer.Infrastructure.Persistence.Configurations;
@@ -17,19 +16,28 @@ public sealed class ImageTagConfiguration : IEntityTypeConfiguration<ImageTag>
             .HasColumnType("uniqueidentifier")
             .HasDefaultValueSql("NEWSEQUENTIALID()");
 
-        builder.Property(tag => tag.CollectionImageId)
+        builder.Property(tag => tag.SpaceImageId)
             .HasColumnType("uniqueidentifier")
             .IsRequired();
 
-        builder.Property(tag => tag.Name)
-            .HasMaxLength(DomainConstraints.ImageTags.NameMaxLength)
+        builder.Property(tag => tag.TagId)
+            .HasColumnType("uniqueidentifier")
             .IsRequired();
 
-        builder.Property(tag => tag.Source)
-            .HasMaxLength(DomainConstraints.ImageTags.SourceMaxLength)
+        builder.Property(tag => tag.CreatedAt)
+            .HasColumnType("datetimeoffset")
             .IsRequired();
 
-        builder.HasIndex(tag => new { tag.CollectionImageId, tag.Name })
+        builder.HasIndex(tag => tag.SpaceImageId);
+
+        builder.HasIndex(tag => tag.TagId);
+
+        builder.HasIndex(tag => new { tag.SpaceImageId, tag.TagId })
             .IsUnique();
+
+        builder.HasOne(tag => tag.SpaceImage)
+            .WithMany(image => image.ImageTags)
+            .HasForeignKey(tag => tag.SpaceImageId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

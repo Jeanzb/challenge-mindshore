@@ -22,6 +22,8 @@ public sealed class AppDbContext : DbContext
 
     public DbSet<ImageEnrichment> AiEnrichments => Set<ImageEnrichment>();
 
+    public DbSet<Tag> Tags => Set<Tag>();
+
     public DbSet<ImageTag> ImageTags => Set<ImageTag>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

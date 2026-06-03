@@ -8,7 +8,6 @@ public sealed class CollectionImage
 {
     private CollectionImage()
     {
-        Tags = [];
     }
 
     private CollectionImage(
@@ -29,7 +28,6 @@ public sealed class CollectionImage
 
         SortOrder = sortOrder;
         CreatedAt = Guard.AgainstDefault(createdAt, nameof(createdAt));
-        Tags = [];
     }
 
     public Guid Id { get; private set; }
@@ -45,8 +43,6 @@ public sealed class CollectionImage
     public DateTimeOffset CreatedAt { get; private set; }
 
     public SpaceImage? SpaceImage { get; private set; }
-
-    public ICollection<ImageTag> Tags { get; private set; }
 
     public static CollectionImage Create(
         Guid collectionId,

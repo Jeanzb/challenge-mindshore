@@ -1,39 +1,34 @@
 using NasaExplorer.Domain.Common;
-using NasaExplorer.Domain.Constants;
-
 namespace NasaExplorer.Domain.Entities.Images;
 
 public sealed class ImageTag
 {
     private ImageTag()
     {
-        Name = string.Empty;
-        Source = string.Empty;
     }
 
-    private ImageTag(Guid collectionImageId, string name, string source)
+    private ImageTag(Guid spaceImageId, Guid tagId, DateTimeOffset createdAt)
     {
         Id = Guid.NewGuid();
-        CollectionImageId = Guard.AgainstEmpty(collectionImageId, nameof(collectionImageId));
-        Name = Guard.AgainstNullOrWhiteSpace(name, nameof(name), DomainConstraints.ImageTags.NameMaxLength);
-        Source = Guard.AgainstNullOrWhiteSpace(source, nameof(source), DomainConstraints.ImageTags.SourceMaxLength).ToLowerInvariant();
-
-        if (!ImageTagSources.IsValid(Source))
-        {
-            throw new ArgumentException("Invalid tag source.", nameof(source));
-        }
+        SpaceImageId = Guard.AgainstEmpty(spaceImageId, nameof(spaceImageId));
+        TagId = Guard.AgainstEmpty(tagId, nameof(tagId));
+        CreatedAt = Guard.AgainstDefault(createdAt, nameof(createdAt));
     }
 
     public Guid Id { get; private set; }
 
-    public Guid CollectionImageId { get; private set; }
+    public Guid SpaceImageId { get; private set; }
 
-    public string Name { get; private set; }
+    public Guid TagId { get; private set; }
 
-    public string Source { get; private set; }
+    public DateTimeOffset CreatedAt { get; private set; }
 
-    public static ImageTag Create(Guid collectionImageId, string name, string source)
+    public SpaceImage? SpaceImage { get; private set; }
+
+    public Tag? Tag { get; private set; }
+
+    public static ImageTag Create(Guid spaceImageId, Guid tagId, DateTimeOffset createdAt)
     {
-        return new ImageTag(collectionImageId, name, source);
+        return new ImageTag(spaceImageId, tagId, createdAt);
     }
 }

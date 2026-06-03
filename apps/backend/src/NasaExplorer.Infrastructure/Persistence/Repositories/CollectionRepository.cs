@@ -18,8 +18,8 @@ public sealed class CollectionRepository : ICollectionRepository
         return await _context.Collections
             .Include(collection => collection.Images)
             .ThenInclude(image => image.SpaceImage)
-            .Include(collection => collection.Images)
-            .ThenInclude(image => image.Tags)
+            .ThenInclude(image => image!.ImageTags)
+            .ThenInclude(imageTag => imageTag.Tag)
             .FirstOrDefaultAsync(collection => collection.Id == id, cancellationToken);
     }
 

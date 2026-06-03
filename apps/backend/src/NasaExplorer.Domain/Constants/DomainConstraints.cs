@@ -44,9 +44,9 @@ public static class DomainConstraints
         public const int ProviderMaxLength = 80;
     }
 
-    public static class ImageTags
+    public static class Tags
     {
-        public const int NameMaxLength = 60;
-        public const int SourceMaxLength = 20;
+        public const int NameMaxLength = 80;
+        public const int NormalizedNameMaxLength = 80;
     }
 }
