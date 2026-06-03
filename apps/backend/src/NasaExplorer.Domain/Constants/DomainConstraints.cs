@@ -27,7 +27,7 @@ public static class DomainConstraints
     public static class ImageEnrichments
     {
         public const int TypeMaxLength = 40;
-        public const int ContentMaxLength = 8_000;
+        public const int ContentMaxLength = 4_000;
     }
 
     public static class ImageTags
