@@ -18,20 +18,20 @@ public sealed class AuthController : ControllerBase
     }
 
     [HttpPost("register")]
-    public async Task<IActionResult> Register([FromBody] RegisterUserCommand command)
+    public async Task<IActionResult> Register([FromBody] RegisterUserCommand command, CancellationToken cancellationToken)
     {
-        return Ok(await _mediator.Send(command));
+        return Ok(await _mediator.Send(command, cancellationToken));
     }
 
     [HttpPost("login")]
-    public async Task<IActionResult> Login([FromBody] LoginUserCommand command)
+    public async Task<IActionResult> Login([FromBody] LoginUserCommand command, CancellationToken cancellationToken)
     {
-        return Ok(await _mediator.Send(command));
+        return Ok(await _mediator.Send(command, cancellationToken));
     }
 
     [HttpPost("refresh")]
-    public async Task<IActionResult> Refresh([FromBody] RefreshTokenCommand command)
+    public async Task<IActionResult> Refresh([FromBody] RefreshTokenCommand command, CancellationToken cancellationToken)
     {
-        return Ok(await _mediator.Send(command));
+        return Ok(await _mediator.Send(command, cancellationToken));
     }
 }

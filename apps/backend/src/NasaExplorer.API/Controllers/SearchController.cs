@@ -24,7 +24,8 @@ public sealed class SearchController : ControllerBase
         [FromQuery] string? camera,
         [FromQuery] string? mission,
         [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 24)
+        [FromQuery] int pageSize = 24,
+        CancellationToken cancellationToken = default)
     {
         SearchNasaImagesQuery request = new(
             query,
@@ -36,6 +37,6 @@ public sealed class SearchController : ControllerBase
             page,
             pageSize);
 
-        return Ok(await _mediator.Send(request));
+        return Ok(await _mediator.Send(request, cancellationToken));
     }
 }

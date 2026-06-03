@@ -35,7 +35,7 @@ public sealed class NasaApiServiceTests
         Assert.Equal("https://images-assets.nasa.gov/image/NHQ201906010007/NHQ201906010007~large.jpg", image.ImageUrl);
         Assert.Equal("https://images-assets.nasa.gov/image/NHQ201906010007/NHQ201906010007~thumb.jpg", image.ThumbnailUrl);
         Assert.Equal("https://images.nasa.gov/details/NHQ201906010007", image.SourceUrl);
-        Assert.Equal(26719, result.TotalHits);
+        Assert.Equal(1, result.TotalHits);
         Assert.Equal(2, result.Page);
         Assert.Equal(2, result.PageSize);
         Assert.Contains("q=mars%20perseverance%20mastcam", handler.RequestUri!.Query);
@@ -44,6 +44,29 @@ public sealed class NasaApiServiceTests
         Assert.Contains("year_end=2019", handler.RequestUri.Query);
         Assert.Contains("page=2", handler.RequestUri.Query);
         Assert.Contains("page_size=2", handler.RequestUri.Query);
+    }
+
+    [Fact]
+    public async Task SearchImagesAsync_uses_nasa_total_hits_when_date_filter_is_not_applied()
+    {
+        StubHttpMessageHandler handler = new(SearchResponseJson);
+        NasaApiService service = new(new HttpClient(handler)
+        {
+            BaseAddress = new Uri("https://images-api.nasa.gov/")
+        });
+
+        NasaSearchResult result = await service.SearchImagesAsync(new NasaSearchCriteria(
+            "mars",
+            null,
+            null,
+            null,
+            null,
+            null,
+            1,
+            2));
+
+        Assert.Equal(2, result.Images.Count);
+        Assert.Equal(26719, result.TotalHits);
     }
 
     [Fact]

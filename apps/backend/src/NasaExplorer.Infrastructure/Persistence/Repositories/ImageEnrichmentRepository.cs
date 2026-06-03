@@ -29,11 +29,14 @@ public sealed class ImageEnrichmentRepository : IImageEnrichmentRepository
             .FirstOrDefaultAsync(cancellationToken);
     }
 
-    public async Task<IReadOnlyCollection<ImageEnrichment>> GetBySpaceImageIdAsync(Guid spaceImageId, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyCollection<ImageEnrichment>> GetBySpaceImageIdForUserAsync(
+        Guid spaceImageId,
+        Guid userId,
+        CancellationToken cancellationToken = default)
     {
         return await _context.AiEnrichments
             .AsNoTracking()
-            .Where(enrichment => enrichment.SpaceImageId == spaceImageId)
+            .Where(enrichment => enrichment.SpaceImageId == spaceImageId && enrichment.UserId == userId)
             .OrderByDescending(enrichment => enrichment.CreatedAt)
             .ToListAsync(cancellationToken);
     }

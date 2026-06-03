@@ -4,7 +4,7 @@ namespace NasaExplorer.Domain.Interfaces.Repositories;
 
 public interface ICollectionRepository
 {
-    Task<Collection?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<Collection?> GetByIdForUserAsync(Guid id, Guid userId, CancellationToken cancellationToken = default);
 
     Task<IReadOnlyCollection<Collection>> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken = default);
 

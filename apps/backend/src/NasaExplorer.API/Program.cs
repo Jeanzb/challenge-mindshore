@@ -15,9 +15,8 @@ builder.Services.AddOpenApi();
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
-JwtOptions jwtOptions = builder.Configuration
-    .GetSection(JwtOptions.SectionName)
-    .Get<JwtOptions>() ?? new JwtOptions();
+JwtOptions jwtOptions = JwtOptions.FromConfiguration(builder.Configuration);
+jwtOptions.Validate();
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

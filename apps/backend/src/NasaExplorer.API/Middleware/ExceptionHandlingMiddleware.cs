@@ -5,10 +5,12 @@ namespace NasaExplorer.API.Middleware;
 public sealed class ExceptionHandlingMiddleware
 {
     private readonly RequestDelegate _next;
+    private readonly ILogger<ExceptionHandlingMiddleware> _logger;
 
-    public ExceptionHandlingMiddleware(RequestDelegate next)
+    public ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
     {
         _next = next;
+        _logger = logger;
     }
 
     public async Task InvokeAsync(HttpContext context)
@@ -27,13 +29,15 @@ public sealed class ExceptionHandlingMiddleware
         }
         catch (UnauthorizedException exception)
         {
-            await WriteResponseAsync(context, StatusCodes.Status403Forbidden, new
+            await WriteResponseAsync(context, StatusCodes.Status401Unauthorized, new
             {
                 message = exception.Message
             });
         }
-        catch (Exception)
+        catch (Exception exception)
         {
+            _logger.LogError(exception, "Unhandled request exception.");
+
             await WriteResponseAsync(context, StatusCodes.Status500InternalServerError, new
             {
                 message = "An unexpected error occurred."
@@ -45,6 +49,6 @@ public sealed class ExceptionHandlingMiddleware
     {
         context.Response.StatusCode = statusCode;
         context.Response.ContentType = "application/json";
-        await context.Response.WriteAsJsonAsync(response);
+        await context.Response.WriteAsJsonAsync(response, context.RequestAborted);
     }
 }

@@ -51,7 +51,8 @@ public sealed class ImageEnrichmentConfiguration : IEntityTypeConfiguration<Imag
 
         builder.HasIndex(enrichment => enrichment.UserId);
 
-        builder.HasIndex(enrichment => new { enrichment.SpaceImageId, enrichment.UserId, enrichment.Type });
+        builder.HasIndex(enrichment => new { enrichment.SpaceImageId, enrichment.UserId, enrichment.Type })
+            .IsUnique();
 
         builder.HasOne(enrichment => enrichment.SpaceImage)
             .WithMany(image => image.Enrichments)

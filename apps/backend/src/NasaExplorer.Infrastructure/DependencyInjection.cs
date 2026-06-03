@@ -41,10 +41,12 @@ public static class DependencyInjection
         });
         services.Configure<JwtOptions>(options =>
         {
-            options.Secret = config["Jwt:Secret"] ?? string.Empty;
-            options.Issuer = config["Jwt:Issuer"] ?? string.Empty;
-            options.Audience = config["Jwt:Audience"] ?? string.Empty;
-            options.AccessTokenMinutes = int.TryParse(config["Jwt:AccessTokenMinutes"], out int minutes) ? minutes : 60;
+            JwtOptions configuredOptions = JwtOptions.FromConfiguration(config);
+
+            options.Secret = configuredOptions.Secret;
+            options.Issuer = configuredOptions.Issuer;
+            options.Audience = configuredOptions.Audience;
+            options.AccessTokenMinutes = configuredOptions.AccessTokenMinutes;
         });
         services.AddScoped<IPasswordHashService, PasswordHashService>();
         services.AddScoped<IJwtService, JwtService>();

@@ -37,10 +37,14 @@ public sealed class TagConfiguration : IEntityTypeConfiguration<Tag>
 
         builder.HasIndex(tag => tag.UserId);
 
-        builder.HasIndex(tag => tag.NormalizedName);
-
         builder.HasIndex(tag => new { tag.UserId, tag.NormalizedName })
-            .IsUnique();
+            .IsUnique()
+            .HasFilter("[UserId] IS NOT NULL");
+
+        builder.HasIndex(tag => tag.NormalizedName)
+            .IsUnique()
+            .HasDatabaseName("UX_Tags_Global_NormalizedName")
+            .HasFilter("[UserId] IS NULL");
 
         builder.HasOne<NasaExplorer.Domain.Entities.Users.User>()
             .WithMany()

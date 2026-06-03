@@ -33,7 +33,7 @@ public sealed class NasaApiService : INasaApiService
 
         return new NasaSearchResult(
             images,
-            nasaResponse?.Collection?.Metadata?.TotalHits ?? images.Count,
+            HasLocalDateFilter(criteria) ? images.Count : (nasaResponse?.Collection?.Metadata?.TotalHits ?? images.Count),
             criteria.Page,
             criteria.PageSize);
     }
@@ -176,7 +176,7 @@ public sealed class NasaApiService : INasaApiService
 
     private static bool MatchesDateRange(NasaImageAsset image, NasaSearchCriteria criteria)
     {
-        if (!criteria.DateFrom.HasValue && !criteria.DateTo.HasValue)
+        if (!HasLocalDateFilter(criteria))
         {
             return true;
         }
@@ -190,6 +190,11 @@ public sealed class NasaApiService : INasaApiService
 
         return (!criteria.DateFrom.HasValue || imageDate >= criteria.DateFrom.Value)
             && (!criteria.DateTo.HasValue || imageDate <= criteria.DateTo.Value);
+    }
+
+    private static bool HasLocalDateFilter(NasaSearchCriteria criteria)
+    {
+        return criteria.DateFrom.HasValue || criteria.DateTo.HasValue;
     }
 
     private static bool IsImageRender(NasaSearchLink link)

@@ -13,14 +13,16 @@ public sealed class CollectionRepository : ICollectionRepository
         _context = context;
     }
 
-    public async Task<Collection?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<Collection?> GetByIdForUserAsync(Guid id, Guid userId, CancellationToken cancellationToken = default)
     {
         return await _context.Collections
             .Include(collection => collection.Images)
             .ThenInclude(image => image.SpaceImage)
-            .ThenInclude(image => image!.ImageTags)
+            .ThenInclude(image => image!.ImageTags
+                .Where(imageTag => imageTag.Tag != null
+                    && (imageTag.Tag.UserId == userId || imageTag.Tag.UserId == null)))
             .ThenInclude(imageTag => imageTag.Tag)
-            .FirstOrDefaultAsync(collection => collection.Id == id, cancellationToken);
+            .FirstOrDefaultAsync(collection => collection.Id == id && collection.UserId == userId, cancellationToken);
     }
 
     public async Task<IReadOnlyCollection<Collection>> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
