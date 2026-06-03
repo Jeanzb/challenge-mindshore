@@ -1,7 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using NasaExplorer.Application.Common.Interfaces;
 using NasaExplorer.Domain.Interfaces.Repositories;
+using NasaExplorer.Domain.Interfaces.Services;
+using NasaExplorer.Infrastructure.Auth;
 using NasaExplorer.Infrastructure.Persistence;
 using NasaExplorer.Infrastructure.Persistence.Repositories;
 
@@ -18,6 +21,15 @@ public static class DependencyInjection
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<ICollectionRepository, CollectionRepository>();
         services.AddScoped<IImageEnrichmentRepository, ImageEnrichmentRepository>();
+        services.Configure<JwtOptions>(options =>
+        {
+            options.Secret = config["Jwt:Secret"] ?? string.Empty;
+            options.Issuer = config["Jwt:Issuer"] ?? string.Empty;
+            options.Audience = config["Jwt:Audience"] ?? string.Empty;
+            options.AccessTokenMinutes = int.TryParse(config["Jwt:AccessTokenMinutes"], out int minutes) ? minutes : 60;
+        });
+        services.AddScoped<IPasswordHashService, PasswordHashService>();
+        services.AddScoped<IJwtService, JwtService>();
 
         return services;
     }

@@ -27,6 +27,12 @@ public sealed class UserRepository : IUserRepository
             .FirstOrDefaultAsync(user => user.Email == normalizedEmail, cancellationToken);
     }
 
+    public async Task<User?> GetByRefreshTokenAsync(string refreshTokenHash, CancellationToken cancellationToken = default)
+    {
+        return await _context.Users
+            .FirstOrDefaultAsync(user => user.RefreshToken == refreshTokenHash, cancellationToken);
+    }
+
     public async Task AddAsync(User user, CancellationToken cancellationToken = default)
     {
         await _context.Users.AddAsync(user, cancellationToken);
