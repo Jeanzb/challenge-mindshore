@@ -20,7 +20,7 @@ public sealed class AppDbContext : DbContext
 
     public DbSet<SpaceImage> SpaceImages => Set<SpaceImage>();
 
-    public DbSet<ImageEnrichment> ImageEnrichments => Set<ImageEnrichment>();
+    public DbSet<ImageEnrichment> AiEnrichments => Set<ImageEnrichment>();
 
     public DbSet<ImageTag> ImageTags => Set<ImageTag>();
 

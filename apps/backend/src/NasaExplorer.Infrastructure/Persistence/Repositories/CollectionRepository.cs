@@ -19,8 +19,6 @@ public sealed class CollectionRepository : ICollectionRepository
             .Include(collection => collection.Images)
             .ThenInclude(image => image.SpaceImage)
             .Include(collection => collection.Images)
-            .ThenInclude(image => image.Enrichments)
-            .Include(collection => collection.Images)
             .ThenInclude(image => image.Tags)
             .FirstOrDefaultAsync(collection => collection.Id == id, cancellationToken);
     }

@@ -13,18 +13,34 @@ public sealed class ImageEnrichmentRepository : IImageEnrichmentRepository
         _context = context;
     }
 
-    public async Task<IReadOnlyCollection<ImageEnrichment>> GetByCollectionImageIdAsync(Guid collectionImageId, CancellationToken cancellationToken = default)
+    public async Task<ImageEnrichment?> GetBySpaceImageUserAndTypeAsync(
+        Guid spaceImageId,
+        Guid userId,
+        string type,
+        CancellationToken cancellationToken = default)
     {
-        return await _context.ImageEnrichments
+        return await _context.AiEnrichments
             .AsNoTracking()
-            .Where(enrichment => enrichment.CollectionImageId == collectionImageId)
-            .OrderByDescending(enrichment => enrichment.GeneratedAt)
+            .Where(enrichment =>
+                enrichment.SpaceImageId == spaceImageId
+                && enrichment.UserId == userId
+                && enrichment.Type == type)
+            .OrderByDescending(enrichment => enrichment.CreatedAt)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyCollection<ImageEnrichment>> GetBySpaceImageIdAsync(Guid spaceImageId, CancellationToken cancellationToken = default)
+    {
+        return await _context.AiEnrichments
+            .AsNoTracking()
+            .Where(enrichment => enrichment.SpaceImageId == spaceImageId)
+            .OrderByDescending(enrichment => enrichment.CreatedAt)
             .ToListAsync(cancellationToken);
     }
 
     public async Task AddAsync(ImageEnrichment enrichment, CancellationToken cancellationToken = default)
     {
-        await _context.ImageEnrichments.AddAsync(enrichment, cancellationToken);
+        await _context.AiEnrichments.AddAsync(enrichment, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
     }
 }

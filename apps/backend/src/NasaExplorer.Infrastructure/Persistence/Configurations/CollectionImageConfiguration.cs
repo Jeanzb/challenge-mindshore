@@ -47,11 +47,6 @@ public sealed class CollectionImageConfiguration : IEntityTypeConfiguration<Coll
             .HasForeignKey(image => image.SpaceImageId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasMany(image => image.Enrichments)
-            .WithOne()
-            .HasForeignKey(enrichment => enrichment.CollectionImageId)
-            .OnDelete(DeleteBehavior.Cascade);
-
         builder.HasMany(image => image.Tags)
             .WithOne()
             .HasForeignKey(tag => tag.CollectionImageId)

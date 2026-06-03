@@ -8,7 +8,6 @@ public sealed class CollectionImage
 {
     private CollectionImage()
     {
-        Enrichments = [];
         Tags = [];
     }
 
@@ -30,7 +29,6 @@ public sealed class CollectionImage
 
         SortOrder = sortOrder;
         CreatedAt = Guard.AgainstDefault(createdAt, nameof(createdAt));
-        Enrichments = [];
         Tags = [];
     }
 
@@ -47,8 +45,6 @@ public sealed class CollectionImage
     public DateTimeOffset CreatedAt { get; private set; }
 
     public SpaceImage? SpaceImage { get; private set; }
-
-    public ICollection<ImageEnrichment> Enrichments { get; private set; }
 
     public ICollection<ImageTag> Tags { get; private set; }
 

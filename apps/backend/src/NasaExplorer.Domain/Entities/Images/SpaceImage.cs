@@ -11,6 +11,7 @@ public sealed class SpaceImage
         Title = string.Empty;
         ImageUrl = string.Empty;
         MediaType = string.Empty;
+        Enrichments = [];
     }
 
     private SpaceImage(
@@ -45,6 +46,7 @@ public sealed class SpaceImage
         Keywords = Guard.OptionalString(keywords, nameof(keywords), DomainConstraints.SpaceImages.KeywordsMaxLength);
         CreatedAt = Guard.AgainstDefault(createdAt, nameof(createdAt));
         UpdatedAt = CreatedAt;
+        Enrichments = [];
     }
 
     public Guid Id { get; private set; }
@@ -78,6 +80,8 @@ public sealed class SpaceImage
     public DateTimeOffset CreatedAt { get; private set; }
 
     public DateTimeOffset UpdatedAt { get; private set; }
+
+    public ICollection<ImageEnrichment> Enrichments { get; private set; }
 
     public static SpaceImage Create(
         string nasaId,

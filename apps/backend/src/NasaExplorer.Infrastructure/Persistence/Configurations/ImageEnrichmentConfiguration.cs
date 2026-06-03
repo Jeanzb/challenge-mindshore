@@ -9,7 +9,7 @@ public sealed class ImageEnrichmentConfiguration : IEntityTypeConfiguration<Imag
 {
     public void Configure(EntityTypeBuilder<ImageEnrichment> builder)
     {
-        builder.ToTable("ImageEnrichments");
+        builder.ToTable("AiEnrichments");
 
         builder.HasKey(enrichment => enrichment.Id);
 
@@ -17,7 +17,11 @@ public sealed class ImageEnrichmentConfiguration : IEntityTypeConfiguration<Imag
             .HasColumnType("uniqueidentifier")
             .HasDefaultValueSql("NEWSEQUENTIALID()");
 
-        builder.Property(enrichment => enrichment.CollectionImageId)
+        builder.Property(enrichment => enrichment.SpaceImageId)
+            .HasColumnType("uniqueidentifier")
+            .IsRequired();
+
+        builder.Property(enrichment => enrichment.UserId)
             .HasColumnType("uniqueidentifier")
             .IsRequired();
 
@@ -25,14 +29,38 @@ public sealed class ImageEnrichmentConfiguration : IEntityTypeConfiguration<Imag
             .HasMaxLength(DomainConstraints.ImageEnrichments.TypeMaxLength)
             .IsRequired();
 
-        builder.Property(enrichment => enrichment.Content)
-            .HasMaxLength(DomainConstraints.ImageEnrichments.ContentMaxLength)
+        builder.Property(enrichment => enrichment.Prompt)
+            .HasColumnType("nvarchar(max)")
             .IsRequired();
 
-        builder.Property(enrichment => enrichment.GeneratedAt)
+        builder.Property(enrichment => enrichment.Content)
+            .HasColumnType("nvarchar(max)")
+            .IsRequired();
+
+        builder.Property(enrichment => enrichment.Model)
+            .HasMaxLength(DomainConstraints.ImageEnrichments.ModelMaxLength);
+
+        builder.Property(enrichment => enrichment.Provider)
+            .HasMaxLength(DomainConstraints.ImageEnrichments.ProviderMaxLength);
+
+        builder.Property(enrichment => enrichment.CreatedAt)
             .HasColumnType("datetimeoffset")
             .IsRequired();
 
-        builder.HasIndex(enrichment => new { enrichment.CollectionImageId, enrichment.Type });
+        builder.HasIndex(enrichment => enrichment.SpaceImageId);
+
+        builder.HasIndex(enrichment => enrichment.UserId);
+
+        builder.HasIndex(enrichment => new { enrichment.SpaceImageId, enrichment.UserId, enrichment.Type });
+
+        builder.HasOne(enrichment => enrichment.SpaceImage)
+            .WithMany(image => image.Enrichments)
+            .HasForeignKey(enrichment => enrichment.SpaceImageId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne<NasaExplorer.Domain.Entities.Users.User>()
+            .WithMany()
+            .HasForeignKey(enrichment => enrichment.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
