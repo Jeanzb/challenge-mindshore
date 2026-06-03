@@ -17,6 +17,10 @@ Build a fullstack NASA Explorer platform with a React frontend, .NET Core backen
 - Export collection to PDF.
 - Tag system with manual tags and AI suggestions.
 
+## API Strategy
+
+NASA Image and Video Library is the primary source for image search. See `docs/nasa-api-strategy.md` for endpoint selection, filter mapping, and the decision not to depend on the archived Mars Rover API.
+
 ## Monorepo Layout
 
 ```text
@@ -40,17 +44,18 @@ Build a fullstack NASA Explorer platform with a React frontend, .NET Core backen
 2. `chore: scaffold monorepo workspace`
 3. `chore: scaffold .NET clean architecture solution`
 4. `chore: add SQL Server docker compose setup`
-5. `feat(domain): model users collections and image metadata`
-6. `feat(infrastructure): configure EF Core persistence`
-7. `feat(auth): implement JWT registration and login`
-8. `feat(search): add NASA image search proxy`
-9. `feat(collections): manage user collections`
-10. `feat(ai): add OpenAI enrichment services`
-11. `feat(export): generate collection PDF`
-12. `chore(web): scaffold React frontend`
-13. `feat(web-auth): add authentication screens`
-14. `feat(web-search): add NASA search experience`
-15. `feat(web-collections): add collection workflows`
-16. `feat(web-ai): add enrichment comparison and tags`
-17. `test: cover backend handlers and frontend components`
-18. `docs: document setup architecture and tradeoffs`
+5. `docs: define NASA API integration strategy`
+6. `feat(domain): model users collections and image metadata`
+7. `feat(infrastructure): configure EF Core persistence`
+8. `feat(auth): implement JWT registration and login`
+9. `feat(search): add NASA image search proxy`
+10. `feat(collections): manage user collections`
+11. `feat(ai): add OpenAI enrichment services`
+12. `feat(export): generate collection PDF`
+13. `chore(web): scaffold React frontend`
+14. `feat(web-auth): add authentication screens`
+15. `feat(web-search): add NASA search experience`
+16. `feat(web-collections): add collection workflows`
+17. `feat(web-ai): add enrichment comparison and tags`
+18. `test: cover backend handlers and frontend components`
+19. `docs: document setup architecture and tradeoffs`
