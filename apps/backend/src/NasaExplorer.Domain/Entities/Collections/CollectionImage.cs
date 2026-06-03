@@ -8,33 +8,28 @@ public sealed class CollectionImage
 {
     private CollectionImage()
     {
-        NasaImageId = string.Empty;
-        Title = string.Empty;
-        ThumbnailUrl = string.Empty;
-        ImageUrl = string.Empty;
         Enrichments = [];
         Tags = [];
     }
 
     private CollectionImage(
         Guid collectionId,
-        string nasaImageId,
-        string title,
-        string? description,
-        string thumbnailUrl,
-        string imageUrl,
-        DateTimeOffset? dateTaken,
-        DateTimeOffset addedAt)
+        Guid spaceImageId,
+        string? userNote,
+        int sortOrder,
+        DateTimeOffset createdAt)
     {
         Id = Guid.NewGuid();
         CollectionId = Guard.AgainstEmpty(collectionId, nameof(collectionId));
-        NasaImageId = Guard.AgainstNullOrWhiteSpace(nasaImageId, nameof(nasaImageId), DomainConstraints.CollectionImages.NasaImageIdMaxLength);
-        Title = Guard.AgainstNullOrWhiteSpace(title, nameof(title), DomainConstraints.CollectionImages.TitleMaxLength);
-        Description = Guard.OptionalString(description, nameof(description), DomainConstraints.CollectionImages.DescriptionMaxLength);
-        ThumbnailUrl = Guard.AgainstNullOrWhiteSpace(thumbnailUrl, nameof(thumbnailUrl), DomainConstraints.CollectionImages.UrlMaxLength);
-        ImageUrl = Guard.AgainstNullOrWhiteSpace(imageUrl, nameof(imageUrl), DomainConstraints.CollectionImages.UrlMaxLength);
-        DateTaken = dateTaken;
-        AddedAt = Guard.AgainstDefault(addedAt, nameof(addedAt));
+        SpaceImageId = Guard.AgainstEmpty(spaceImageId, nameof(spaceImageId));
+        UserNote = Guard.OptionalString(userNote, nameof(userNote), DomainConstraints.CollectionImages.UserNoteMaxLength);
+        if (sortOrder < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(sortOrder), "Sort order cannot be negative.");
+        }
+
+        SortOrder = sortOrder;
+        CreatedAt = Guard.AgainstDefault(createdAt, nameof(createdAt));
         Enrichments = [];
         Tags = [];
     }
@@ -43,19 +38,15 @@ public sealed class CollectionImage
 
     public Guid CollectionId { get; private set; }
 
-    public string NasaImageId { get; private set; }
+    public Guid SpaceImageId { get; private set; }
 
-    public string Title { get; private set; }
+    public string? UserNote { get; private set; }
 
-    public string? Description { get; private set; }
+    public int SortOrder { get; private set; }
 
-    public string ThumbnailUrl { get; private set; }
+    public DateTimeOffset CreatedAt { get; private set; }
 
-    public string ImageUrl { get; private set; }
-
-    public DateTimeOffset? DateTaken { get; private set; }
-
-    public DateTimeOffset AddedAt { get; private set; }
+    public SpaceImage? SpaceImage { get; private set; }
 
     public ICollection<ImageEnrichment> Enrichments { get; private set; }
 
@@ -63,14 +54,11 @@ public sealed class CollectionImage
 
     public static CollectionImage Create(
         Guid collectionId,
-        string nasaImageId,
-        string title,
-        string? description,
-        string thumbnailUrl,
-        string imageUrl,
-        DateTimeOffset? dateTaken,
-        DateTimeOffset addedAt)
+        Guid spaceImageId,
+        string? userNote,
+        int sortOrder,
+        DateTimeOffset createdAt)
     {
-        return new CollectionImage(collectionId, nasaImageId, title, description, thumbnailUrl, imageUrl, dateTaken, addedAt);
+        return new CollectionImage(collectionId, spaceImageId, userNote, sortOrder, createdAt);
     }
 }

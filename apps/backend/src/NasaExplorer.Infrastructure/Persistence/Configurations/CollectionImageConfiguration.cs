@@ -21,34 +21,31 @@ public sealed class CollectionImageConfiguration : IEntityTypeConfiguration<Coll
             .HasColumnType("uniqueidentifier")
             .IsRequired();
 
-        builder.Property(image => image.NasaImageId)
-            .HasMaxLength(DomainConstraints.CollectionImages.NasaImageIdMaxLength)
+        builder.Property(image => image.SpaceImageId)
+            .HasColumnType("uniqueidentifier")
             .IsRequired();
 
-        builder.Property(image => image.Title)
-            .HasMaxLength(DomainConstraints.CollectionImages.TitleMaxLength)
+        builder.Property(image => image.UserNote)
+            .HasMaxLength(DomainConstraints.CollectionImages.UserNoteMaxLength);
+
+        builder.Property(image => image.SortOrder)
             .IsRequired();
 
-        builder.Property(image => image.Description)
-            .HasMaxLength(DomainConstraints.CollectionImages.DescriptionMaxLength);
-
-        builder.Property(image => image.ThumbnailUrl)
-            .HasMaxLength(DomainConstraints.CollectionImages.UrlMaxLength)
-            .IsRequired();
-
-        builder.Property(image => image.ImageUrl)
-            .HasMaxLength(DomainConstraints.CollectionImages.UrlMaxLength)
-            .IsRequired();
-
-        builder.Property(image => image.DateTaken)
-            .HasColumnType("datetimeoffset");
-
-        builder.Property(image => image.AddedAt)
+        builder.Property(image => image.CreatedAt)
             .HasColumnType("datetimeoffset")
             .IsRequired();
 
-        builder.HasIndex(image => new { image.CollectionId, image.NasaImageId })
+        builder.HasIndex(image => image.CollectionId);
+
+        builder.HasIndex(image => image.SpaceImageId);
+
+        builder.HasIndex(image => new { image.CollectionId, image.SpaceImageId })
             .IsUnique();
+
+        builder.HasOne(image => image.SpaceImage)
+            .WithMany()
+            .HasForeignKey(image => image.SpaceImageId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasMany(image => image.Enrichments)
             .WithOne()

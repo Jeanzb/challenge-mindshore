@@ -18,10 +18,7 @@ public static class DomainConstraints
 
     public static class CollectionImages
     {
-        public const int NasaImageIdMaxLength = 120;
-        public const int TitleMaxLength = 300;
-        public const int DescriptionMaxLength = 4_000;
-        public const int UrlMaxLength = 2_048;
+        public const int UserNoteMaxLength = 1_000;
     }
 
     public static class SpaceImages

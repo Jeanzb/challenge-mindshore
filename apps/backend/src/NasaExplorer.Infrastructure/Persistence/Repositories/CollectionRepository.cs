@@ -17,6 +17,8 @@ public sealed class CollectionRepository : ICollectionRepository
     {
         return await _context.Collections
             .Include(collection => collection.Images)
+            .ThenInclude(image => image.SpaceImage)
+            .Include(collection => collection.Images)
             .ThenInclude(image => image.Enrichments)
             .Include(collection => collection.Images)
             .ThenInclude(image => image.Tags)
@@ -28,6 +30,7 @@ public sealed class CollectionRepository : ICollectionRepository
         return await _context.Collections
             .AsNoTracking()
             .Include(collection => collection.Images)
+            .ThenInclude(image => image.SpaceImage)
             .Where(collection => collection.UserId == userId)
             .OrderByDescending(collection => collection.UpdatedAt)
             .ToListAsync(cancellationToken);
