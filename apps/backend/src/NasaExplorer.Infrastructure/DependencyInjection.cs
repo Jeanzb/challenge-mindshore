@@ -23,6 +23,7 @@ public static class DependencyInjection
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<ICollectionRepository, CollectionRepository>();
         services.AddScoped<IImageEnrichmentRepository, ImageEnrichmentRepository>();
+        services.AddScoped<ISpaceImageRepository, SpaceImageRepository>();
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
         services.Configure<NasaApiOptions>(options =>
