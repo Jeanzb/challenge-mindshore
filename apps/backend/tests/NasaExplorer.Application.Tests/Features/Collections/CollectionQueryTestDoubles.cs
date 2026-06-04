@@ -78,6 +78,34 @@ internal sealed class FakeCollectionRepository : ICollectionRepository
     }
 }
 
+internal sealed class FakeSpaceImageRepository : ISpaceImageRepository
+{
+    private readonly SpaceImage? _image;
+
+    public FakeSpaceImageRepository(SpaceImage? image)
+    {
+        _image = image;
+    }
+
+    public string? LastRequestedNasaId { get; private set; }
+
+    public SpaceImage? AddedImage { get; private set; }
+
+    public Task<SpaceImage?> GetByNasaIdAsync(string nasaId, CancellationToken cancellationToken = default)
+    {
+        LastRequestedNasaId = nasaId;
+
+        return Task.FromResult(_image);
+    }
+
+    public Task AddAsync(SpaceImage image, CancellationToken cancellationToken = default)
+    {
+        AddedImage = image;
+
+        return Task.CompletedTask;
+    }
+}
+
 internal static class CollectionQueryTestData
 {
     public static Collection CreateCollection(Guid userId, string name)
