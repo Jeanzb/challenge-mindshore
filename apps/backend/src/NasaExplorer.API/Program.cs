@@ -1,3 +1,4 @@
+using AspNetCoreRateLimit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -6,14 +7,44 @@ using NasaExplorer.Application;
 using NasaExplorer.Infrastructure;
 using NasaExplorer.Infrastructure.Auth;
 using NasaExplorer.Infrastructure.Persistence;
+using Serilog;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+const string CorsPolicyName = "FrontendCors";
+
+builder.Host.UseSerilog((context, loggerConfiguration) =>
+{
+    loggerConfiguration
+        .ReadFrom.Configuration(context.Configuration)
+        .Enrich.FromLogContext()
+        .WriteTo.Console();
+});
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddMemoryCache();
+builder.Services.Configure<IpRateLimitOptions>(builder.Configuration.GetSection("IpRateLimiting"));
+builder.Services.AddInMemoryRateLimiting();
+builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
+
+string[] allowedOrigins = GetAllowedOrigins(builder.Configuration);
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(CorsPolicyName, policy =>
+    {
+        policy.AllowAnyHeader()
+            .AllowAnyMethod();
+
+        if (allowedOrigins.Length > 0)
+        {
+            policy.WithOrigins(allowedOrigins)
+                .AllowCredentials();
+        }
+    });
+});
 
 JwtOptions jwtOptions = JwtOptions.FromConfiguration(builder.Configuration);
 jwtOptions.Validate();
@@ -51,9 +82,15 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-app.UseMiddleware<ExceptionHandlingMiddleware>();
+app.UseSerilogRequestLogging();
 
 app.UseHttpsRedirection();
+
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+
+app.UseCors(CorsPolicyName);
+
+app.UseIpRateLimiting();
 
 app.UseAuthentication();
 
@@ -62,3 +99,22 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+static string[] GetAllowedOrigins(IConfiguration configuration)
+{
+    string[] configuredOrigins = configuration
+        .GetSection("Cors:AllowedOrigins")
+        .Get<string[]>() ?? [];
+    string? environmentOrigins = configuration["CORS_ALLOWED_ORIGINS"];
+
+    if (string.IsNullOrWhiteSpace(environmentOrigins))
+    {
+        return configuredOrigins;
+    }
+
+    return environmentOrigins
+        .Split([',', ';'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+        .Concat(configuredOrigins)
+        .Distinct(StringComparer.OrdinalIgnoreCase)
+        .ToArray();
+}
