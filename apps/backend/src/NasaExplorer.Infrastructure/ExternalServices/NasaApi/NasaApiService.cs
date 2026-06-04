@@ -9,6 +9,38 @@ namespace NasaExplorer.Infrastructure.ExternalServices.NasaApi;
 public sealed class NasaApiService : INasaApiService
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+    private static readonly string[] KnownMissions =
+    [
+        "JWST",
+        "Hubble",
+        "Cassini",
+        "Juno",
+        "DSCOVR EPIC",
+        "Rosetta",
+        "Apollo",
+        "LRO",
+        "Mars 2020",
+        "Mars Science Laboratory"
+    ];
+    private static readonly string[] KnownRovers =
+    [
+        "Perseverance",
+        "Curiosity",
+        "Opportunity",
+        "Spirit"
+    ];
+    private static readonly string[] KnownCameras =
+    [
+        "NIRCam",
+        "Mastcam",
+        "Navcam",
+        "HiRISE",
+        "WATSON",
+        "MAHLI",
+        "LRO NAC",
+        "WFC3",
+        "ACS"
+    ];
 
     private readonly HttpClient _httpClient;
 
@@ -112,13 +144,23 @@ public sealed class NasaApiService : INasaApiService
             return null;
         }
 
-        string? imageUrl = SelectImageUrl(item.Links ?? []);
-        string? thumbnailUrl = SelectThumbnailUrl(item.Links ?? [], imageUrl);
+        NasaSearchLink[] links = (item.Links ?? []).ToArray();
+        string? imageUrl = SelectImageUrl(links);
+        string? thumbnailUrl = SelectThumbnailUrl(links, imageUrl);
+        string? cardUrl = SelectCardUrl(links, thumbnailUrl);
+        string? previewUrl = SelectPreviewUrl(links, imageUrl);
+        string? fullUrl = SelectFullUrl(links, imageUrl);
 
         if (string.IsNullOrWhiteSpace(imageUrl) || string.IsNullOrWhiteSpace(thumbnailUrl))
         {
             return null;
         }
+
+        string[] keywords = (data.Keywords ?? [])
+            .Where(keyword => !string.IsNullOrWhiteSpace(keyword))
+            .Select(keyword => keyword.Trim())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
 
         return new NasaImageAsset(
             data.NasaId,
@@ -130,11 +172,13 @@ public sealed class NasaApiService : INasaApiService
             imageUrl,
             $"https://images.nasa.gov/details/{Uri.EscapeDataString(data.NasaId)}",
             data.DateCreated,
-            (data.Keywords ?? [])
-                .Where(keyword => !string.IsNullOrWhiteSpace(keyword))
-                .Select(keyword => keyword.Trim())
-                .Distinct(StringComparer.OrdinalIgnoreCase)
-                .ToArray());
+            keywords,
+            ResolveKnownMetadata(KnownMissions, data, keywords),
+            ResolveKnownMetadata(KnownRovers, data, keywords),
+            ResolveKnownMetadata(KnownCameras, data, keywords),
+            cardUrl,
+            previewUrl,
+            fullUrl);
     }
 
     private static string? SelectImageUrl(IReadOnlyCollection<NasaSearchLink> links)
@@ -158,6 +202,24 @@ public sealed class NasaApiService : INasaApiService
             ?? imageUrl;
     }
 
+    private static string? SelectCardUrl(IReadOnlyCollection<NasaSearchLink> links, string? thumbnailUrl)
+    {
+        return SelectPreferredLink(links.Where(link => IsWebImageLink(link.Href)).ToArray(), "~small", "~medium", "~thumb", "~large")
+            ?? thumbnailUrl;
+    }
+
+    private static string? SelectPreviewUrl(IReadOnlyCollection<NasaSearchLink> links, string? imageUrl)
+    {
+        return SelectPreferredLink(links.Where(link => IsWebImageLink(link.Href)).ToArray(), "~medium", "~large", "~small", "~thumb")
+            ?? imageUrl;
+    }
+
+    private static string? SelectFullUrl(IReadOnlyCollection<NasaSearchLink> links, string? imageUrl)
+    {
+        return SelectPreferredLink(links.Where(link => IsWebImageLink(link.Href)).ToArray(), "~orig", "~large", "~medium", "~small", "~thumb")
+            ?? imageUrl;
+    }
+
     private static string? SelectPreferredLink(IReadOnlyCollection<NasaSearchLink> links, params string[] priorities)
     {
         foreach (string priority in priorities)
@@ -172,6 +234,24 @@ public sealed class NasaApiService : INasaApiService
         }
 
         return links.FirstOrDefault(link => !string.IsNullOrWhiteSpace(link.Href))?.Href;
+    }
+
+    private static string? ResolveKnownMetadata(
+        IReadOnlyCollection<string> candidates,
+        NasaSearchItemData data,
+        IReadOnlyCollection<string> keywords)
+    {
+        string searchableText = string.Join(
+            ' ',
+            [
+                data.Title ?? string.Empty,
+                data.Description ?? string.Empty,
+                data.Center ?? string.Empty,
+                .. keywords
+            ]);
+
+        return candidates.FirstOrDefault(candidate =>
+            searchableText.Contains(candidate, StringComparison.OrdinalIgnoreCase));
     }
 
     private static bool MatchesDateRange(NasaImageAsset image, NasaSearchCriteria criteria)

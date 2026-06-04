@@ -35,6 +35,11 @@ public sealed class NasaApiServiceTests
         Assert.Equal("https://images-assets.nasa.gov/image/NHQ201906010007/NHQ201906010007~large.jpg", image.ImageUrl);
         Assert.Equal("https://images-assets.nasa.gov/image/NHQ201906010007/NHQ201906010007~thumb.jpg", image.ThumbnailUrl);
         Assert.Equal("https://images.nasa.gov/details/NHQ201906010007", image.SourceUrl);
+        Assert.Equal("Curiosity", image.Rover);
+        Assert.Equal("Mastcam", image.Camera);
+        Assert.Equal("https://images-assets.nasa.gov/image/NHQ201906010007/NHQ201906010007~small.jpg", image.CardUrl);
+        Assert.Equal("https://images-assets.nasa.gov/image/NHQ201906010007/NHQ201906010007~medium.jpg", image.PreviewUrl);
+        Assert.Equal("https://images-assets.nasa.gov/image/NHQ201906010007/NHQ201906010007~large.jpg", image.FullUrl);
         Assert.Equal(1, result.TotalHits);
         Assert.Equal(2, result.Page);
         Assert.Equal(2, result.PageSize);
@@ -109,8 +114,8 @@ public sealed class NasaApiServiceTests
                   {
                     "center": "HQ",
                     "date_created": "2019-06-01T00:00:00Z",
-                    "description": "The Mars celebration.",
-                    "keywords": ["Mars", "Mars", "Celebration"],
+                    "description": "The Mars celebration captured by Curiosity Mastcam.",
+                    "keywords": ["Mars", "Mars", "Celebration", "Curiosity", "Mastcam"],
                     "media_type": "image",
                     "nasa_id": "NHQ201906010007",
                     "title": "Mars Celebration"
@@ -119,6 +124,11 @@ public sealed class NasaApiServiceTests
                 "links": [
                   {
                     "href": "https://images-assets.nasa.gov/image/NHQ201906010007/NHQ201906010007~medium.jpg",
+                    "rel": "alternate",
+                    "render": "image"
+                  },
+                  {
+                    "href": "https://images-assets.nasa.gov/image/NHQ201906010007/NHQ201906010007~small.jpg",
                     "rel": "alternate",
                     "render": "image"
                   },

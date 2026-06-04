@@ -10,6 +10,12 @@ public sealed class NasaImageDto
 
     public string? Center { get; set; }
 
+    public string? Mission { get; set; }
+
+    public string? Rover { get; set; }
+
+    public string? Camera { get; set; }
+
     public string MediaType { get; set; } = string.Empty;
 
     public string ThumbnailUrl { get; set; } = string.Empty;
@@ -19,6 +25,14 @@ public sealed class NasaImageDto
     public string? SourceUrl { get; set; }
 
     public DateTimeOffset? DateCreated { get; set; }
+
+    public string? DisplayDate { get; set; }
+
+    public string AspectRatio { get; set; } = "4/3";
+
+    public NasaImageUrlsDto Urls { get; set; } = new();
+
+    public NasaImageTimelineDto? Timeline { get; set; }
 
     public IReadOnlyCollection<string> Keywords { get; set; } = [];
 }

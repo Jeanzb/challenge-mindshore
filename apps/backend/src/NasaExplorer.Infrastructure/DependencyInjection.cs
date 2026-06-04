@@ -32,6 +32,7 @@ public static class DependencyInjection
         services.AddScoped<ICollectionExportFileService, PdfCollectionExportFileService>();
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
+        services.AddMemoryCache();
         services.Configure<NasaApiOptions>(options =>
         {
             options.BaseUrl = config["NASA_API_BASE_URL"]
@@ -40,14 +41,23 @@ public static class DependencyInjection
             options.ApiKey = config["NASA_API_KEY"]
                 ?? config[$"{NasaApiOptions.SectionName}:ApiKey"]
                 ?? string.Empty;
+            options.SearchCacheMinutes = ReadPositiveInt(
+                config["NASA_SEARCH_CACHE_MINUTES"],
+                config[$"{NasaApiOptions.SectionName}:SearchCacheMinutes"],
+                15);
+            options.AssetManifestCacheHours = ReadPositiveInt(
+                config["NASA_ASSET_CACHE_HOURS"],
+                config[$"{NasaApiOptions.SectionName}:AssetManifestCacheHours"],
+                12);
         });
-        services.AddHttpClient<INasaApiService, NasaApiService>((serviceProvider, client) =>
+        services.AddHttpClient<NasaApiService>((serviceProvider, client) =>
         {
             NasaApiOptions options = serviceProvider.GetRequiredService<IOptions<NasaApiOptions>>().Value;
 
             client.BaseAddress = new Uri(options.BaseUrl);
             client.Timeout = TimeSpan.FromSeconds(20);
         });
+        services.AddScoped<INasaApiService, CachedNasaApiService>();
         services.Configure<OpenAiOptions>(options =>
         {
             options.BaseUrl = config["OPENAI_BASE_URL"]
@@ -80,5 +90,14 @@ public static class DependencyInjection
         services.AddScoped<IJwtService, JwtService>();
 
         return services;
+    }
+
+    private static int ReadPositiveInt(string? environmentValue, string? configuredValue, int fallback)
+    {
+        string? value = environmentValue ?? configuredValue;
+
+        return int.TryParse(value, out int parsedValue) && parsedValue > 0
+            ? parsedValue
+            : fallback;
     }
 }
