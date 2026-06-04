@@ -125,15 +125,18 @@ internal sealed class StubAiEnrichmentService : IAiEnrichmentService
     private readonly AiImageEnrichmentResult _enrichmentResult;
     private readonly string _comparisonResult;
     private readonly IReadOnlyCollection<string> _tags;
+    private readonly string _semanticSearchResult;
 
     public StubAiEnrichmentService(
         AiImageEnrichmentResult? enrichmentResult = null,
         string comparisonResult = "Comparison analysis",
-        IReadOnlyCollection<string>? tags = null)
+        IReadOnlyCollection<string>? tags = null,
+        string semanticSearchResult = "semantic query")
     {
         _enrichmentResult = enrichmentResult ?? new AiImageEnrichmentResult("Description", ["fact"], "Context");
         _comparisonResult = comparisonResult;
         _tags = tags ?? ["mars"];
+        _semanticSearchResult = semanticSearchResult;
     }
 
     public int EnrichCalls { get; private set; }
@@ -175,6 +178,6 @@ internal sealed class StubAiEnrichmentService : IAiEnrichmentService
     {
         SemanticSearchCalls++;
 
-        return Task.FromResult(naturalLanguageQuery);
+        return Task.FromResult(_semanticSearchResult);
     }
 }
