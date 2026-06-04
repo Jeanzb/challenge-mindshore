@@ -46,6 +46,8 @@ internal sealed class FakeCollectionRepository : ICollectionRepository
 
     public Collection? AddedCollection { get; private set; }
 
+    public Collection? UpdatedCollection { get; private set; }
+
     public Task<Collection?> GetByIdForUserAsync(Guid id, Guid userId, CancellationToken cancellationToken = default)
     {
         LastRequestedCollectionId = id;
@@ -70,7 +72,9 @@ internal sealed class FakeCollectionRepository : ICollectionRepository
 
     public Task UpdateAsync(Collection collection, CancellationToken cancellationToken = default)
     {
-        throw new NotSupportedException();
+        UpdatedCollection = collection;
+
+        return Task.CompletedTask;
     }
 }
 
