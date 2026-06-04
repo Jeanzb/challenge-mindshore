@@ -8,6 +8,8 @@ public interface ICollectionRepository
 
     Task<IReadOnlyCollection<Collection>> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken = default);
 
+    Task<IReadOnlyCollection<CollectionImage>> GetImagesByIdsForUserAsync(IReadOnlyCollection<Guid> imageIds, Guid userId, CancellationToken cancellationToken = default);
+
     Task AddAsync(Collection collection, CancellationToken cancellationToken = default);
 
     Task UpdateAsync(Collection collection, CancellationToken cancellationToken = default);

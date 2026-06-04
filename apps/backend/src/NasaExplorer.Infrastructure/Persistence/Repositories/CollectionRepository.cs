@@ -36,6 +36,19 @@ public sealed class CollectionRepository : ICollectionRepository
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<IReadOnlyCollection<CollectionImage>> GetImagesByIdsForUserAsync(
+        IReadOnlyCollection<Guid> imageIds,
+        Guid userId,
+        CancellationToken cancellationToken = default)
+    {
+        return await _context.CollectionImages
+            .AsNoTracking()
+            .Include(image => image.SpaceImage)
+            .Where(image => imageIds.Contains(image.Id)
+                && _context.Collections.Any(collection => collection.Id == image.CollectionId && collection.UserId == userId))
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task AddAsync(Collection collection, CancellationToken cancellationToken = default)
     {
         await _context.Collections.AddAsync(collection, cancellationToken);

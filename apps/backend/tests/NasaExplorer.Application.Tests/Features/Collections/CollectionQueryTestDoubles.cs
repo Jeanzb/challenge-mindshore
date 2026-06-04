@@ -63,6 +63,22 @@ internal sealed class FakeCollectionRepository : ICollectionRepository
         return Task.FromResult(_collections);
     }
 
+    public Task<IReadOnlyCollection<CollectionImage>> GetImagesByIdsForUserAsync(
+        IReadOnlyCollection<Guid> imageIds,
+        Guid userId,
+        CancellationToken cancellationToken = default)
+    {
+        LastRequestedUserId = userId;
+
+        IReadOnlyCollection<CollectionImage> images = _collection is null
+            ? []
+            : _collection.Images
+                .Where(image => imageIds.Contains(image.Id))
+                .ToArray();
+
+        return Task.FromResult(images);
+    }
+
     public Task AddAsync(Collection collection, CancellationToken cancellationToken = default)
     {
         AddedCollection = collection;

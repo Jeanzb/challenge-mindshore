@@ -7,6 +7,7 @@ using NasaExplorer.Domain.Interfaces.Repositories;
 using NasaExplorer.Domain.Interfaces.Services;
 using NasaExplorer.Infrastructure.Auth;
 using NasaExplorer.Infrastructure.ExternalServices.NasaApi;
+using NasaExplorer.Infrastructure.ExternalServices.OpenAi;
 using NasaExplorer.Infrastructure.Persistence;
 using NasaExplorer.Infrastructure.Persistence.Repositories;
 
@@ -23,6 +24,7 @@ public static class DependencyInjection
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<ICollectionRepository, CollectionRepository>();
         services.AddScoped<IImageEnrichmentRepository, ImageEnrichmentRepository>();
+        services.AddScoped<IImageComparisonRepository, ImageComparisonRepository>();
         services.AddScoped<ISpaceImageRepository, SpaceImageRepository>();
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
@@ -41,6 +43,25 @@ public static class DependencyInjection
 
             client.BaseAddress = new Uri(options.BaseUrl);
             client.Timeout = TimeSpan.FromSeconds(20);
+        });
+        services.Configure<OpenAiOptions>(options =>
+        {
+            options.BaseUrl = config["OPENAI_BASE_URL"]
+                ?? config[$"{OpenAiOptions.SectionName}:BaseUrl"]
+                ?? "https://api.openai.com/v1/";
+            options.ApiKey = config["OPENAI_API_KEY"]
+                ?? config[$"{OpenAiOptions.SectionName}:ApiKey"]
+                ?? string.Empty;
+            options.Model = config["OPENAI_MODEL"]
+                ?? config[$"{OpenAiOptions.SectionName}:Model"]
+                ?? "gpt-4o-mini";
+        });
+        services.AddHttpClient<IAiEnrichmentService, AiEnrichmentService>((serviceProvider, client) =>
+        {
+            OpenAiOptions options = serviceProvider.GetRequiredService<IOptions<OpenAiOptions>>().Value;
+
+            client.BaseAddress = new Uri(options.BaseUrl);
+            client.Timeout = TimeSpan.FromSeconds(30);
         });
         services.Configure<JwtOptions>(options =>
         {
