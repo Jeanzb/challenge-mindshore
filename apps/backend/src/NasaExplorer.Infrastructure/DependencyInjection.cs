@@ -6,6 +6,7 @@ using NasaExplorer.Application.Common.Interfaces;
 using NasaExplorer.Domain.Interfaces.Repositories;
 using NasaExplorer.Domain.Interfaces.Services;
 using NasaExplorer.Infrastructure.Auth;
+using NasaExplorer.Infrastructure.Exports;
 using NasaExplorer.Infrastructure.ExternalServices.NasaApi;
 using NasaExplorer.Infrastructure.ExternalServices.OpenAi;
 using NasaExplorer.Infrastructure.Persistence;
@@ -27,6 +28,8 @@ public static class DependencyInjection
         services.AddScoped<IImageComparisonRepository, ImageComparisonRepository>();
         services.AddScoped<ISpaceImageRepository, SpaceImageRepository>();
         services.AddScoped<ITagRepository, TagRepository>();
+        services.AddScoped<ICollectionExportRepository, CollectionExportRepository>();
+        services.AddScoped<ICollectionExportFileService, PdfCollectionExportFileService>();
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
         services.Configure<NasaApiOptions>(options =>
