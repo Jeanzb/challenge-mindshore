@@ -1,0 +1,76 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-sans: "Inter", system-ui, sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+    --background: 222 47% 6%;
+    --foreground: 210 24% 92%;
+
+    --card: 222 42% 9%;
+    --card-foreground: 210 24% 92%;
+
+    --popover: 222 46% 8%;
+    --popover-foreground: 210 24% 92%;
+
+    --primary: 202 89% 55%;
+    --primary-foreground: 222 47% 7%;
+
+    --secondary: 217 28% 16%;
+    --secondary-foreground: 210 24% 92%;
+
+    --muted: 217 26% 14%;
+    --muted-foreground: 215 18% 62%;
+
+    --accent: 217 30% 18%;
+    --accent-foreground: 210 24% 95%;
+
+    --brand: 38 95% 56%;
+    --brand-foreground: 28 60% 8%;
+
+    --destructive: 0 72% 52%;
+    --destructive-foreground: 210 24% 96%;
+
+    --border: 217 26% 18%;
+    --input: 217 26% 18%;
+    --ring: 202 89% 55%;
+
+    --radius: 0.625rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    @apply bg-background;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer utilities {
+  .starfield {
+    background-color: hsl(var(--background));
+    background-image:
+      radial-gradient(1px 1px at 20% 30%, hsl(210 24% 80% / 0.7) 50%, transparent 50%),
+      radial-gradient(1px 1px at 75% 44%, hsl(210 24% 70% / 0.6) 50%, transparent 50%),
+      radial-gradient(1.5px 1.5px at 50% 70%, hsl(202 89% 70% / 0.5) 50%, transparent 50%),
+      radial-gradient(1px 1px at 88% 18%, hsl(210 24% 80% / 0.5) 50%, transparent 50%),
+      radial-gradient(1px 1px at 33% 85%, hsl(38 95% 70% / 0.4) 50%, transparent 50%);
+    background-size: 320px 320px, 280px 280px, 360px 360px, 240px 240px, 300px 300px;
+  }
+
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--border)) transparent;
+  }
+}
