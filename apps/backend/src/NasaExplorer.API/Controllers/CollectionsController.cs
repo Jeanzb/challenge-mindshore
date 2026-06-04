@@ -7,6 +7,7 @@ using NasaExplorer.Application.Features.Collections.Commands.CreateCollection;
 using NasaExplorer.Application.Features.Collections.Commands.DeleteCollection;
 using NasaExplorer.Application.Features.Collections.Commands.RemoveImageFromCollection;
 using NasaExplorer.Application.Features.Collections.Commands.UpdateCollection;
+using NasaExplorer.Application.Features.Collections.Commands.UpdateCollectionImageNote;
 using NasaExplorer.Application.Features.Collections.Queries.GetCollectionById;
 using NasaExplorer.Application.Features.Collections.Queries.GetCollections;
 
@@ -83,6 +84,20 @@ public sealed class CollectionsController : ControllerBase
         return NoContent();
     }
 
+    [HttpPut("{id:guid}/images/{imageId:guid}/note")]
+    public async Task<IActionResult> UpdateImageNote(
+        [FromRoute] Guid id,
+        [FromRoute] Guid imageId,
+        [FromBody] UpdateCollectionImageNoteRequest request,
+        CancellationToken cancellationToken)
+    {
+        CollectionImageDto result = await _mediator.Send(
+            new UpdateCollectionImageNoteCommand(id, imageId, request.UserNote),
+            cancellationToken);
+
+        return Ok(result);
+    }
+
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> Update(
         [FromRoute] Guid id,
@@ -106,6 +121,8 @@ public sealed class CollectionsController : ControllerBase
 }
 
 public sealed record UpdateCollectionRequest(string Name, string? Description);
+
+public sealed record UpdateCollectionImageNoteRequest(string? UserNote);
 
 public sealed record AddImageToCollectionRequest(
     string NasaImageId,
