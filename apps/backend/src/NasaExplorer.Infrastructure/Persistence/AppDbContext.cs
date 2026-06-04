@@ -18,6 +18,8 @@ public sealed class AppDbContext : DbContext
 
     public DbSet<CollectionImage> CollectionImages => Set<CollectionImage>();
 
+    public DbSet<CollectionExport> CollectionExports => Set<CollectionExport>();
+
     public DbSet<SpaceImage> SpaceImages => Set<SpaceImage>();
 
     public DbSet<ImageEnrichment> AiEnrichments => Set<ImageEnrichment>();

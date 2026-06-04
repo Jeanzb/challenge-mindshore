@@ -58,4 +58,11 @@ public static class DomainConstraints
         public const int ModelMaxLength = 120;
         public const int MinimumImageCount = 2;
     }
+
+    public static class CollectionExports
+    {
+        public const int FormatMaxLength = 40;
+        public const int FileNameMaxLength = 255;
+        public const int FileUrlMaxLength = 1_000;
+    }
 }

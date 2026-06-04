@@ -50,5 +50,10 @@ public sealed class CollectionConfiguration : IEntityTypeConfiguration<Collectio
             .WithOne()
             .HasForeignKey(image => image.CollectionId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasMany(collection => collection.Exports)
+            .WithOne(export => export.Collection)
+            .HasForeignKey(export => export.CollectionId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

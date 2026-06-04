@@ -9,6 +9,7 @@ public sealed class Collection
     {
         Name = string.Empty;
         Images = [];
+        Exports = [];
     }
 
     private Collection(Guid userId, string name, string? description, DateTimeOffset createdAt)
@@ -20,6 +21,7 @@ public sealed class Collection
         CreatedAt = Guard.AgainstDefault(createdAt, nameof(createdAt));
         UpdatedAt = CreatedAt;
         Images = [];
+        Exports = [];
     }
 
     public Guid Id { get; private set; }
@@ -39,6 +41,8 @@ public sealed class Collection
     public DateTimeOffset? DeletedAt { get; private set; }
 
     public ICollection<CollectionImage> Images { get; private set; }
+
+    public ICollection<CollectionExport> Exports { get; private set; }
 
     public static Collection Create(Guid userId, string name, string? description, DateTimeOffset createdAt)
     {
