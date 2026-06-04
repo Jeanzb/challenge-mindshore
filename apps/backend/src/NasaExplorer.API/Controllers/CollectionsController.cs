@@ -5,6 +5,7 @@ using NasaExplorer.Application.DTOs.Collections;
 using NasaExplorer.Application.Features.Collections.Commands.AddImageToCollection;
 using NasaExplorer.Application.Features.Collections.Commands.CreateCollection;
 using NasaExplorer.Application.Features.Collections.Commands.DeleteCollection;
+using NasaExplorer.Application.Features.Collections.Commands.RemoveImageFromCollection;
 using NasaExplorer.Application.Features.Collections.Commands.UpdateCollection;
 using NasaExplorer.Application.Features.Collections.Queries.GetCollectionById;
 using NasaExplorer.Application.Features.Collections.Queries.GetCollections;
@@ -69,6 +70,17 @@ public sealed class CollectionsController : ControllerBase
             cancellationToken);
 
         return CreatedAtAction(nameof(GetById), new { id }, result);
+    }
+
+    [HttpDelete("{id:guid}/images/{imageId:guid}")]
+    public async Task<IActionResult> RemoveImage(
+        [FromRoute] Guid id,
+        [FromRoute] Guid imageId,
+        CancellationToken cancellationToken)
+    {
+        await _mediator.Send(new RemoveImageFromCollectionCommand(id, imageId), cancellationToken);
+
+        return NoContent();
     }
 
     [HttpPut("{id:guid}")]
