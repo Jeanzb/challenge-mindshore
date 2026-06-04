@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NasaExplorer.Application.DTOs.Collections;
+using NasaExplorer.Application.Features.Collections.Commands.AddImageToCollection;
 using NasaExplorer.Application.Features.Collections.Commands.CreateCollection;
 using NasaExplorer.Application.Features.Collections.Commands.DeleteCollection;
 using NasaExplorer.Application.Features.Collections.Commands.UpdateCollection;
@@ -42,6 +43,34 @@ public sealed class CollectionsController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
     }
 
+    [HttpPost("{id:guid}/images")]
+    public async Task<IActionResult> AddImage(
+        [FromRoute] Guid id,
+        [FromBody] AddImageToCollectionRequest request,
+        CancellationToken cancellationToken)
+    {
+        CollectionImageDto result = await _mediator.Send(
+            new AddImageToCollectionCommand(
+                id,
+                request.NasaImageId,
+                request.Title,
+                request.Description,
+                request.ImageUrl,
+                request.ThumbnailUrl,
+                request.SourceUrl,
+                request.MediaType,
+                request.Center,
+                request.Mission,
+                request.Rover,
+                request.Camera,
+                request.DateCreated,
+                request.Keywords,
+                request.UserNote),
+            cancellationToken);
+
+        return CreatedAtAction(nameof(GetById), new { id }, result);
+    }
+
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> Update(
         [FromRoute] Guid id,
@@ -65,3 +94,19 @@ public sealed class CollectionsController : ControllerBase
 }
 
 public sealed record UpdateCollectionRequest(string Name, string? Description);
+
+public sealed record AddImageToCollectionRequest(
+    string NasaImageId,
+    string Title,
+    string? Description,
+    string ImageUrl,
+    string? ThumbnailUrl,
+    string? SourceUrl,
+    string MediaType,
+    string? Center,
+    string? Mission,
+    string? Rover,
+    string? Camera,
+    DateTimeOffset? DateCreated,
+    string? Keywords,
+    string? UserNote);
