@@ -23,6 +23,8 @@ public static class DependencyInjection
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<ICollectionRepository, CollectionRepository>();
         services.AddScoped<IImageEnrichmentRepository, ImageEnrichmentRepository>();
+        services.AddHttpContextAccessor();
+        services.AddScoped<ICurrentUserService, CurrentUserService>();
         services.Configure<NasaApiOptions>(options =>
         {
             options.BaseUrl = config["NASA_API_BASE_URL"]
