@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NasaExplorer.Application.DTOs.Collections;
 using NasaExplorer.Application.Features.Collections.Commands.CreateCollection;
+using NasaExplorer.Application.Features.Collections.Commands.UpdateCollection;
 using NasaExplorer.Application.Features.Collections.Queries.GetCollectionById;
 using NasaExplorer.Application.Features.Collections.Queries.GetCollections;
 
@@ -39,4 +40,19 @@ public sealed class CollectionsController : ControllerBase
 
         return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
     }
+
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> Update(
+        [FromRoute] Guid id,
+        [FromBody] UpdateCollectionRequest request,
+        CancellationToken cancellationToken)
+    {
+        CollectionSummaryDto result = await _mediator.Send(
+            new UpdateCollectionCommand(id, request.Name, request.Description),
+            cancellationToken);
+
+        return Ok(result);
+    }
 }
+
+public sealed record UpdateCollectionRequest(string Name, string? Description);
