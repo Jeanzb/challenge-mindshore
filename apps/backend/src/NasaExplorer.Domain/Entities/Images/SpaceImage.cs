@@ -13,6 +13,7 @@ public sealed class SpaceImage
         MediaType = string.Empty;
         Enrichments = [];
         ImageTags = [];
+        ComparisonItems = [];
     }
 
     private SpaceImage(
@@ -49,6 +50,7 @@ public sealed class SpaceImage
         UpdatedAt = CreatedAt;
         Enrichments = [];
         ImageTags = [];
+        ComparisonItems = [];
     }
 
     public Guid Id { get; private set; }
@@ -86,6 +88,8 @@ public sealed class SpaceImage
     public ICollection<ImageEnrichment> Enrichments { get; private set; }
 
     public ICollection<ImageTag> ImageTags { get; private set; }
+
+    public ICollection<ImageComparisonItem> ComparisonItems { get; private set; }
 
     public static SpaceImage Create(
         string nasaId,

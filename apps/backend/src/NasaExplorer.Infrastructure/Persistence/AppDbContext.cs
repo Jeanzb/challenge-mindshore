@@ -26,6 +26,10 @@ public sealed class AppDbContext : DbContext
 
     public DbSet<ImageTag> ImageTags => Set<ImageTag>();
 
+    public DbSet<ImageComparison> ImageComparisons => Set<ImageComparison>();
+
+    public DbSet<ImageComparisonItem> ImageComparisonItems => Set<ImageComparisonItem>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);

@@ -49,4 +49,13 @@ public static class DomainConstraints
         public const int NameMaxLength = 80;
         public const int NormalizedNameMaxLength = 80;
     }
+
+    public static class ImageComparisons
+    {
+        public const int TitleMaxLength = 180;
+        public const int AnalysisMaxLength = 8_000;
+        public const int PromptMaxLength = 8_000;
+        public const int ModelMaxLength = 120;
+        public const int MinimumImageCount = 2;
+    }
 }
