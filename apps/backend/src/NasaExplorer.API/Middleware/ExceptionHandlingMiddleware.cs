@@ -34,6 +34,13 @@ public sealed class ExceptionHandlingMiddleware
                 message = exception.Message
             });
         }
+        catch (NotFoundException exception)
+        {
+            await WriteResponseAsync(context, StatusCodes.Status404NotFound, new
+            {
+                message = exception.Message
+            });
+        }
         catch (Exception exception)
         {
             _logger.LogError(exception, "Unhandled request exception.");
