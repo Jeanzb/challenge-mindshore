@@ -53,4 +53,9 @@ public sealed class CollectionImage
     {
         return new CollectionImage(collectionId, spaceImageId, userNote, sortOrder, createdAt);
     }
+
+    public void UpdateNote(string? userNote)
+    {
+        UserNote = Guard.OptionalString(userNote, nameof(userNote), DomainConstraints.CollectionImages.UserNoteMaxLength);
+    }
 }
