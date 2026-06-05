@@ -34,6 +34,7 @@ export function SearchResultsGrid({
   const setSearchViewMode = useUiStore(uiSelectors.setSearchViewModeAction);
   const semanticSearchEnabled = useUiStore(uiSelectors.semanticSearchEnabled);
   const setSemanticSearchEnabled = useUiStore(uiSelectors.setSemanticSearchEnabledAction);
+  const hasNoResults = !isLoading && images.length === 0 && !isUsingFallback;
 
   const showGrid = () => {
     setSearchViewMode("grid");
@@ -123,16 +124,28 @@ export function SearchResultsGrid({
           <div
             className={cn(
               "grid gap-4",
+              hasNoResults && "h-full place-items-center",
               searchViewMode === "grid"
                 ? "grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"
                 : "grid-cols-1 lg:grid-cols-2"
             )}
           >
-            {isLoading ? skeletonKeys.map(renderSkeleton) : images.map(renderSearchImage)}
+            {isLoading ? skeletonKeys.map(renderSkeleton) : hasNoResults ? <SearchEmptyState /> : images.map(renderSearchImage)}
           </div>
         </div>
       </div>
     </section>
+  );
+}
+
+function SearchEmptyState() {
+  return (
+    <div className="max-w-sm rounded-lg border border-white/10 bg-space-panel px-6 py-8 text-center shadow-sm shadow-black/20">
+      <p className="text-sm font-semibold text-white">No NASA images found</p>
+      <p className="mt-2 text-sm leading-6 text-muted-foreground">
+        Try a broader mission, camera, date range, or search query.
+      </p>
+    </div>
   );
 }
 

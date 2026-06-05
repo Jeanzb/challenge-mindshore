@@ -16,7 +16,7 @@ import { useUiStore, uiSelectors } from "@/store";
 import type { NasaImage } from "@/types/search";
 
 type SearchInspectorProps = {
-  fallbackImage: NasaImage;
+  fallbackImage?: NasaImage;
 };
 
 const renderKeyword = (keyword: string) => (
@@ -34,6 +34,22 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
   const closeInspector = useUiStore(uiSelectors.closeInspectorAction);
   const openInspector = useUiStore(uiSelectors.openInspectorAction);
   const addCompareImage = useUiStore(uiSelectors.addCompareImageAction);
+
+  if (selectedImage === undefined) {
+    return (
+      <aside className="hidden min-h-0 border-l border-white/10 bg-space-shell/70 lg:block" aria-label="Selected image">
+        <div className="flex h-full items-center justify-center px-6 text-center">
+          <div>
+            <p className="text-xs font-semibold uppercase text-muted-foreground">Selected Image</p>
+            <h2 className="mt-2 text-base font-semibold text-white">No image selected</h2>
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">
+              Adjust the filters or choose a saved search to load NASA imagery.
+            </p>
+          </div>
+        </div>
+      </aside>
+    );
+  }
 
   const handleCompare = () => {
     addCompareImage(selectedImage.nasaImageId);
