@@ -91,7 +91,11 @@ export function AuthCard() {
     }
 
     const updatePanelHeight = (): void => {
-      setPanelHeight(activePanel.scrollHeight);
+      const activePanelStyles = window.getComputedStyle(activePanel);
+      const verticalMargin =
+        Number.parseFloat(activePanelStyles.marginTop) + Number.parseFloat(activePanelStyles.marginBottom);
+
+      setPanelHeight(activePanel.scrollHeight + verticalMargin);
     };
 
     updatePanelHeight();
