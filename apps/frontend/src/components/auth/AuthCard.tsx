@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuthSession } from "@/hooks/auth";
+import { cn } from "@/lib/utils";
 
 const loginSchema = z.object({
   email: z.string().email("Enter a valid email."),
@@ -96,21 +97,31 @@ export function AuthCard() {
         Welcome back, explorer. Sign in to your cosmic archive.
       </p>
       <Tabs value={authMode} onValueChange={handleAuthModeChange} className="w-full">
-        <TabsList className="grid h-10 w-full grid-cols-2 rounded-full bg-[#263044] p-1">
+        <TabsList className="relative grid h-11 w-full grid-cols-2 overflow-hidden rounded-full border border-white/10 bg-space-void/35 p-1 shadow-inner shadow-black/35">
+          <span
+            aria-hidden="true"
+            className={cn(
+              "absolute bottom-1 left-1 top-1 w-[calc(50%-0.25rem)] rounded-full bg-gradient-to-r from-space-orange to-[#ffc06f] shadow-[0_0_22px_rgba(249,160,63,0.24)] transition-transform duration-300 ease-out",
+              authMode === "register" && "translate-x-full"
+            )}
+          />
           <TabsTrigger
             value="signin"
-            className="rounded-full text-xs data-[state=active]:bg-space-orange data-[state=active]:text-space-void"
+            className="relative z-10 h-9 rounded-full bg-transparent text-xs text-muted-foreground shadow-none transition-colors duration-200 hover:text-white data-[state=active]:bg-transparent data-[state=active]:text-space-void data-[state=active]:shadow-none"
           >
             Sign In
           </TabsTrigger>
           <TabsTrigger
             value="register"
-            className="rounded-full text-xs data-[state=active]:bg-space-orange data-[state=active]:text-space-void"
+            className="relative z-10 h-9 rounded-full bg-transparent text-xs text-muted-foreground shadow-none transition-colors duration-200 hover:text-white data-[state=active]:bg-transparent data-[state=active]:text-space-void data-[state=active]:shadow-none"
           >
             Create Account
           </TabsTrigger>
         </TabsList>
-        <TabsContent value="signin" className="mt-6">
+        <TabsContent
+          value="signin"
+          className="mt-6 duration-200 data-[state=active]:animate-in data-[state=active]:fade-in-50 data-[state=active]:slide-in-from-bottom-1"
+        >
           <Form {...loginForm}>
             <form onSubmit={loginForm.handleSubmit(handleLoginSubmit)} className="space-y-5">
               <FormField
@@ -139,12 +150,7 @@ export function AuthCard() {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <div className="flex items-center justify-between">
-                      <FormLabel className="text-xs text-white">Password</FormLabel>
-                      <button type="button" className="text-xs font-medium text-space-cyan">
-                        Forgot password?
-                      </button>
-                    </div>
+                    <FormLabel className="text-xs text-white">Password</FormLabel>
                     <div className="relative">
                       <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                       <FormControl>
@@ -180,7 +186,10 @@ export function AuthCard() {
             </form>
           </Form>
         </TabsContent>
-        <TabsContent value="register" className="mt-6">
+        <TabsContent
+          value="register"
+          className="mt-6 duration-200 data-[state=active]:animate-in data-[state=active]:fade-in-50 data-[state=active]:slide-in-from-bottom-1"
+        >
           <Form {...registerForm}>
             <form onSubmit={registerForm.handleSubmit(handleRegisterSubmit)} className="space-y-5">
               <FormField
@@ -270,20 +279,16 @@ export function AuthCard() {
         </TabsContent>
       </Tabs>
       {authError ? <p className="mt-4 text-center text-xs text-destructive">{authError.message}</p> : null}
-      <div className="my-6 flex items-center gap-3">
-        <Separator className="bg-white/10" />
+      <div className="my-6 flex w-full min-w-0 items-center gap-3 overflow-hidden">
+        <Separator className="min-w-0 flex-1 bg-white/10" />
         <span className="text-xs text-muted-foreground">OR</span>
-        <Separator className="bg-white/10" />
+        <Separator className="min-w-0 flex-1 bg-white/10" />
       </div>
       <p className="text-center text-sm text-muted-foreground">
         New to Cosmara?{" "}
         <button type="button" onClick={showRegisterTab} className="font-semibold text-space-orange">
           Create an account
         </button>
-      </p>
-      <p className="mt-7 text-center text-[11px] leading-5 text-muted-foreground">
-        By continuing, you agree to our <span className="text-space-cyan">Terms of Service</span> and{" "}
-        <span className="text-space-cyan">Privacy Policy</span>.
       </p>
     </div>
   );
