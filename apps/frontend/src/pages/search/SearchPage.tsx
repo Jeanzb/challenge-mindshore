@@ -1,13 +1,10 @@
-import { AppShell, FeaturePlaceholder } from "@/components/app";
+import { AppShell } from "@/components/app";
+import { SearchDashboard } from "@/components/search";
 
 export function SearchPage() {
   return (
-    <AppShell>
-      <FeaturePlaceholder
-        eyebrow="Explore"
-        title="NASA image search"
-        description="The dashboard will render normalized NASA image results with filters, skeleton loading, smart prefetching, and an image inspector."
-      />
+    <AppShell contentClassName="overflow-hidden">
+      <SearchDashboard />
     </AppShell>
   );
 }

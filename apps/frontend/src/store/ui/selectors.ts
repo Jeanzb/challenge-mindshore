@@ -28,6 +28,24 @@ const isImageInComparison =
   (state: UiStore): boolean =>
     state.compareImageIds.includes(nasaImageId);
 
+const selectImageAction = (state: UiStore) => state.selectImage;
+
+const clearSelectedImageAction = (state: UiStore) => state.clearSelectedImage;
+
+const openInspectorAction = (state: UiStore) => state.openInspector;
+
+const closeInspectorAction = (state: UiStore) => state.closeInspector;
+
+const setTimelinePanelStateAction = (state: UiStore) => state.setTimelinePanelState;
+
+const setSearchViewModeAction = (state: UiStore) => state.setSearchViewMode;
+
+const setSemanticSearchEnabledAction = (state: UiStore) => state.setSemanticSearchEnabled;
+
+const addCompareImageAction = (state: UiStore) => state.addCompareImage;
+
+const removeCompareImageAction = (state: UiStore) => state.removeCompareImage;
+
 export const uiSelectors = {
   currentLanguage,
   selectedImage,
@@ -39,5 +57,14 @@ export const uiSelectors = {
   compareImageIds,
   canCompareImages,
   isImageSelected,
-  isImageInComparison
+  isImageInComparison,
+  selectImageAction,
+  clearSelectedImageAction,
+  openInspectorAction,
+  closeInspectorAction,
+  setTimelinePanelStateAction,
+  setSearchViewModeAction,
+  setSemanticSearchEnabledAction,
+  addCompareImageAction,
+  removeCompareImageAction
 };
