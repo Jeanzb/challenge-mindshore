@@ -31,6 +31,7 @@
   }
 
   body {
+    position: relative;
     min-width: 320px;
     min-height: 100vh;
     margin: 0;
@@ -41,6 +42,30 @@
     font-feature-settings:
       "rlig" 1,
       "calt" 1;
+  }
+
+  body::before {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background-image:
+      radial-gradient(circle at 18% 22%, rgba(255, 255, 255, 0.18) 0 1px, transparent 1px),
+      radial-gradient(circle at 70% 18%, rgba(255, 255, 255, 0.14) 0 1px, transparent 1px),
+      radial-gradient(circle at 88% 68%, rgba(56, 198, 220, 0.16) 0 1px, transparent 1px),
+      linear-gradient(135deg, rgba(3, 5, 10, 0.82), rgba(7, 16, 29, 0.88));
+    background-size:
+      180px 180px,
+      260px 260px,
+      320px 320px,
+      cover;
+    content: "";
+    pointer-events: none;
+  }
+
+  #root {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
   }
 
   * {
