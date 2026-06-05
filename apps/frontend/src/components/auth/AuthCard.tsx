@@ -246,7 +246,7 @@ export function AuthCard() {
                           <Input
                             type="text"
                             autoComplete="name"
-                            placeholder="Aman Verma"
+                            placeholder="Katherine Johnson"
                             className="h-10 rounded-xl border-white/15 bg-space-void/30 pl-10 text-sm text-white placeholder:text-muted-foreground focus-visible:ring-space-cyan/60"
                             {...field}
                           />

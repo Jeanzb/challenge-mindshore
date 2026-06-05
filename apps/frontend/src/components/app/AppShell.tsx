@@ -91,9 +91,9 @@ export function AppShell({ children, contentClassName }: AppShellProps) {
               className="flex h-10 items-center gap-2 rounded-full border border-white/10 bg-space-panel px-2 pr-3 text-left text-sm text-foreground shadow-sm shadow-black/20 transition-colors hover:bg-space-panelStrong"
             >
               <Avatar className="h-7 w-7 border border-space-orange/30">
-                <AvatarFallback className="bg-space-orange text-xs font-semibold text-space-void">AV</AvatarFallback>
+                <AvatarFallback className="bg-space-orange text-xs font-semibold text-space-void">KJ</AvatarFallback>
               </Avatar>
-              <span className="hidden font-medium sm:inline">Aman Verma</span>
+              <span className="hidden font-medium sm:inline">Katherine Johnson</span>
               <ChevronDown className="h-4 w-4 text-muted-foreground" />
             </button>
           </div>
