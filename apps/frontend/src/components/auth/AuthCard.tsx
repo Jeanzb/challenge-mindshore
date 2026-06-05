@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowRight, Eye, Lock, Mail, Orbit, User } from "lucide-react";
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -35,8 +35,11 @@ type AuthMode = "signin" | "register";
 
 export function AuthCard() {
   const [authMode, setAuthMode] = useState<AuthMode>("signin");
+  const [panelHeight, setPanelHeight] = useState<number | null>(null);
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [showRegisterPassword, setShowRegisterPassword] = useState(false);
+  const signInPanelRef = useRef<HTMLDivElement>(null);
+  const registerPanelRef = useRef<HTMLDivElement>(null);
   const { login, register, isLoggingIn, isRegistering, authError } = useAuthSession();
 
   const loginForm = useForm<LoginFormValues>({
@@ -80,8 +83,29 @@ export function AuthCard() {
     setAuthMode("register");
   };
 
+  useLayoutEffect(() => {
+    const activePanel = authMode === "signin" ? signInPanelRef.current : registerPanelRef.current;
+
+    if (!activePanel) {
+      return undefined;
+    }
+
+    const updatePanelHeight = (): void => {
+      setPanelHeight(activePanel.scrollHeight);
+    };
+
+    updatePanelHeight();
+
+    const resizeObserver = new ResizeObserver(updatePanelHeight);
+    resizeObserver.observe(activePanel);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [authMode]);
+
   return (
-    <div className="w-full max-w-[420px] rounded-2xl border border-white/10 bg-[#111827]/92 px-8 py-8 shadow-2xl shadow-black/45 backdrop-blur-xl">
+    <div className="w-full max-w-[420px] overflow-hidden rounded-2xl border border-white/10 bg-[#111827]/92 px-8 py-8 shadow-2xl shadow-black/45 backdrop-blur-xl transition-[box-shadow,transform] duration-300 ease-out">
       <div className="mb-6 flex items-center justify-center gap-4">
         <span className="flex h-10 w-10 items-center justify-center text-space-orange">
           <Orbit className="h-7 w-7" />
@@ -118,165 +142,184 @@ export function AuthCard() {
             Create Account
           </TabsTrigger>
         </TabsList>
-        <TabsContent
-          value="signin"
-          className="mt-6 duration-200 data-[state=active]:animate-in data-[state=active]:fade-in-50 data-[state=active]:slide-in-from-bottom-1"
+        <div
+          className="relative overflow-hidden transition-[height] duration-500 ease-out will-change-[height]"
+          style={{ height: panelHeight === null ? undefined : `${panelHeight}px` }}
         >
-          <Form {...loginForm}>
-            <form onSubmit={loginForm.handleSubmit(handleLoginSubmit)} className="space-y-5">
-              <FormField
-                control={loginForm.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-xs text-white">Email</FormLabel>
-                    <div className="relative">
-                      <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                      <FormControl>
-                        <Input
-                          type="email"
-                          autoComplete="email"
-                          className="h-10 rounded-xl border-white/15 bg-space-void/30 pl-10 text-sm text-white placeholder:text-muted-foreground focus-visible:ring-space-cyan/60"
-                          {...field}
-                        />
-                      </FormControl>
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={loginForm.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-xs text-white">Password</FormLabel>
-                    <div className="relative">
-                      <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                      <FormControl>
-                        <Input
-                          type={showLoginPassword ? "text" : "password"}
-                          autoComplete="current-password"
-                          className="h-10 rounded-xl border-white/15 bg-space-void/30 pl-10 pr-10 text-sm text-white placeholder:text-muted-foreground focus-visible:ring-space-cyan/60"
-                          {...field}
-                        />
-                      </FormControl>
-                      <button
-                        type="button"
-                        onClick={toggleLoginPassword}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-white"
-                        aria-label="Toggle password visibility"
-                      >
-                        <Eye className="h-4 w-4" />
-                      </button>
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button
-                type="submit"
-                data-cy="save-btn"
-                disabled={isLoggingIn}
-                className="h-11 w-full rounded-xl bg-space-orange text-sm font-semibold text-space-void hover:bg-space-orange/90"
-              >
-                <ArrowRight className="h-4 w-4" />
-                Sign In
-              </Button>
-            </form>
-          </Form>
-        </TabsContent>
-        <TabsContent
-          value="register"
-          className="mt-6 duration-200 data-[state=active]:animate-in data-[state=active]:fade-in-50 data-[state=active]:slide-in-from-bottom-1"
-        >
-          <Form {...registerForm}>
-            <form onSubmit={registerForm.handleSubmit(handleRegisterSubmit)} className="space-y-5">
-              <FormField
-                control={registerForm.control}
-                name="displayName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-xs text-white">Name</FormLabel>
-                    <div className="relative">
-                      <User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                      <FormControl>
-                        <Input
-                          type="text"
-                          autoComplete="name"
-                          placeholder="Aman Verma"
-                          className="h-10 rounded-xl border-white/15 bg-space-void/30 pl-10 text-sm text-white placeholder:text-muted-foreground focus-visible:ring-space-cyan/60"
-                          {...field}
-                        />
-                      </FormControl>
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={registerForm.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-xs text-white">Email</FormLabel>
-                    <div className="relative">
-                      <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                      <FormControl>
-                        <Input
-                          type="email"
-                          autoComplete="email"
-                          placeholder="explorer@cosmara.io"
-                          className="h-10 rounded-xl border-white/15 bg-space-void/30 pl-10 text-sm text-white placeholder:text-muted-foreground focus-visible:ring-space-cyan/60"
-                          {...field}
-                        />
-                      </FormControl>
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={registerForm.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-xs text-white">Password</FormLabel>
-                    <div className="relative">
-                      <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                      <FormControl>
-                        <Input
-                          type={showRegisterPassword ? "text" : "password"}
-                          autoComplete="new-password"
-                          className="h-10 rounded-xl border-white/15 bg-space-void/30 pl-10 pr-10 text-sm text-white placeholder:text-muted-foreground focus-visible:ring-space-cyan/60"
-                          {...field}
-                        />
-                      </FormControl>
-                      <button
-                        type="button"
-                        onClick={toggleRegisterPassword}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-white"
-                        aria-label="Toggle password visibility"
-                      >
-                        <Eye className="h-4 w-4" />
-                      </button>
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button
-                type="submit"
-                data-cy="save-btn"
-                disabled={isRegistering}
-                className="h-11 w-full rounded-xl bg-space-orange text-sm font-semibold text-space-void hover:bg-space-orange/90"
-              >
-                <ArrowRight className="h-4 w-4" />
-                Create Account
-              </Button>
-            </form>
-          </Form>
-        </TabsContent>
+          <TabsContent
+            ref={signInPanelRef}
+            forceMount
+            value="signin"
+            className={cn(
+              "mt-6 transition-[opacity,transform] duration-300 ease-out [&[hidden]]:block",
+              authMode === "signin"
+                ? "relative opacity-100 translate-y-0"
+                : "pointer-events-none absolute inset-x-0 top-0 -translate-y-2 opacity-0"
+            )}
+          >
+            <Form {...loginForm}>
+              <form onSubmit={loginForm.handleSubmit(handleLoginSubmit)} className="space-y-5">
+                <FormField
+                  control={loginForm.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-xs text-white">Email</FormLabel>
+                      <div className="relative">
+                        <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <FormControl>
+                          <Input
+                            type="email"
+                            autoComplete="email"
+                            className="h-10 rounded-xl border-white/15 bg-space-void/30 pl-10 text-sm text-white placeholder:text-muted-foreground focus-visible:ring-space-cyan/60"
+                            {...field}
+                          />
+                        </FormControl>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={loginForm.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-xs text-white">Password</FormLabel>
+                      <div className="relative">
+                        <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <FormControl>
+                          <Input
+                            type={showLoginPassword ? "text" : "password"}
+                            autoComplete="current-password"
+                            className="h-10 rounded-xl border-white/15 bg-space-void/30 pl-10 pr-10 text-sm text-white placeholder:text-muted-foreground focus-visible:ring-space-cyan/60"
+                            {...field}
+                          />
+                        </FormControl>
+                        <button
+                          type="button"
+                          onClick={toggleLoginPassword}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-white"
+                          aria-label="Toggle password visibility"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </button>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button
+                  type="submit"
+                  data-cy="save-btn"
+                  disabled={isLoggingIn}
+                  className="h-11 w-full rounded-xl bg-space-orange text-sm font-semibold text-space-void transition-[background-color,transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:bg-space-orange/90 hover:shadow-lg hover:shadow-space-orange/15"
+                >
+                  <ArrowRight className="h-4 w-4" />
+                  Sign In
+                </Button>
+              </form>
+            </Form>
+          </TabsContent>
+          <TabsContent
+            ref={registerPanelRef}
+            forceMount
+            value="register"
+            className={cn(
+              "mt-6 transition-[opacity,transform] duration-300 ease-out [&[hidden]]:block",
+              authMode === "register"
+                ? "relative opacity-100 translate-y-0"
+                : "pointer-events-none absolute inset-x-0 top-0 translate-y-2 opacity-0"
+            )}
+          >
+            <Form {...registerForm}>
+              <form onSubmit={registerForm.handleSubmit(handleRegisterSubmit)} className="space-y-5">
+                <FormField
+                  control={registerForm.control}
+                  name="displayName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-xs text-white">Name</FormLabel>
+                      <div className="relative">
+                        <User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <FormControl>
+                          <Input
+                            type="text"
+                            autoComplete="name"
+                            placeholder="Aman Verma"
+                            className="h-10 rounded-xl border-white/15 bg-space-void/30 pl-10 text-sm text-white placeholder:text-muted-foreground focus-visible:ring-space-cyan/60"
+                            {...field}
+                          />
+                        </FormControl>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={registerForm.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-xs text-white">Email</FormLabel>
+                      <div className="relative">
+                        <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <FormControl>
+                          <Input
+                            type="email"
+                            autoComplete="email"
+                            placeholder="explorer@cosmara.io"
+                            className="h-10 rounded-xl border-white/15 bg-space-void/30 pl-10 text-sm text-white placeholder:text-muted-foreground focus-visible:ring-space-cyan/60"
+                            {...field}
+                          />
+                        </FormControl>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={registerForm.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-xs text-white">Password</FormLabel>
+                      <div className="relative">
+                        <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <FormControl>
+                          <Input
+                            type={showRegisterPassword ? "text" : "password"}
+                            autoComplete="new-password"
+                            className="h-10 rounded-xl border-white/15 bg-space-void/30 pl-10 pr-10 text-sm text-white placeholder:text-muted-foreground focus-visible:ring-space-cyan/60"
+                            {...field}
+                          />
+                        </FormControl>
+                        <button
+                          type="button"
+                          onClick={toggleRegisterPassword}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-white"
+                          aria-label="Toggle password visibility"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </button>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button
+                  type="submit"
+                  data-cy="save-btn"
+                  disabled={isRegistering}
+                  className="h-11 w-full rounded-xl bg-space-orange text-sm font-semibold text-space-void transition-[background-color,transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:bg-space-orange/90 hover:shadow-lg hover:shadow-space-orange/15"
+                >
+                  <ArrowRight className="h-4 w-4" />
+                  Create Account
+                </Button>
+              </form>
+            </Form>
+          </TabsContent>
+        </div>
       </Tabs>
       {authError ? <p className="mt-4 text-center text-xs text-destructive">{authError.message}</p> : null}
       <div className="my-6 flex w-full min-w-0 items-center gap-3 overflow-hidden">
