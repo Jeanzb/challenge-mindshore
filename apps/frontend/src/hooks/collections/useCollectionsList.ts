@@ -3,6 +3,8 @@ import { queryKeys } from "@/constants";
 import { CollectionsService } from "@/services/collections";
 import type { CollectionSummary, CreateCollectionRequest } from "@/types/collections";
 
+const emptyCollections: readonly CollectionSummary[] = [];
+
 type UseCollectionsListOptions = {
   enabled?: boolean;
 };
@@ -36,7 +38,7 @@ export const useCollectionsList = (options: UseCollectionsListOptions = {}) => {
   });
 
   return {
-    collections: collectionsQuery.data ?? [],
+    collections: collectionsQuery.data ?? emptyCollections,
     isLoading: collectionsQuery.isLoading,
     isFetching: collectionsQuery.isFetching,
     error: collectionsQuery.error,

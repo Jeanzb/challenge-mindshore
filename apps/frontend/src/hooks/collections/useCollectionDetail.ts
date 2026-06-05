@@ -4,10 +4,13 @@ import { CollectionsService } from "@/services/collections";
 import type {
   AddImageToCollectionRequest,
   Collection,
+  CollectionImage,
   CollectionSummary,
   UpdateCollectionImageNoteRequest,
   UpdateCollectionRequest
 } from "@/types/collections";
+
+const emptyCollectionImages: readonly CollectionImage[] = [];
 
 type UseCollectionDetailOptions = {
   collectionId?: string;
@@ -103,7 +106,7 @@ export const useCollectionDetail = (options: UseCollectionDetailOptions) => {
 
   return {
     collection: collectionQuery.data,
-    images: collectionQuery.data?.images ?? [],
+    images: collectionQuery.data?.images ?? emptyCollectionImages,
     isLoading: collectionQuery.isLoading,
     isFetching: collectionQuery.isFetching,
     error: collectionQuery.error,
