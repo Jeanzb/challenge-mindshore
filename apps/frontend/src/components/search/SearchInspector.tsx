@@ -1,15 +1,7 @@
-import {
-  ChevronDown,
-  Database,
-  Download,
-  ExternalLink,
-  GitCompareArrows,
-  ImagePlus,
-  Share2,
-  Sparkles,
-  X
-} from "lucide-react";
+import { Database, Download, ExternalLink, GitCompareArrows, ImagePlus, Share2, Sparkles, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useUiStore, uiSelectors } from "@/store";
@@ -46,7 +38,7 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
             <p className="text-xs font-semibold uppercase text-muted-foreground">Selected Image</p>
             <h2 className="mt-2 text-base font-semibold text-white">No image selected</h2>
             <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              Adjust the filters or choose a saved search to load NASA imagery.
+              Adjust the filters or choose a suggested search to load NASA imagery.
             </p>
           </div>
         </div>
@@ -93,109 +85,117 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
             <X className="h-4 w-4" />
           </Button>
         </div>
-        <div className="cosmara-scrollbar min-h-0 flex-1 overflow-y-auto px-4 pb-4">
-          <div className="overflow-hidden rounded-lg border border-white/10 bg-space-panel">
-            <img src={selectedImage.urls.preview} alt={selectedImage.title} className="aspect-[4/3] w-full object-cover" />
-          </div>
-          <div className="mt-3 grid grid-cols-2 gap-2">
-            <Button type="button" variant="secondary" size="sm" className="rounded-md bg-white/10 hover:bg-white/15">
-              <Download className="h-4 w-4" />
-              Download
-            </Button>
-            <Button type="button" variant="secondary" size="sm" className="rounded-md bg-white/10 hover:bg-white/15">
-              <Share2 className="h-4 w-4" />
-              Share
-            </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              className="rounded-md bg-white/10 hover:bg-white/15"
-              onClick={handleCompare}
-              data-cy="compare-btn"
-            >
-              <GitCompareArrows className="h-4 w-4" />
-              Compare
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              className="rounded-md bg-space-orange text-space-void hover:bg-space-orange/90"
-              data-cy="add-to-collection-btn"
-            >
-              <ImagePlus className="h-4 w-4" />
-              Add
-            </Button>
-          </div>
-          <Tabs defaultValue="ai" className="mt-4">
-            <TabsList className="grid h-10 w-full grid-cols-3 rounded-md border border-white/10 bg-space-panel p-1">
-              <TabsTrigger
-                value="ai"
-                className="gap-1 rounded text-[11px] data-[state=active]:bg-space-cyan data-[state=active]:text-space-void"
+        <ScrollArea className="min-h-0 flex-1">
+          <div className="px-4 pb-4 pr-5">
+            <div className="overflow-hidden rounded-lg border border-white/10 bg-space-panel">
+              <img src={selectedImage.urls.preview} alt={selectedImage.title} className="aspect-[4/3] w-full object-cover" />
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <Button type="button" variant="secondary" size="sm" className="rounded-md bg-white/10 hover:bg-white/15">
+                <Download className="h-4 w-4" />
+                Download
+              </Button>
+              <Button type="button" variant="secondary" size="sm" className="rounded-md bg-white/10 hover:bg-white/15">
+                <Share2 className="h-4 w-4" />
+                Share
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                className="rounded-md bg-white/10 hover:bg-white/15"
+                onClick={handleCompare}
+                data-cy="compare-btn"
               >
-                <Sparkles className="h-3.5 w-3.5" />
-                AI Context
-              </TabsTrigger>
-              <TabsTrigger
-                value="metadata"
-                className="gap-1 rounded text-[11px] data-[state=active]:bg-space-cyan data-[state=active]:text-space-void"
+                <GitCompareArrows className="h-4 w-4" />
+                Compare
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                className="rounded-md bg-space-orange text-space-void hover:bg-space-orange/90"
+                data-cy="add-to-collection-btn"
               >
-                <Database className="h-3.5 w-3.5" />
-                Metadata
-              </TabsTrigger>
-              <TabsTrigger
-                value="source"
-                className="gap-1 rounded text-[11px] data-[state=active]:bg-space-cyan data-[state=active]:text-space-void"
-              >
-                <ExternalLink className="h-3.5 w-3.5" />
-                Source
-              </TabsTrigger>
-            </TabsList>
-            <TabsContent value="ai" className="space-y-4">
-              <div className="rounded-lg border border-white/10 bg-space-panel/70 p-3">
-                <p className="mb-2 text-xs font-semibold uppercase text-space-orange">Context Summary</p>
+                <ImagePlus className="h-4 w-4" />
+                Add
+              </Button>
+            </div>
+            <Tabs defaultValue="ai" className="mt-4">
+              <TabsList className="grid h-10 w-full grid-cols-3 rounded-md border border-white/10 bg-space-panel p-1">
+                <TabsTrigger
+                  value="ai"
+                  className="gap-1 rounded text-[11px] data-[state=active]:bg-space-cyan data-[state=active]:text-space-void"
+                >
+                  <Sparkles className="h-3.5 w-3.5" />
+                  AI Context
+                </TabsTrigger>
+                <TabsTrigger
+                  value="metadata"
+                  className="gap-1 rounded text-[11px] data-[state=active]:bg-space-cyan data-[state=active]:text-space-void"
+                >
+                  <Database className="h-3.5 w-3.5" />
+                  Metadata
+                </TabsTrigger>
+                <TabsTrigger
+                  value="source"
+                  className="gap-1 rounded text-[11px] data-[state=active]:bg-space-cyan data-[state=active]:text-space-void"
+                >
+                  <ExternalLink className="h-3.5 w-3.5" />
+                  Source
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent value="ai" className="space-y-4">
+                <div className="rounded-lg border border-white/10 bg-space-panel/70 p-3">
+                  <p className="mb-2 text-xs font-semibold uppercase text-space-orange">Context Summary</p>
+                  <p className="text-sm leading-6 text-muted-foreground">
+                    {selectedImage.description ??
+                      "AI enrichment will generate a concise context summary for this image once requested."}
+                  </p>
+                </div>
+                <div>
+                  <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">Tags</p>
+                  <div className="flex flex-wrap gap-2">{selectedImage.keywords.slice(0, 6).map(renderKeyword)}</div>
+                </div>
+              </TabsContent>
+              <TabsContent value="metadata" className="space-y-3 text-sm text-muted-foreground">
+                <MetadataRow label="Center" value={selectedImage.center ?? "NASA"} />
+                <MetadataRow label="Mission" value={selectedImage.mission ?? "Unspecified"} />
+                <MetadataRow label="Camera" value={selectedImage.camera ?? "Unspecified"} />
+                <MetadataRow label="Media Type" value={selectedImage.mediaType} />
+              </TabsContent>
+              <TabsContent value="source" className="space-y-3">
                 <p className="text-sm leading-6 text-muted-foreground">
-                  {selectedImage.description ??
-                    "AI enrichment will generate a concise context summary for this image once requested."}
+                  Open the original asset page to review full NASA attribution and media files.
                 </p>
-              </div>
-              <div>
-                <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">Tags</p>
-                <div className="flex flex-wrap gap-2">{selectedImage.keywords.slice(0, 6).map(renderKeyword)}</div>
-              </div>
-            </TabsContent>
-            <TabsContent value="metadata" className="space-y-3 text-sm text-muted-foreground">
-              <MetadataRow label="Center" value={selectedImage.center ?? "NASA"} />
-              <MetadataRow label="Mission" value={selectedImage.mission ?? "Unspecified"} />
-              <MetadataRow label="Camera" value={selectedImage.camera ?? "Unspecified"} />
-              <MetadataRow label="Media Type" value={selectedImage.mediaType} />
-            </TabsContent>
-            <TabsContent value="source" className="space-y-3">
-              <p className="text-sm leading-6 text-muted-foreground">
-                Open the original asset page to review full NASA attribution and media files.
-              </p>
-              {selectedImage.sourceUrl && (
-                <Button asChild variant="secondary" size="sm" className="rounded-md bg-white/10 hover:bg-white/15">
-                  <a href={selectedImage.sourceUrl} target="_blank" rel="noreferrer">
-                    <ExternalLink className="h-4 w-4" />
-                    View NASA Source
-                  </a>
-                </Button>
-              )}
-            </TabsContent>
-          </Tabs>
-          <Separator className="my-4 bg-white/10" />
-          <div>
-            <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">Add to Collection</p>
-            <label className="relative block">
-              <span className="sr-only">Select collection</span>
-              <select className="cosmara-control appearance-none pr-9 text-muted-foreground">
-                <option>Select collection...</option>
-              </select>
-              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            </label>
+                {selectedImage.sourceUrl && (
+                  <Button asChild variant="secondary" size="sm" className="rounded-md bg-white/10 hover:bg-white/15">
+                    <a href={selectedImage.sourceUrl} target="_blank" rel="noreferrer">
+                      <ExternalLink className="h-4 w-4" />
+                      View NASA Source
+                    </a>
+                  </Button>
+                )}
+              </TabsContent>
+            </Tabs>
+            <Separator className="my-4 bg-white/10" />
+            <div>
+              <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">Add to Collection</p>
+              <Select defaultValue="none">
+                <SelectTrigger className="cosmara-control h-10 px-3 text-left text-muted-foreground shadow-inner shadow-black/20 [&>svg]:text-muted-foreground [&>svg]:opacity-100">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent
+                  position="popper"
+                  className="z-[80] rounded-md border-white/10 bg-space-panel text-white shadow-2xl shadow-black/50"
+                >
+                  <SelectItem value="none" className="cursor-pointer text-xs text-muted-foreground focus:bg-space-cyan/15">
+                    Select collection...
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-        </div>
+        </ScrollArea>
       </div>
     </aside>
   );

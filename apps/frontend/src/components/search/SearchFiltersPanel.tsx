@@ -1,7 +1,9 @@
-import { Bookmark, CalendarDays, ChevronDown, Info, Search, SlidersHorizontal } from "lucide-react";
+import { CalendarDays, Info, Search, SlidersHorizontal } from "lucide-react";
 import { useEffect, useState, type ChangeEvent, type FormEvent, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { NasaSearchFilters } from "@/types/search";
 
 type SearchFiltersPanelProps = {
@@ -21,7 +23,7 @@ type SearchFilterDraft = {
   mediaType: string;
 };
 
-type SavedSearch = {
+type SuggestedSearch = {
   label: string;
   filters: Partial<NasaSearchFilters>;
 };
@@ -42,7 +44,9 @@ const defaultDraft: SearchFilterDraft = {
   mediaType: "image"
 };
 
-const savedSearches: readonly SavedSearch[] = [
+const emptySelectValue = "__all__";
+
+const suggestedSearches: readonly SuggestedSearch[] = [
   {
     label: "Mars Curiosity - 2024",
     filters: {
@@ -137,11 +141,20 @@ export function SearchFiltersPanel({ filters, isFetching, onApplyFilters }: Sear
   }, [filters]);
 
   const updateDraftField =
-    (field: keyof SearchFilterDraft) =>
-    (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    (field: "query") =>
+    (event: ChangeEvent<HTMLInputElement>) => {
       setDraft((currentDraft) => ({
         ...currentDraft,
         [field]: event.target.value
+      }));
+    };
+
+  const updateSelectDraftField =
+    (field: "mission" | "rover" | "camera" | "mediaType") =>
+    (value: string) => {
+      setDraft((currentDraft) => ({
+        ...currentDraft,
+        [field]: value
       }));
     };
 
@@ -155,23 +168,23 @@ export function SearchFiltersPanel({ filters, isFetching, onApplyFilters }: Sear
       }));
     };
 
-  const updateDatePreset = (event: ChangeEvent<HTMLSelectElement>) => {
-    const datePreset = event.target.value as SearchFilterDraft["datePreset"];
+  const updateDatePreset = (datePreset: string) => {
+    const nextDatePreset = datePreset as SearchFilterDraft["datePreset"];
 
-    if (datePreset === "any") {
+    if (nextDatePreset === "any") {
       setDraft((currentDraft) => ({
         ...currentDraft,
-        datePreset,
+        datePreset: nextDatePreset,
         dateFrom: "",
         dateTo: ""
       }));
       return;
     }
 
-    if (datePreset === "custom") {
+    if (nextDatePreset === "custom") {
       setDraft((currentDraft) => ({
         ...currentDraft,
-        datePreset
+        datePreset: nextDatePreset
       }));
       return;
     }
@@ -179,17 +192,17 @@ export function SearchFiltersPanel({ filters, isFetching, onApplyFilters }: Sear
     const dateTo = new Date();
     const dateFrom = new Date(dateTo);
 
-    if (datePreset === "last-30") {
+    if (nextDatePreset === "last-30") {
       dateFrom.setDate(dateTo.getDate() - 30);
     }
 
-    if (datePreset === "last-year") {
+    if (nextDatePreset === "last-year") {
       dateFrom.setFullYear(dateTo.getFullYear() - 1);
     }
 
     setDraft((currentDraft) => ({
       ...currentDraft,
-      datePreset,
+      datePreset: nextDatePreset,
       dateFrom: formatDateInput(dateFrom),
       dateTo: formatDateInput(dateTo)
     }));
@@ -216,27 +229,18 @@ export function SearchFiltersPanel({ filters, isFetching, onApplyFilters }: Sear
     applyDraft(defaultDraft);
   };
 
-  const applySavedSearch = (savedSearch: SavedSearch) => {
+  const applySuggestedSearch = (suggestedSearch: SuggestedSearch) => {
     const nextDraft = {
       ...defaultDraft,
-      ...toDraft(savedSearch.filters)
+      ...toDraft(suggestedSearch.filters)
     };
 
     setDraft(nextDraft);
     applyDraft(nextDraft);
   };
 
-  const renderSavedSearch = (savedSearch: SavedSearch) => (
-    <li key={savedSearch.label}>
-      <button
-        type="button"
-        className="flex w-full items-center gap-2 rounded-md px-1 py-1.5 text-left text-xs text-muted-foreground transition-colors hover:bg-white/5 hover:text-white"
-        onClick={() => applySavedSearch(savedSearch)}
-      >
-        <Bookmark className="h-3.5 w-3.5 shrink-0" />
-        <span className="truncate">{savedSearch.label}</span>
-      </button>
-    </li>
+  const renderSuggestedSearch = (suggestedSearch: SuggestedSearch) => (
+    <SuggestedSearchButton key={suggestedSearch.label} suggestedSearch={suggestedSearch} onApply={applySuggestedSearch} />
   );
 
   return (
@@ -248,51 +252,49 @@ export function SearchFiltersPanel({ filters, isFetching, onApplyFilters }: Sear
             Clear all
           </button>
         </div>
-        <div className="cosmara-scrollbar min-h-0 flex-1 space-y-5 overflow-y-auto px-3 py-4">
-          <FilterGroup label="Search Query">
-            <label className="relative block">
-              <span className="sr-only">Search NASA imagery</span>
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                type="search"
-                value={draft.query}
-                onChange={updateDraftField("query")}
-                className="cosmara-control pl-9"
-                placeholder="Search NASA imagery..."
-                data-cy="search-input"
-              />
-            </label>
-          </FilterGroup>
-          <FilterGroup label="Date Range" hasInfo>
-            <FilterSelect value={draft.datePreset} options={datePresetOptions} onChange={updateDatePreset} />
-            <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
-              <DateInput value={draft.dateFrom} onChange={updateDateDraftField("dateFrom")} />
-              <span className="text-muted-foreground">-&gt;</span>
-              <DateInput value={draft.dateTo} onChange={updateDateDraftField("dateTo")} />
+        <ScrollArea className="min-h-0 flex-1">
+          <div className="space-y-5 px-3 py-4 pr-4">
+            <FilterGroup label="Search Query">
+              <label className="relative block">
+                <span className="sr-only">Search NASA imagery</span>
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  type="search"
+                  value={draft.query}
+                  onChange={updateDraftField("query")}
+                  className="cosmara-control pl-9"
+                  placeholder="Search NASA imagery..."
+                  data-cy="search-input"
+                />
+              </label>
+            </FilterGroup>
+            <FilterGroup label="Date Range" hasInfo>
+              <FilterSelect value={draft.datePreset} options={datePresetOptions} onValueChange={updateDatePreset} />
+              <div className="grid grid-cols-1 gap-2">
+                <DateInput label="From" value={draft.dateFrom} onChange={updateDateDraftField("dateFrom")} />
+                <DateInput label="To" value={draft.dateTo} onChange={updateDateDraftField("dateTo")} />
+              </div>
+            </FilterGroup>
+            <FilterGroup label="Mission" hasInfo>
+              <FilterSelect value={draft.mission} options={missionOptions} onValueChange={updateSelectDraftField("mission")} />
+            </FilterGroup>
+            <FilterGroup label="Rover / Spacecraft" hasInfo>
+              <FilterSelect value={draft.rover} options={roverOptions} onValueChange={updateSelectDraftField("rover")} />
+            </FilterGroup>
+            <FilterGroup label="Camera" hasInfo>
+              <FilterSelect value={draft.camera} options={cameraOptions} onValueChange={updateSelectDraftField("camera")} />
+            </FilterGroup>
+            <FilterGroup label="Media Type" hasInfo>
+              <FilterSelect value={draft.mediaType} options={mediaTypeOptions} onValueChange={updateSelectDraftField("mediaType")} />
+            </FilterGroup>
+            <div className="border-t border-white/10 pt-4">
+              <div className="mb-2 flex items-center justify-between">
+                <p className="text-xs font-semibold uppercase text-white">Suggested Searches</p>
+              </div>
+              <ul className="space-y-1">{suggestedSearches.map(renderSuggestedSearch)}</ul>
             </div>
-          </FilterGroup>
-          <FilterGroup label="Mission" hasInfo>
-            <FilterSelect value={draft.mission} options={missionOptions} onChange={updateDraftField("mission")} />
-          </FilterGroup>
-          <FilterGroup label="Rover / Spacecraft" hasInfo>
-            <FilterSelect value={draft.rover} options={roverOptions} onChange={updateDraftField("rover")} />
-          </FilterGroup>
-          <FilterGroup label="Camera" hasInfo>
-            <FilterSelect value={draft.camera} options={cameraOptions} onChange={updateDraftField("camera")} />
-          </FilterGroup>
-          <FilterGroup label="Media Type" hasInfo>
-            <FilterSelect value={draft.mediaType} options={mediaTypeOptions} onChange={updateDraftField("mediaType")} />
-          </FilterGroup>
-          <div className="border-t border-white/10 pt-4">
-            <div className="mb-2 flex items-center justify-between">
-              <p className="text-xs font-semibold uppercase text-white">Saved Searches</p>
-              <button type="button" className="text-xs font-medium text-space-cyan hover:text-white">
-                Manage
-              </button>
-            </div>
-            <ul className="space-y-1">{savedSearches.map(renderSavedSearch)}</ul>
           </div>
-        </div>
+        </ScrollArea>
         <div className="border-t border-white/10 p-3">
           <Button
             type="submit"
@@ -330,43 +332,82 @@ function FilterGroup({ label, hasInfo = false, children }: FilterGroupProps) {
 type FilterSelectProps = {
   value: string;
   options: readonly FilterOption[];
-  onChange: (event: ChangeEvent<HTMLSelectElement>) => void;
+  onValueChange: (value: string) => void;
 };
 
 const renderFilterOption = (option: FilterOption) => (
-  <option key={option.value} value={option.value}>
+  <SelectItem
+    key={option.label}
+    value={option.value.length > 0 ? option.value : emptySelectValue}
+    className="cursor-pointer text-xs text-white focus:bg-space-cyan/15 focus:text-white data-[state=checked]:text-space-cyan"
+  >
     {option.label}
-  </option>
+  </SelectItem>
 );
 
-function FilterSelect({ value, options, onChange }: FilterSelectProps) {
+function FilterSelect({ value, options, onValueChange }: FilterSelectProps) {
+  const handleValueChange = (nextValue: string) => {
+    onValueChange(nextValue === emptySelectValue ? "" : nextValue);
+  };
+
   return (
-    <label className="relative block">
-      <span className="sr-only">Select filter option</span>
-      <select value={value} onChange={onChange} className="cosmara-control appearance-none pr-9">
+    <Select value={value.length > 0 ? value : emptySelectValue} onValueChange={handleValueChange}>
+      <SelectTrigger className="cosmara-control h-10 px-3 text-left shadow-inner shadow-black/20 [&>svg]:text-muted-foreground [&>svg]:opacity-100">
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent
+        position="popper"
+        className="z-[80] rounded-md border-white/10 bg-space-panel text-white shadow-2xl shadow-black/50"
+      >
         {options.map(renderFilterOption)}
-      </select>
-      <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-    </label>
+      </SelectContent>
+    </Select>
   );
 }
 
 type DateInputProps = {
+  label: string;
   value: string;
   onChange: (event: ChangeEvent<HTMLInputElement>) => void;
 };
 
-function DateInput({ value, onChange }: DateInputProps) {
+function DateInput({ label, value, onChange }: DateInputProps) {
   return (
-    <label className="relative block">
-      <span className="sr-only">Date</span>
-      <input
-        type="date"
-        value={value}
-        onChange={onChange}
-        className="cosmara-control cosmara-date pr-8 text-xs font-medium"
-      />
-      <CalendarDays className="pointer-events-none absolute right-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+    <label className="block min-w-0">
+      <span className="mb-1.5 block text-[10px] font-semibold uppercase text-muted-foreground">{label}</span>
+      <span className="relative block min-w-0">
+        <input
+          type="date"
+          value={value}
+          onChange={onChange}
+          className="cosmara-control cosmara-date min-w-0 pr-9 text-xs font-medium"
+        />
+        <CalendarDays className="pointer-events-none absolute right-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+      </span>
     </label>
+  );
+}
+
+type SuggestedSearchButtonProps = {
+  suggestedSearch: SuggestedSearch;
+  onApply: (suggestedSearch: SuggestedSearch) => void;
+};
+
+function SuggestedSearchButton({ suggestedSearch, onApply }: SuggestedSearchButtonProps) {
+  const handleClick = () => {
+    onApply(suggestedSearch);
+  };
+
+  return (
+    <li>
+      <button
+        type="button"
+        className="flex w-full items-center gap-2 rounded-md px-1.5 py-1.5 text-left text-xs text-muted-foreground transition-colors hover:bg-white/5 hover:text-white"
+        onClick={handleClick}
+      >
+        <Search className="h-3.5 w-3.5 shrink-0 text-space-cyan/80" />
+        <span className="truncate">{suggestedSearch.label}</span>
+      </button>
+    </li>
   );
 }
