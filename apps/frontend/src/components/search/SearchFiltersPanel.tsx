@@ -1,4 +1,4 @@
-import { Bookmark, CalendarDays, Info, SlidersHorizontal } from "lucide-react";
+import { Bookmark, CalendarDays, ChevronDown, Info, Search, SlidersHorizontal } from "lucide-react";
 import { useEffect, useState, type ChangeEvent, type FormEvent, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,7 +12,7 @@ type SearchFiltersPanelProps = {
 
 type SearchFilterDraft = {
   query: string;
-  datePreset: string;
+  datePreset: "any" | "custom" | "last-30" | "last-year";
   dateFrom: string;
   dateTo: string;
   mission: string;
@@ -32,10 +32,10 @@ type FilterOption = {
 };
 
 const defaultDraft: SearchFilterDraft = {
-  query: "mars",
-  datePreset: "custom",
-  dateFrom: "2015-01-01",
-  dateTo: "2024-12-31",
+  query: "mars rover",
+  datePreset: "any",
+  dateFrom: "",
+  dateTo: "",
   mission: "",
   rover: "",
   camera: "",
@@ -103,9 +103,16 @@ const mediaTypeOptions: readonly FilterOption[] = [
   { label: "Images", value: "image" }
 ];
 
+const datePresetOptions: readonly FilterOption[] = [
+  { label: "Any date", value: "any" },
+  { label: "Custom range", value: "custom" },
+  { label: "Last 30 days", value: "last-30" },
+  { label: "Last year", value: "last-year" }
+];
+
 const toDraft = (filters: Partial<NasaSearchFilters>, mediaType = "image"): SearchFilterDraft => ({
   query: filters.query ?? defaultDraft.query,
-  datePreset: "custom",
+  datePreset: filters.dateFrom !== undefined || filters.dateTo !== undefined ? "custom" : "any",
   dateFrom: filters.dateFrom ?? "",
   dateTo: filters.dateTo ?? "",
   mission: filters.mission ?? "",
@@ -149,7 +156,17 @@ export function SearchFiltersPanel({ filters, isFetching, onApplyFilters }: Sear
     };
 
   const updateDatePreset = (event: ChangeEvent<HTMLSelectElement>) => {
-    const datePreset = event.target.value;
+    const datePreset = event.target.value as SearchFilterDraft["datePreset"];
+
+    if (datePreset === "any") {
+      setDraft((currentDraft) => ({
+        ...currentDraft,
+        datePreset,
+        dateFrom: "",
+        dateTo: ""
+      }));
+      return;
+    }
 
     if (datePreset === "custom") {
       setDraft((currentDraft) => ({
@@ -231,26 +248,23 @@ export function SearchFiltersPanel({ filters, isFetching, onApplyFilters }: Sear
             Clear all
           </button>
         </div>
-        <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-3 py-4">
+        <div className="cosmara-scrollbar min-h-0 flex-1 space-y-5 overflow-y-auto px-3 py-4">
           <FilterGroup label="Search Query">
-            <Input
-              type="search"
-              value={draft.query}
-              onChange={updateDraftField("query")}
-              className="h-10 rounded-md border-white/10 bg-space-panel text-sm text-white placeholder:text-muted-foreground focus-visible:ring-space-cyan/70"
-              placeholder="Search NASA imagery..."
-            />
+            <label className="relative block">
+              <span className="sr-only">Search NASA imagery</span>
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                type="search"
+                value={draft.query}
+                onChange={updateDraftField("query")}
+                className="cosmara-control pl-9"
+                placeholder="Search NASA imagery..."
+                data-cy="search-input"
+              />
+            </label>
           </FilterGroup>
           <FilterGroup label="Date Range" hasInfo>
-            <select
-              value={draft.datePreset}
-              onChange={updateDatePreset}
-              className="h-10 w-full rounded-md border-white/10 bg-space-panel text-sm text-white focus:border-space-cyan focus:ring-space-cyan"
-            >
-              <option value="custom">Custom Range</option>
-              <option value="last-30">Last 30 days</option>
-              <option value="last-year">Last year</option>
-            </select>
+            <FilterSelect value={draft.datePreset} options={datePresetOptions} onChange={updateDatePreset} />
             <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
               <DateInput value={draft.dateFrom} onChange={updateDateDraftField("dateFrom")} />
               <span className="text-muted-foreground">-&gt;</span>
@@ -284,6 +298,7 @@ export function SearchFiltersPanel({ filters, isFetching, onApplyFilters }: Sear
             type="submit"
             className="h-10 w-full rounded-md bg-space-cyan text-space-void hover:bg-space-cyan/90"
             disabled={isFetching}
+            data-cy="search-btn"
           >
             <SlidersHorizontal className="h-4 w-4" />
             {isFetching ? "Applying..." : "Apply Filters"}
@@ -326,13 +341,13 @@ const renderFilterOption = (option: FilterOption) => (
 
 function FilterSelect({ value, options, onChange }: FilterSelectProps) {
   return (
-    <select
-      value={value}
-      onChange={onChange}
-      className="h-10 w-full rounded-md border-white/10 bg-space-panel text-sm text-white focus:border-space-cyan focus:ring-space-cyan"
-    >
-      {options.map(renderFilterOption)}
-    </select>
+    <label className="relative block">
+      <span className="sr-only">Select filter option</span>
+      <select value={value} onChange={onChange} className="cosmara-control appearance-none pr-9">
+        {options.map(renderFilterOption)}
+      </select>
+      <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+    </label>
   );
 }
 
@@ -349,7 +364,7 @@ function DateInput({ value, onChange }: DateInputProps) {
         type="date"
         value={value}
         onChange={onChange}
-        className="h-10 w-full rounded-md border-white/10 bg-space-panel pr-8 text-xs font-medium text-white focus:border-space-cyan focus:ring-space-cyan"
+        className="cosmara-control cosmara-date pr-8 text-xs font-medium"
       />
       <CalendarDays className="pointer-events-none absolute right-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
     </label>

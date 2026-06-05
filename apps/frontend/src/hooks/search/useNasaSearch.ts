@@ -13,7 +13,7 @@ type UseNasaSearchOptions = {
 };
 
 const defaultSearchFilters: NasaSearchFilters = {
-  query: "mars",
+  query: "mars rover",
   page: 1,
   pageSize: 24
 };

@@ -6,6 +6,7 @@ import type { NasaImage } from "@/types/search";
 
 type SearchTimelineProps = {
   images: readonly NasaImage[];
+  dateRangeLabel: string;
 };
 
 const timelineYears = ["1990", "2000", "2005", "2011", "2012", "2017", "2022", "2024"];
@@ -16,7 +17,7 @@ const renderYear = (year: string) => (
   </span>
 );
 
-export function SearchTimeline({ images }: SearchTimelineProps) {
+export function SearchTimeline({ images, dateRangeLabel }: SearchTimelineProps) {
   const timelinePanelState = useUiStore(uiSelectors.timelinePanelState);
   const setTimelinePanelState = useUiStore(uiSelectors.setTimelinePanelStateAction);
   const selectedImageId = useUiStore(uiSelectors.selectedImageId);
@@ -53,6 +54,15 @@ export function SearchTimeline({ images }: SearchTimelineProps) {
 
   const expandOrCompact = timelinePanelState === "expanded" ? showCompactTimeline : showExpandedTimeline;
   const expanded = timelinePanelState === "expanded";
+  const renderTimelineImage = (image: NasaImage) => (
+    <TimelineImageButton
+      key={image.nasaImageId}
+      image={image}
+      selected={selectedImageId === image.nasaImageId}
+      onSelect={selectImage}
+      expanded={expanded}
+    />
+  );
 
   return (
     <section
@@ -67,7 +77,7 @@ export function SearchTimeline({ images }: SearchTimelineProps) {
           <div className="flex min-w-0 items-center gap-2">
             <Timer className="h-4 w-4 shrink-0 text-space-orange" />
             <span className="text-xs font-semibold uppercase text-white">Timeline</span>
-            <span className="truncate text-xs text-muted-foreground">2015-01-01 -&gt; 2024-12-31</span>
+            <span className="truncate text-xs text-muted-foreground">{dateRangeLabel}</span>
           </div>
           <div className="flex items-center gap-1">
             <Button
@@ -95,20 +105,12 @@ export function SearchTimeline({ images }: SearchTimelineProps) {
         <div className="mt-3 flex justify-between border-b border-white/10 pb-1">{timelineYears.map(renderYear)}</div>
         <div
           className={cn(
-            "mt-2 min-h-0 overflow-x-auto rounded-lg border border-space-orange/50 bg-space-panel/50 p-2",
+            "cosmara-scrollbar mt-2 min-h-0 overflow-x-auto rounded-lg border border-space-orange/50 bg-space-panel/50 p-2",
             expanded ? "flex-1" : "h-12"
           )}
         >
           <div className={cn("flex min-w-max items-center gap-2", expanded ? "h-full" : "h-8")}>
-            {images.map((image) => (
-              <TimelineImageButton
-                key={image.nasaImageId}
-                image={image}
-                selected={selectedImageId === image.nasaImageId}
-                onSelect={selectImage}
-                expanded={expanded}
-              />
-            ))}
+            {images.map(renderTimelineImage)}
           </div>
         </div>
       </div>

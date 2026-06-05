@@ -39,6 +39,7 @@ export function SearchImageCard({ image, onPreviewIntent }: SearchImageCardProps
         "group overflow-hidden rounded-lg border bg-space-panel text-left shadow-sm shadow-black/20 transition duration-200 hover:-translate-y-0.5 hover:border-space-cyan/40 hover:bg-space-panelStrong",
         isSelected ? "border-space-orange shadow-space-orange/10" : "border-white/10"
       )}
+      data-cy="image-card"
     >
       <button
         type="button"
@@ -89,6 +90,7 @@ export function SearchImageCard({ image, onPreviewIntent }: SearchImageCardProps
             size="sm"
             className="h-7 rounded-md px-2 text-[11px] text-muted-foreground hover:bg-white/5 hover:text-space-cyan"
             onClick={handleCompare}
+            data-cy="compare-btn"
           >
             <GitCompareArrows className="h-3.5 w-3.5" />
             Compare

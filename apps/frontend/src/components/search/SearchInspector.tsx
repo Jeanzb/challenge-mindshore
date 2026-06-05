@@ -1,10 +1,10 @@
 import {
+  ChevronDown,
   Database,
   Download,
   ExternalLink,
   GitCompareArrows,
   ImagePlus,
-  PanelRightOpen,
   Share2,
   Sparkles,
   X
@@ -22,8 +22,9 @@ type SearchInspectorProps = {
 const renderKeyword = (keyword: string) => (
   <span
     key={keyword}
-    className="inline-flex rounded-md border border-white/10 bg-space-panel px-2 py-1 text-[11px] font-medium text-muted-foreground"
+    className="inline-flex items-center gap-1 rounded-full border border-space-cyan/20 bg-space-cyan/10 px-2.5 py-1 text-[11px] font-medium text-space-cyan"
   >
+    <span className="h-1 w-1 rounded-full bg-space-orange" />
     {keyword}
   </span>
 );
@@ -32,12 +33,14 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
   const selectedImage = useUiStore(uiSelectors.selectedImage) ?? fallbackImage;
   const inspectorOpen = useUiStore(uiSelectors.inspectorOpen);
   const closeInspector = useUiStore(uiSelectors.closeInspectorAction);
-  const openInspector = useUiStore(uiSelectors.openInspectorAction);
   const addCompareImage = useUiStore(uiSelectors.addCompareImageAction);
 
   if (selectedImage === undefined) {
     return (
-      <aside className="hidden min-h-0 border-l border-white/10 bg-space-shell/70 lg:block" aria-label="Selected image">
+      <aside
+        className="hidden min-h-0 overflow-hidden border-l border-white/10 bg-space-shell/70 lg:block"
+        aria-label="Selected image"
+      >
         <div className="flex h-full items-center justify-center px-6 text-center">
           <div>
             <p className="text-xs font-semibold uppercase text-muted-foreground">Selected Image</p>
@@ -57,23 +60,18 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
 
   if (!inspectorOpen) {
     return (
-      <aside className="hidden border-l border-white/10 bg-space-shell/70 lg:flex lg:items-start lg:justify-center lg:p-3">
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="h-9 w-9 rounded-md text-muted-foreground hover:bg-white/5 hover:text-white"
-          aria-label="Open selected image panel"
-          onClick={openInspector}
-        >
-          <PanelRightOpen className="h-5 w-5" />
-        </Button>
-      </aside>
+      <div
+        className="hidden min-h-0 overflow-hidden border-l border-white/10 bg-space-shell/70 opacity-0 transition-opacity duration-200 lg:block"
+        aria-hidden="true"
+      />
     );
   }
 
   return (
-    <aside className="hidden min-h-0 border-l border-white/10 bg-space-shell/70 lg:block" aria-label="Selected image">
+    <aside
+      className="hidden min-h-0 overflow-hidden border-l border-white/10 bg-space-shell/80 opacity-100 shadow-[-16px_0_40px_rgba(0,0,0,0.18)] transition-opacity duration-300 lg:block"
+      aria-label="Selected image"
+    >
       <div className="flex h-full min-h-0 flex-col">
         <div className="flex items-start justify-between gap-4 px-4 py-4">
           <div className="min-w-0">
@@ -95,7 +93,7 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
             <X className="h-4 w-4" />
           </Button>
         </div>
-        <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
+        <div className="cosmara-scrollbar min-h-0 flex-1 overflow-y-auto px-4 pb-4">
           <div className="overflow-hidden rounded-lg border border-white/10 bg-space-panel">
             <img src={selectedImage.urls.preview} alt={selectedImage.title} className="aspect-[4/3] w-full object-cover" />
           </div>
@@ -108,11 +106,23 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
               <Share2 className="h-4 w-4" />
               Share
             </Button>
-            <Button type="button" variant="secondary" size="sm" className="rounded-md bg-white/10 hover:bg-white/15" onClick={handleCompare}>
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              className="rounded-md bg-white/10 hover:bg-white/15"
+              onClick={handleCompare}
+              data-cy="compare-btn"
+            >
               <GitCompareArrows className="h-4 w-4" />
               Compare
             </Button>
-            <Button type="button" size="sm" className="rounded-md bg-space-orange text-space-void hover:bg-space-orange/90">
+            <Button
+              type="button"
+              size="sm"
+              className="rounded-md bg-space-orange text-space-void hover:bg-space-orange/90"
+              data-cy="add-to-collection-btn"
+            >
               <ImagePlus className="h-4 w-4" />
               Add
             </Button>
@@ -124,7 +134,7 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
                 className="gap-1 rounded text-[11px] data-[state=active]:bg-space-cyan data-[state=active]:text-space-void"
               >
                 <Sparkles className="h-3.5 w-3.5" />
-                AI
+                AI Context
               </TabsTrigger>
               <TabsTrigger
                 value="metadata"
@@ -142,7 +152,13 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
               </TabsTrigger>
             </TabsList>
             <TabsContent value="ai" className="space-y-4">
-              <p className="text-sm leading-6 text-muted-foreground">{selectedImage.description}</p>
+              <div className="rounded-lg border border-white/10 bg-space-panel/70 p-3">
+                <p className="mb-2 text-xs font-semibold uppercase text-space-orange">Context Summary</p>
+                <p className="text-sm leading-6 text-muted-foreground">
+                  {selectedImage.description ??
+                    "AI enrichment will generate a concise context summary for this image once requested."}
+                </p>
+              </div>
               <div>
                 <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">Tags</p>
                 <div className="flex flex-wrap gap-2">{selectedImage.keywords.slice(0, 6).map(renderKeyword)}</div>
@@ -171,9 +187,13 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
           <Separator className="my-4 bg-white/10" />
           <div>
             <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">Add to Collection</p>
-            <select className="h-10 w-full rounded-md border-white/10 bg-space-panel text-sm text-muted-foreground focus:border-space-cyan focus:ring-space-cyan">
-              <option>Select collection...</option>
-            </select>
+            <label className="relative block">
+              <span className="sr-only">Select collection</span>
+              <select className="cosmara-control appearance-none pr-9 text-muted-foreground">
+                <option>Select collection...</option>
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            </label>
           </div>
         </div>
       </div>

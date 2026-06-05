@@ -55,7 +55,7 @@ export function SearchResultsGrid({
   return (
     <section className="min-h-0 overflow-hidden border-white/10 lg:border-r" aria-label="NASA search results">
       <div className="flex h-full min-h-0 flex-col">
-        <div className="flex min-h-16 flex-wrap items-center justify-between gap-3 border-b border-white/10 px-4 py-3">
+        <div className="flex min-h-16 shrink-0 flex-wrap items-center justify-between gap-3 border-b border-white/10 px-4 py-3">
           <div>
             <p className="text-sm font-semibold text-space-cyan">
               {isLoading ? "Searching NASA..." : `${formatResultsCount.format(totalHits)} results`}
@@ -120,13 +120,13 @@ export function SearchResultsGrid({
             </div>
           </div>
         </div>
-        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
+        <div className="cosmara-scrollbar min-h-0 flex-1 overflow-y-auto px-4 py-4">
           <div
             className={cn(
               "grid gap-4",
               hasNoResults && "h-full place-items-center",
               searchViewMode === "grid"
-                ? "grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"
+                ? "grid-cols-1 md:grid-cols-2 xl:grid-cols-3 min-[1500px]:grid-cols-4"
                 : "grid-cols-1 lg:grid-cols-2"
             )}
           >

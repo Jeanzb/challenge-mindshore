@@ -2,6 +2,8 @@ import { useCallback, useEffect } from "react";
 import { useNasaSearch } from "@/hooks";
 import { sampleSearchImages, sampleSearchTotalHits } from "@/constants";
 import { useUiStore, uiSelectors } from "@/store";
+import { cn } from "@/lib/utils";
+import { formatTimelineRange } from "@/lib/searchTimeline";
 import type { NasaImage } from "@/types/search";
 import { SearchFiltersPanel } from "@/components/search/SearchFiltersPanel";
 import { SearchInspector } from "@/components/search/SearchInspector";
@@ -10,6 +12,7 @@ import { SearchTimeline } from "@/components/search/SearchTimeline";
 
 export function SearchDashboard() {
   const selectedImage = useUiStore(uiSelectors.selectedImage);
+  const inspectorOpen = useUiStore(uiSelectors.inspectorOpen);
   const selectImage = useUiStore(uiSelectors.selectImageAction);
   const clearSelectedImage = useUiStore(uiSelectors.clearSelectedImageAction);
   const semanticSearchEnabled = useUiStore(uiSelectors.semanticSearchEnabled);
@@ -26,9 +29,7 @@ export function SearchDashboard() {
     updateFilters
   } = useNasaSearch({
     initialFilters: {
-      query: "mars",
-      dateFrom: "2015-01-01",
-      dateTo: "2024-12-31",
+      query: "mars rover",
       pageSize: 24
     },
     initialSemanticSearch: semanticSearchEnabled
@@ -40,6 +41,8 @@ export function SearchDashboard() {
   const isUsingFallback = !hasSearchResult && !isLoading;
   const fallbackImage = displayImages[0] ?? (isUsingFallback ? firstImage : undefined);
   const totalHits = result?.totalHits ?? (isLoading ? 0 : sampleSearchTotalHits);
+  const showInspectorColumn = inspectorOpen && fallbackImage !== undefined;
+  const timelineDateRange = formatTimelineRange(filters, displayImages);
 
   useEffect(() => {
     setSemanticSearch(semanticSearchEnabled);
@@ -78,7 +81,14 @@ export function SearchDashboard() {
   );
 
   return (
-    <section className="grid h-[calc(100vh-3.5rem)] grid-cols-1 grid-rows-[minmax(0,1fr)] overflow-hidden lg:grid-cols-[260px_minmax(0,1fr)_380px] lg:grid-rows-[minmax(0,1fr)_auto]">
+    <section
+      className={cn(
+        "grid h-[calc(100vh-3.5rem)] grid-cols-1 grid-rows-[minmax(0,1fr)] overflow-hidden transition-[grid-template-columns] duration-300 ease-out lg:grid-rows-[minmax(0,1fr)_auto]",
+        showInspectorColumn
+          ? "lg:grid-cols-[260px_minmax(0,1fr)_380px]"
+          : "lg:grid-cols-[260px_minmax(0,1fr)_0px]"
+      )}
+    >
       <SearchFiltersPanel filters={filters} isFetching={isFetching} onApplyFilters={updateFilters} />
       <SearchResultsGrid
         images={displayImages}
@@ -90,7 +100,7 @@ export function SearchDashboard() {
         onImagePreviewIntent={prefetchPreviewImage}
       />
       <SearchInspector fallbackImage={fallbackImage} />
-      <SearchTimeline images={displayImages} />
+      <SearchTimeline images={displayImages} dateRangeLabel={timelineDateRange} />
     </section>
   );
 }
