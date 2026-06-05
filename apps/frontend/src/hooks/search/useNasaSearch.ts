@@ -58,11 +58,8 @@ export const useNasaSearch = (options: UseNasaSearchOptions = {}) => {
   }, []);
 
   const setSemanticSearch = useCallback((nextValue: boolean): void => {
-    setIsSemanticSearch(nextValue);
-    setFilters((currentFilters) => ({
-      ...currentFilters,
-      page: 1
-    }));
+    setIsSemanticSearch((currentValue) => (currentValue === nextValue ? currentValue : nextValue));
+    setFilters((currentFilters) => (currentFilters.page === 1 ? currentFilters : { ...currentFilters, page: 1 }));
   }, []);
 
   const prefetchNextPage = useCallback(async (): Promise<void> => {

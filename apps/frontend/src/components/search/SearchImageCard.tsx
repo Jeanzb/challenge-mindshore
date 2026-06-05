@@ -7,9 +7,10 @@ import { cn } from "@/lib/utils";
 
 type SearchImageCardProps = {
   image: NasaImage;
+  onPreviewIntent: (image: NasaImage) => void;
 };
 
-export function SearchImageCard({ image }: SearchImageCardProps) {
+export function SearchImageCard({ image, onPreviewIntent }: SearchImageCardProps) {
   const selectedImageId = useUiStore(uiSelectors.selectedImageId);
   const selectImage = useUiStore(uiSelectors.selectImageAction);
   const addCompareImage = useUiStore(uiSelectors.addCompareImageAction);
@@ -28,6 +29,10 @@ export function SearchImageCard({ image }: SearchImageCardProps) {
     event.stopPropagation();
   };
 
+  const handlePreviewIntent = () => {
+    onPreviewIntent(image);
+  };
+
   return (
     <article
       className={cn(
@@ -35,7 +40,14 @@ export function SearchImageCard({ image }: SearchImageCardProps) {
         isSelected ? "border-space-orange shadow-space-orange/10" : "border-white/10"
       )}
     >
-      <button type="button" className="block w-full text-left" onClick={handleSelect} aria-pressed={isSelected}>
+      <button
+        type="button"
+        className="block w-full text-left"
+        onClick={handleSelect}
+        onFocus={handlePreviewIntent}
+        onMouseEnter={handlePreviewIntent}
+        aria-pressed={isSelected}
+      >
         <div className="relative aspect-[4/3] overflow-hidden bg-space-void">
           <img
             src={image.urls.card}

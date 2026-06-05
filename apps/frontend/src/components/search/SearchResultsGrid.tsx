@@ -1,6 +1,5 @@
 import { Grid2X2, List, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { sampleSearchTotalHits } from "@/constants";
 import { cn } from "@/lib/utils";
 import { useUiStore, uiSelectors } from "@/store";
 import type { NasaImage } from "@/types/search";
@@ -8,13 +7,29 @@ import { SearchImageCard } from "@/components/search/SearchImageCard";
 
 type SearchResultsGridProps = {
   images: readonly NasaImage[];
+  totalHits: number;
+  isLoading: boolean;
+  isFetching: boolean;
+  isUsingFallback: boolean;
+  error: Error | null;
+  onImagePreviewIntent: (image: NasaImage) => void;
 };
 
 const formatResultsCount = new Intl.NumberFormat("en-US");
 
-const renderSearchImage = (image: NasaImage) => <SearchImageCard key={image.nasaImageId} image={image} />;
+const skeletonKeys = ["sk-1", "sk-2", "sk-3", "sk-4", "sk-5", "sk-6", "sk-7", "sk-8"];
 
-export function SearchResultsGrid({ images }: SearchResultsGridProps) {
+const renderSkeleton = (key: string) => <SearchImageSkeleton key={key} />;
+
+export function SearchResultsGrid({
+  images,
+  totalHits,
+  isLoading,
+  isFetching,
+  isUsingFallback,
+  error,
+  onImagePreviewIntent
+}: SearchResultsGridProps) {
   const searchViewMode = useUiStore(uiSelectors.searchViewMode);
   const setSearchViewMode = useUiStore(uiSelectors.setSearchViewModeAction);
   const semanticSearchEnabled = useUiStore(uiSelectors.semanticSearchEnabled);
@@ -32,15 +47,30 @@ export function SearchResultsGrid({ images }: SearchResultsGridProps) {
     setSemanticSearchEnabled(!semanticSearchEnabled);
   };
 
+  const renderSearchImage = (image: NasaImage) => (
+    <SearchImageCard key={image.nasaImageId} image={image} onPreviewIntent={onImagePreviewIntent} />
+  );
+
   return (
     <section className="min-h-0 overflow-hidden border-white/10 lg:border-r" aria-label="NASA search results">
       <div className="flex h-full min-h-0 flex-col">
         <div className="flex min-h-16 flex-wrap items-center justify-between gap-3 border-b border-white/10 px-4 py-3">
           <div>
             <p className="text-sm font-semibold text-space-cyan">
-              {formatResultsCount.format(sampleSearchTotalHits)} results
+              {isLoading ? "Searching NASA..." : `${formatResultsCount.format(totalHits)} results`}
             </p>
-            <p className="text-xs text-muted-foreground">Normalized NASA imagery ready for rendering</p>
+            <p className="text-xs text-muted-foreground">
+              {isUsingFallback
+                ? "Showing cached layout fallback while the API is unavailable"
+                : isFetching
+                  ? "Refreshing normalized NASA imagery"
+                  : "Normalized NASA imagery ready for rendering"}
+            </p>
+            {error !== null && (
+              <p className="mt-1 max-w-xl text-xs text-space-orange">
+                NASA API request failed, so the dashboard keeps a local fallback active.
+              </p>
+            )}
           </div>
           <div className="flex items-center gap-2">
             <Button
@@ -98,10 +128,26 @@ export function SearchResultsGrid({ images }: SearchResultsGridProps) {
                 : "grid-cols-1 lg:grid-cols-2"
             )}
           >
-            {images.map(renderSearchImage)}
+            {isLoading ? skeletonKeys.map(renderSkeleton) : images.map(renderSearchImage)}
           </div>
         </div>
       </div>
     </section>
+  );
+}
+
+function SearchImageSkeleton() {
+  return (
+    <div className="overflow-hidden rounded-lg border border-white/10 bg-space-panel shadow-sm shadow-black/20">
+      <div className="aspect-[4/3] animate-pulse bg-white/10" />
+      <div className="space-y-3 p-3">
+        <div className="h-4 w-3/4 rounded bg-white/10" />
+        <div className="h-3 w-1/3 rounded bg-white/10" />
+        <div className="flex items-center justify-between">
+          <div className="h-6 w-20 rounded bg-space-cyan/10" />
+          <div className="h-7 w-24 rounded bg-white/10" />
+        </div>
+      </div>
+    </div>
   );
 }
