@@ -27,7 +27,6 @@
   },
   "devDependencies": {
     "@tailwindcss/forms": "^0.5.10",
-    "@tanstack/router-plugin": "^1.139.3",
     "@types/node": "^24.10.1",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
