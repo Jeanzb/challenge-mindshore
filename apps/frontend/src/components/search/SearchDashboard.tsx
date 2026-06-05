@@ -1,6 +1,6 @@
 import { useCallback, useEffect } from "react";
 import { useNasaSearch } from "@/hooks";
-import { sampleSearchImages, sampleSearchTotalHits } from "@/constants";
+import { defaultNasaSearchPageSize, defaultNasaSearchQuery, sampleSearchImages, sampleSearchTotalHits } from "@/constants";
 import { useUiStore, uiSelectors } from "@/store";
 import { cn } from "@/lib/utils";
 import { formatTimelineRange } from "@/lib/searchTimeline";
@@ -10,7 +10,11 @@ import { SearchInspector } from "@/components/search/SearchInspector";
 import { SearchResultsGrid } from "@/components/search/SearchResultsGrid";
 import { SearchTimeline } from "@/components/search/SearchTimeline";
 
-export function SearchDashboard() {
+type SearchDashboardProps = {
+  initialQuery?: string;
+};
+
+export function SearchDashboard({ initialQuery }: SearchDashboardProps) {
   const selectedImage = useUiStore(uiSelectors.selectedImage);
   const inspectorOpen = useUiStore(uiSelectors.inspectorOpen);
   const selectImage = useUiStore(uiSelectors.selectImageAction);
@@ -18,19 +22,21 @@ export function SearchDashboard() {
   const semanticSearchEnabled = useUiStore(uiSelectors.semanticSearchEnabled);
   const {
     error,
+    fetchNextPage,
     filters,
+    hasNextPage,
     images,
     isFetching,
+    isFetchingNextPage,
     isLoading,
     prefetchImages,
-    prefetchNextPage,
     result,
     setSemanticSearch,
     updateFilters
   } = useNasaSearch({
     initialFilters: {
-      query: "mars rover",
-      pageSize: 24
+      query: initialQuery?.trim() || defaultNasaSearchQuery,
+      pageSize: defaultNasaSearchPageSize
     },
     initialSemanticSearch: semanticSearchEnabled
   });
@@ -49,6 +55,14 @@ export function SearchDashboard() {
   }, [setSemanticSearch, semanticSearchEnabled]);
 
   useEffect(() => {
+    const nextQuery = initialQuery?.trim() || defaultNasaSearchQuery;
+
+    if (filters.query !== nextQuery) {
+      updateFilters({ query: nextQuery });
+    }
+  }, [filters.query, initialQuery, updateFilters]);
+
+  useEffect(() => {
     if (displayImages.length === 0) {
       if (hasSearchResult && selectedImage !== null) {
         clearSelectedImage();
@@ -65,20 +79,18 @@ export function SearchDashboard() {
     }
   }, [clearSelectedImage, displayImages, hasSearchResult, selectImage, selectedImage]);
 
-  useEffect(() => {
-    if (!hasRemoteImages) {
-      return;
-    }
-
-    void prefetchNextPage();
-  }, [hasRemoteImages, prefetchNextPage]);
-
   const prefetchPreviewImage = useCallback(
     (image: NasaImage) => {
       prefetchImages([image]);
     },
     [prefetchImages]
   );
+
+  const loadNextPage = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) {
+      void fetchNextPage();
+    }
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
   return (
     <section
@@ -95,9 +107,12 @@ export function SearchDashboard() {
         totalHits={totalHits}
         isLoading={isLoading}
         isFetching={isFetching}
+        isFetchingNextPage={isFetchingNextPage}
+        hasNextPage={hasNextPage}
         isUsingFallback={isUsingFallback}
         error={error}
         onImagePreviewIntent={prefetchPreviewImage}
+        onLoadMore={loadNextPage}
       />
       <SearchInspector fallbackImage={fallbackImage} />
       <SearchTimeline images={displayImages} dateRangeLabel={timelineDateRange} />

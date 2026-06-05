@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { defaultNasaSearchQuery } from "@/constants";
 import type { NasaSearchFilters } from "@/types/search";
 
 type SearchFiltersPanelProps = {
@@ -34,7 +35,7 @@ type FilterOption = {
 };
 
 const defaultDraft: SearchFilterDraft = {
-  query: "mars rover",
+  query: defaultNasaSearchQuery,
   datePreset: "any",
   dateFrom: "",
   dateTo: "",

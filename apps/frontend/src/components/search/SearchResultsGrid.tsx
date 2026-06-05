@@ -1,4 +1,5 @@
 import { Grid2X2, List, SlidersHorizontal } from "lucide-react";
+import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useUiStore, uiSelectors } from "@/store";
@@ -10,9 +11,12 @@ type SearchResultsGridProps = {
   totalHits: number;
   isLoading: boolean;
   isFetching: boolean;
+  isFetchingNextPage: boolean;
+  hasNextPage: boolean;
   isUsingFallback: boolean;
   error: Error | null;
   onImagePreviewIntent: (image: NasaImage) => void;
+  onLoadMore: () => void;
 };
 
 const formatResultsCount = new Intl.NumberFormat("en-US");
@@ -26,10 +30,15 @@ export function SearchResultsGrid({
   totalHits,
   isLoading,
   isFetching,
+  isFetchingNextPage,
+  hasNextPage,
   isUsingFallback,
   error,
-  onImagePreviewIntent
+  onImagePreviewIntent,
+  onLoadMore
 }: SearchResultsGridProps) {
+  const scrollRootRef = useRef<HTMLDivElement | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const searchViewMode = useUiStore(uiSelectors.searchViewMode);
   const setSearchViewMode = useUiStore(uiSelectors.setSearchViewModeAction);
   const semanticSearchEnabled = useUiStore(uiSelectors.semanticSearchEnabled);
@@ -51,6 +60,33 @@ export function SearchResultsGrid({
   const renderSearchImage = (image: NasaImage) => (
     <SearchImageCard key={image.nasaImageId} image={image} onPreviewIntent={onImagePreviewIntent} />
   );
+
+  useEffect(() => {
+    const scrollRoot = scrollRootRef.current;
+    const loadMoreMarker = loadMoreRef.current;
+
+    if (scrollRoot === null || loadMoreMarker === null || !hasNextPage || isFetchingNextPage || isLoading) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          onLoadMore();
+        }
+      },
+      {
+        root: scrollRoot,
+        rootMargin: "480px 0px"
+      }
+    );
+
+    observer.observe(loadMoreMarker);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [hasNextPage, isFetchingNextPage, isLoading, onLoadMore]);
 
   return (
     <section className="min-h-0 overflow-hidden border-white/10 lg:border-r" aria-label="NASA search results">
@@ -120,7 +156,7 @@ export function SearchResultsGrid({
             </div>
           </div>
         </div>
-        <div className="cosmara-scrollbar min-h-0 flex-1 overflow-y-auto px-4 py-4">
+        <div ref={scrollRootRef} className="cosmara-scrollbar min-h-0 flex-1 overflow-y-auto px-4 py-4">
           <div
             className={cn(
               "grid gap-4",
@@ -132,6 +168,11 @@ export function SearchResultsGrid({
           >
             {isLoading ? skeletonKeys.map(renderSkeleton) : hasNoResults ? <SearchEmptyState /> : images.map(renderSearchImage)}
           </div>
+          {!hasNoResults && !isLoading && !isUsingFallback && (
+            <div ref={loadMoreRef} className="flex h-16 items-center justify-center text-xs text-muted-foreground">
+              {isFetchingNextPage ? "Loading more NASA imagery..." : hasNextPage ? "Scroll for more imagery" : "End of results"}
+            </div>
+          )}
         </div>
       </div>
     </section>

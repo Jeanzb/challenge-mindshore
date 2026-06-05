@@ -1,10 +1,14 @@
 import { AppShell } from "@/components/app";
 import { SearchDashboard } from "@/components/search";
 
-export function SearchPage() {
+type SearchPageProps = {
+  initialQuery?: string;
+};
+
+export function SearchPage({ initialQuery }: SearchPageProps) {
   return (
     <AppShell contentClassName="overflow-hidden">
-      <SearchDashboard />
+      <SearchDashboard initialQuery={initialQuery} />
     </AppShell>
   );
 }

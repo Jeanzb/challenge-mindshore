@@ -1,6 +1,6 @@
-import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useEffect, useState } from "react";
-import { queryKeys } from "@/constants";
+import { keepPreviousData, useInfiniteQuery } from "@tanstack/react-query";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { defaultNasaSearchPageSize, defaultNasaSearchQuery, queryKeys } from "@/constants";
 import { preloadImageUrls } from "@/lib/imagePreload";
 import { selectNasaImageCardUrl, selectNasaImagePreviewUrl } from "@/lib/nasaImageAssets";
 import { SearchService } from "@/services/search";
@@ -13,47 +13,79 @@ type UseNasaSearchOptions = {
 };
 
 const defaultSearchFilters: NasaSearchFilters = {
-  query: "mars rover",
-  page: 1,
-  pageSize: 24
+  query: defaultNasaSearchQuery,
+  pageSize: defaultNasaSearchPageSize
 };
 
 export const useNasaSearch = (options: UseNasaSearchOptions = {}) => {
-  const queryClient = useQueryClient();
   const [filters, setFilters] = useState<NasaSearchFilters>({
     ...defaultSearchFilters,
     ...options.initialFilters
   });
   const [isSemanticSearch, setIsSemanticSearch] = useState(options.initialSemanticSearch ?? false);
+  const baseFilters = useMemo<NasaSearchFilters>(
+    () => ({
+      ...filters,
+      page: undefined
+    }),
+    [filters]
+  );
 
-  const searchQuery = useQuery({
-    queryKey: queryKeys.search.results(filters, isSemanticSearch),
-    queryFn: () =>
-      isSemanticSearch ? SearchService.semanticSearchImages(filters) : SearchService.searchImages(filters),
+  const searchQuery = useInfiniteQuery({
+    queryKey: queryKeys.search.results(baseFilters, isSemanticSearch),
+    queryFn: ({ pageParam }) => {
+      const pageFilters: NasaSearchFilters = {
+        ...baseFilters,
+        page: pageParam
+      };
+
+      return isSemanticSearch ? SearchService.semanticSearchImages(pageFilters) : SearchService.searchImages(pageFilters);
+    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, pages): number | undefined => {
+      const loadedImagesCount = pages.reduce((count, page) => count + page.images.length, 0);
+      const pageSize = lastPage.pageSize || baseFilters.pageSize || defaultNasaSearchPageSize;
+
+      if (lastPage.images.length < pageSize || loadedImagesCount >= lastPage.totalHits) {
+        return undefined;
+      }
+
+      return lastPage.page + 1;
+    },
     enabled: (options.enabled ?? true) && filters.query.trim().length > 0,
     placeholderData: keepPreviousData
   });
+  const pages = searchQuery.data?.pages;
+  const images = useMemo<readonly NasaImage[]>(() => pages?.flatMap((page) => page.images) ?? [], [pages]);
+  const result = useMemo<NasaSearchResult | undefined>(() => {
+    const firstPage = pages?.[0];
+    const lastPage = pages?.[pages.length - 1];
+
+    if (firstPage === undefined || lastPage === undefined) {
+      return undefined;
+    }
+
+    return {
+      images,
+      totalHits: firstPage.totalHits,
+      page: lastPage.page,
+      pageSize: firstPage.pageSize
+    };
+  }, [images, pages]);
 
   useEffect(() => {
-    if (searchQuery.data === undefined) {
+    if (images.length === 0) {
       return;
     }
 
-    preloadImageUrls(searchQuery.data.images.slice(0, 8).map(selectNasaImageCardUrl));
-  }, [searchQuery.data]);
+    preloadImageUrls(images.slice(0, 8).map(selectNasaImageCardUrl));
+  }, [images]);
 
   const updateFilters = useCallback((nextFilters: Partial<NasaSearchFilters>): void => {
     setFilters((currentFilters) => ({
       ...currentFilters,
       ...nextFilters,
-      page: nextFilters.page ?? 1
-    }));
-  }, []);
-
-  const setPage = useCallback((page: number): void => {
-    setFilters((currentFilters) => ({
-      ...currentFilters,
-      page
+      page: undefined
     }));
   }, []);
 
@@ -62,46 +94,24 @@ export const useNasaSearch = (options: UseNasaSearchOptions = {}) => {
     setFilters((currentFilters) => (currentFilters.page === 1 ? currentFilters : { ...currentFilters, page: 1 }));
   }, []);
 
-  const prefetchNextPage = useCallback(async (): Promise<void> => {
-    const nextFilters: NasaSearchFilters = {
-      ...filters,
-      page: (searchQuery.data?.page ?? filters.page ?? 1) + 1
-    };
-
-    await queryClient.prefetchQuery({
-      queryKey: queryKeys.search.results(nextFilters, isSemanticSearch),
-      queryFn: () =>
-        isSemanticSearch
-          ? SearchService.semanticSearchImages(nextFilters)
-          : SearchService.searchImages(nextFilters)
-    });
-  }, [filters, isSemanticSearch, queryClient, searchQuery.data?.page]);
-
   const prefetchImages = useCallback((images: readonly NasaImage[]): void => {
     preloadImageUrls(images.map(selectNasaImagePreviewUrl));
   }, []);
 
-  const seedSearchResult = useCallback(
-    (result: NasaSearchResult): void => {
-      queryClient.setQueryData(queryKeys.search.results(filters, isSemanticSearch), result);
-    },
-    [filters, isSemanticSearch, queryClient]
-  );
-
   return {
     filters,
-    images: searchQuery.data?.images ?? [],
-    result: searchQuery.data,
+    images,
+    result,
     isSemanticSearch,
     isLoading: searchQuery.isLoading,
     isFetching: searchQuery.isFetching,
+    isFetchingNextPage: searchQuery.isFetchingNextPage,
+    hasNextPage: searchQuery.hasNextPage,
     error: searchQuery.error,
     updateFilters,
-    setPage,
     setSemanticSearch,
     refetch: searchQuery.refetch,
-    prefetchNextPage,
-    prefetchImages,
-    seedSearchResult
+    fetchNextPage: searchQuery.fetchNextPage,
+    prefetchImages
   };
 };

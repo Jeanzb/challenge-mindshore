@@ -1,4 +1,4 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   ChevronDown,
   Command,
@@ -10,10 +10,11 @@ import {
   Search,
   type LucideIcon
 } from "lucide-react";
-import type { ReactNode } from "react";
+import { useEffect, useState, type ChangeEvent, type FormEvent, type ReactNode } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { defaultNasaSearchQuery } from "@/constants";
 import { cn } from "@/lib/utils";
 
 type AppShellProps = {
@@ -124,19 +125,53 @@ function AppNavLink({ to, label, icon: Icon, isActive }: AppNavLinkProps) {
 }
 
 function ShellSearchField() {
+  const navigate = useNavigate();
+  const { pathname, search } = useRouterState({
+    select: (state) => ({
+      pathname: state.location.pathname,
+      search: state.location.search as { q?: unknown }
+    })
+  });
+  const routeQuery = pathname.startsWith("/search") && typeof search.q === "string" ? search.q : "";
+  const [query, setQuery] = useState(routeQuery);
+
+  useEffect(() => {
+    setQuery(routeQuery);
+  }, [routeQuery]);
+
+  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setQuery(event.target.value);
+  };
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const nextQuery = query.trim();
+
+    void navigate({
+      to: "/search",
+      search: {
+        q: nextQuery.length > 0 && nextQuery !== defaultNasaSearchQuery ? nextQuery : undefined
+      }
+    });
+  };
+
   return (
-    <div className="mx-auto hidden w-full max-w-[420px] items-center md:flex">
+    <form className="mx-auto hidden w-full max-w-[420px] items-center md:flex" onSubmit={handleSubmit}>
       <div className="relative w-full">
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           type="search"
+          value={query}
+          onChange={handleChange}
           placeholder="Search NASA imagery..."
           className="h-9 rounded-full border-white/10 bg-space-void/60 pl-10 pr-12 text-sm text-foreground shadow-inner shadow-black/20 placeholder:text-muted-foreground focus-visible:ring-space-cyan/70"
+          aria-label="Search NASA imagery"
         />
         <span className="pointer-events-none absolute right-2 top-1/2 inline-flex h-5 -translate-y-1/2 items-center gap-1 rounded border border-white/10 bg-space-panel px-1.5 text-[10px] text-muted-foreground">
           <Command className="h-3 w-3" />K
         </span>
       </div>
-    </div>
+    </form>
   );
 }
