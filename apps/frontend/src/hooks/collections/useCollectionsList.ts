@@ -3,12 +3,17 @@ import { queryKeys } from "@/constants";
 import { CollectionsService } from "@/services/collections";
 import type { CollectionSummary, CreateCollectionRequest } from "@/types/collections";
 
-export const useCollectionsList = () => {
+type UseCollectionsListOptions = {
+  enabled?: boolean;
+};
+
+export const useCollectionsList = (options: UseCollectionsListOptions = {}) => {
   const queryClient = useQueryClient();
 
   const collectionsQuery = useQuery({
     queryKey: queryKeys.collections.list(),
-    queryFn: CollectionsService.getCollections
+    queryFn: CollectionsService.getCollections,
+    enabled: options.enabled ?? true
   });
 
   const createCollectionMutation = useMutation({

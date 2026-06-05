@@ -1,13 +1,10 @@
-import { AppShell, FeaturePlaceholder } from "@/components/app";
+import { AppShell } from "@/components/app";
+import { CollectionsOverview } from "@/components/collections";
 
 export function CollectionsPage() {
   return (
     <AppShell>
-      <FeaturePlaceholder
-        eyebrow="Collections"
-        title="Curated space collections"
-        description="Collections will show themed image groups, creation flows, collection detail, and user-scoped management actions."
-      />
+      <CollectionsOverview />
     </AppShell>
   );
 }
