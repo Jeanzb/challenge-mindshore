@@ -1,4 +1,5 @@
 import { Clock3, FolderOpen, Image, Plus } from "lucide-react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { collectionVisuals } from "@/constants";
 import { useAuthSession } from "@/hooks/auth";
@@ -13,11 +14,15 @@ import { CollectionMetricCard } from "@/components/collections/CollectionMetricC
 import { CollectionsAuthPrompt } from "@/components/collections/CollectionsAuthPrompt";
 import { CollectionsEmptyState } from "@/components/collections/CollectionsEmptyState";
 import { CollectionsPageSkeleton } from "@/components/collections/CollectionsPageSkeleton";
+import { CreateCollectionDialog } from "@/components/collections/CreateCollectionDialog";
 import type { CollectionSummary } from "@/types/collections";
 
 export function CollectionsOverview() {
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const { isAuthenticated } = useAuthSession();
-  const { collections, error, isFetching, isLoading } = useCollectionsList({ enabled: isAuthenticated });
+  const { collections, createCollection, error, isCreating, isFetching, isLoading } = useCollectionsList({
+    enabled: isAuthenticated
+  });
   const totalImages = getTotalCollectionImages(collections);
   const latestUpdate = getLatestCollectionUpdate(collections) ?? "No activity";
   const collectionCountLabel = formatCollectionCount(collections.length, "collection", "collections");
@@ -30,6 +35,10 @@ export function CollectionsOverview() {
       visual={collectionVisuals[index % collectionVisuals.length]}
     />
   );
+
+  const openCreateDialog = (): void => {
+    setCreateDialogOpen(true);
+  };
 
   if (!isAuthenticated) {
     return (
@@ -51,7 +60,7 @@ export function CollectionsOverview() {
         <Button
           type="button"
           data-cy="create-collection-btn"
-          disabled
+          onClick={openCreateDialog}
           className="h-10 rounded-full bg-space-orange px-5 text-space-void hover:bg-space-orange/90 disabled:opacity-60"
         >
           <Plus className="h-4 w-4" />
@@ -81,6 +90,13 @@ export function CollectionsOverview() {
       {isFetching && !isLoading ? (
         <p className="mt-4 text-center text-xs text-muted-foreground">Refreshing collection telemetry...</p>
       ) : null}
+
+      <CreateCollectionDialog
+        open={createDialogOpen}
+        isCreating={isCreating}
+        onOpenChange={setCreateDialogOpen}
+        onCreateCollection={createCollection}
+      />
     </section>
   );
 }

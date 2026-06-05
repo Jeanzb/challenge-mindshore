@@ -4,3 +4,4 @@ export { CollectionsAuthPrompt } from "@/components/collections/CollectionsAuthP
 export { CollectionsEmptyState } from "@/components/collections/CollectionsEmptyState";
 export { CollectionsOverview } from "@/components/collections/CollectionsOverview";
 export { CollectionsPageSkeleton } from "@/components/collections/CollectionsPageSkeleton";
+export { CreateCollectionDialog } from "@/components/collections/CreateCollectionDialog";
