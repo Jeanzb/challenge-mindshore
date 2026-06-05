@@ -46,6 +46,8 @@ internal sealed class FakeCollectionRepository : ICollectionRepository
 
     public Collection? AddedCollection { get; private set; }
 
+    public CollectionImage? AddedCollectionImage { get; private set; }
+
     public Collection? UpdatedCollection { get; private set; }
 
     public Task<Collection?> GetByIdForUserAsync(Guid id, Guid userId, CancellationToken cancellationToken = default)
@@ -82,6 +84,13 @@ internal sealed class FakeCollectionRepository : ICollectionRepository
     public Task AddAsync(Collection collection, CancellationToken cancellationToken = default)
     {
         AddedCollection = collection;
+
+        return Task.CompletedTask;
+    }
+
+    public Task AddImageAsync(CollectionImage image, CancellationToken cancellationToken = default)
+    {
+        AddedCollectionImage = image;
 
         return Task.CompletedTask;
     }

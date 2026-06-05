@@ -12,5 +12,7 @@ public interface ICollectionRepository
 
     Task AddAsync(Collection collection, CancellationToken cancellationToken = default);
 
+    Task AddImageAsync(CollectionImage image, CancellationToken cancellationToken = default);
+
     Task UpdateAsync(Collection collection, CancellationToken cancellationToken = default);
 }

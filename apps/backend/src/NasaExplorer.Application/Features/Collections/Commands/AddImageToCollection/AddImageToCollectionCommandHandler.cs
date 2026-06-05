@@ -70,7 +70,7 @@ public sealed class AddImageToCollectionCommandHandler : IRequestHandler<AddImag
         CollectionImage collectionImage = CollectionImage.Create(collection.Id, spaceImage.Id, request.UserNote, sortOrder, now);
         collection.Images.Add(collectionImage);
 
-        await _collectionRepository.UpdateAsync(collection, cancellationToken);
+        await _collectionRepository.AddImageAsync(collectionImage, cancellationToken);
 
         return new CollectionImageDto
         {

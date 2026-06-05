@@ -1,10 +1,14 @@
 import { Database, Download, ExternalLink, GitCompareArrows, ImagePlus, Share2, Sparkles, X } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAuthSession } from "@/hooks/auth";
+import { useAddImageToCollection, useCollectionsList } from "@/hooks/collections";
 import { useUiStore, uiSelectors } from "@/store";
+import type { CollectionSummary } from "@/types/collections";
 import type { NasaImage } from "@/types/search";
 
 type SearchInspectorProps = {
@@ -21,11 +25,31 @@ const renderKeyword = (keyword: string) => (
   </span>
 );
 
+const renderCollectionOption = (collection: CollectionSummary) => (
+  <SelectItem
+    key={collection.id}
+    value={collection.id}
+    className="cursor-pointer text-xs text-white focus:bg-space-cyan/15"
+  >
+    {collection.name}
+  </SelectItem>
+);
+
 export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
   const selectedImage = useUiStore(uiSelectors.selectedImage) ?? fallbackImage;
   const inspectorOpen = useUiStore(uiSelectors.inspectorOpen);
   const closeInspector = useUiStore(uiSelectors.closeInspectorAction);
   const addCompareImage = useUiStore(uiSelectors.addCompareImageAction);
+  const { isAuthenticated } = useAuthSession();
+  const { collections } = useCollectionsList({ enabled: isAuthenticated });
+  const { addImageToCollection, isAddingImageToCollection } = useAddImageToCollection();
+  const [selectedCollectionId, setSelectedCollectionId] = useState<string>("none");
+  const [addStatusMessage, setAddStatusMessage] = useState<string | null>(null);
+  const addToCollectionDisabled = isAddingImageToCollection || selectedImage === undefined;
+
+  useEffect(() => {
+    setAddStatusMessage(null);
+  }, [selectedImage?.nasaImageId]);
 
   if (selectedImage === undefined) {
     return (
@@ -48,6 +72,35 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
 
   const handleCompare = () => {
     addCompareImage(selectedImage.nasaImageId);
+  };
+
+  const handleCollectionChange = (collectionId: string) => {
+    setSelectedCollectionId(collectionId);
+    setAddStatusMessage(null);
+  };
+
+  const handleAddToCollection = async () => {
+    if (!isAuthenticated) {
+      setAddStatusMessage("Sign in before saving images.");
+      return;
+    }
+
+    if (selectedCollectionId === "none") {
+      setAddStatusMessage("Select a collection first.");
+      return;
+    }
+
+    const selectedCollection = collections.find((collection) => collection.id === selectedCollectionId);
+
+    try {
+      await addImageToCollection({
+        collectionId: selectedCollectionId,
+        image: selectedImage
+      });
+      setAddStatusMessage(`Saved to ${selectedCollection?.name ?? "collection"}.`);
+    } catch (error) {
+      setAddStatusMessage(error instanceof Error ? error.message : "Image could not be saved.");
+    }
   };
 
   if (!inspectorOpen) {
@@ -115,9 +168,11 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
                 size="sm"
                 className="rounded-md bg-space-orange text-space-void hover:bg-space-orange/90"
                 data-cy="add-to-collection-btn"
+                disabled={addToCollectionDisabled}
+                onClick={handleAddToCollection}
               >
                 <ImagePlus className="h-4 w-4" />
-                Add
+                {isAddingImageToCollection ? "Adding" : "Add"}
               </Button>
             </div>
             <Tabs defaultValue="ai" className="mt-4">
@@ -180,7 +235,11 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
             <Separator className="my-4 bg-white/10" />
             <div>
               <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">Add to Collection</p>
-              <Select defaultValue="none">
+              <Select
+                value={selectedCollectionId}
+                onValueChange={handleCollectionChange}
+                disabled={!isAuthenticated || collections.length === 0}
+              >
                 <SelectTrigger className="cosmara-control h-10 px-3 text-left text-muted-foreground shadow-inner shadow-black/20 [&>svg]:text-muted-foreground [&>svg]:opacity-100">
                   <SelectValue />
                 </SelectTrigger>
@@ -189,10 +248,14 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
                   className="z-[80] rounded-md border-white/10 bg-space-panel text-white shadow-2xl shadow-black/50"
                 >
                   <SelectItem value="none" className="cursor-pointer text-xs text-muted-foreground focus:bg-space-cyan/15">
-                    Select collection...
+                    {isAuthenticated ? "Select collection..." : "Sign in to save"}
                   </SelectItem>
+                  {collections.map(renderCollectionOption)}
                 </SelectContent>
               </Select>
+              {addStatusMessage !== null ? (
+                <p className="mt-2 text-xs text-space-orange">{addStatusMessage}</p>
+              ) : null}
             </div>
           </div>
         </ScrollArea>

@@ -55,9 +55,16 @@ public sealed class CollectionRepository : ICollectionRepository
         await _context.SaveChangesAsync(cancellationToken);
     }
 
+    public async Task AddImageAsync(CollectionImage image, CancellationToken cancellationToken = default)
+    {
+        await _context.CollectionImages.AddAsync(image, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
+    }
+
     public async Task UpdateAsync(Collection collection, CancellationToken cancellationToken = default)
     {
-        _context.Collections.Update(collection);
+        // Handlers load and mutate collections in this DbContext; forcing Update would
+        // re-mark the tracked graph and can corrupt child entity states.
         await _context.SaveChangesAsync(cancellationToken);
     }
 }

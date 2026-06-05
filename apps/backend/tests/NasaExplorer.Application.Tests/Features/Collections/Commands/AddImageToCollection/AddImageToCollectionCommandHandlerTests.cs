@@ -28,7 +28,8 @@ public sealed class AddImageToCollectionCommandHandlerTests
         Assert.Equal(userId, collectionRepository.LastRequestedUserId);
         Assert.Equal("mars-1", spaceImageRepository.LastRequestedNasaId);
         Assert.Null(spaceImageRepository.AddedImage);
-        Assert.Equal(collection, collectionRepository.UpdatedCollection);
+        Assert.Equal(collectionImage, collectionRepository.AddedCollectionImage);
+        Assert.Null(collectionRepository.UpdatedCollection);
         Assert.Equal(spaceImage.Id, collectionImage.SpaceImageId);
         Assert.Equal("Personal note", collectionImage.UserNote);
         Assert.Equal(0, collectionImage.SortOrder);
@@ -56,6 +57,7 @@ public sealed class AddImageToCollectionCommandHandlerTests
         Assert.Equal("mars-1", spaceImageRepository.AddedImage.NasaId);
         Assert.Equal("Mars 1", spaceImageRepository.AddedImage.Title);
         Assert.Equal("JPL", spaceImageRepository.AddedImage.Center);
+        Assert.Equal(collectionImage, collectionRepository.AddedCollectionImage);
         Assert.Equal(spaceImageRepository.AddedImage.Id, collectionImage.SpaceImageId);
         Assert.Equal(spaceImageRepository.AddedImage.Id, result.SpaceImageId);
         Assert.Equal("mars-1", result.NasaImageId);
@@ -79,6 +81,7 @@ public sealed class AddImageToCollectionCommandHandlerTests
             handler.Handle(CreateCommand(collection.Id), CancellationToken.None));
 
         Assert.Contains(nameof(AddImageToCollectionCommand.NasaImageId), exception.Errors.Keys);
+        Assert.Null(collectionRepository.AddedCollectionImage);
         Assert.Null(collectionRepository.UpdatedCollection);
     }
 
