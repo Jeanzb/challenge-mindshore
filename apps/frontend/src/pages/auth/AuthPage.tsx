@@ -1,6 +1,14 @@
+import { Navigate } from "@tanstack/react-router";
 import { AuthCard } from "@/components/auth";
+import { useAuthSession } from "@/hooks/auth";
 
 export function AuthPage() {
+  const { isAuthenticated } = useAuthSession();
+
+  if (isAuthenticated) {
+    return <Navigate to="/search" replace />;
+  }
+
   return (
     <main className="relative min-h-screen overflow-hidden bg-space-void text-foreground">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,rgba(56,198,220,0.11),transparent_28%),linear-gradient(180deg,rgba(5,10,18,0.78),rgba(3,5,10,0.96))]" />

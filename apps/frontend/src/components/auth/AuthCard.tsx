@@ -1,4 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useNavigate } from "@tanstack/react-router";
 import { ArrowRight, Eye, Lock, Mail, Orbit, User } from "lucide-react";
 import { useLayoutEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -34,6 +35,7 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 type AuthMode = "signin" | "register";
 
 export function AuthCard() {
+  const navigate = useNavigate();
   const [authMode, setAuthMode] = useState<AuthMode>("signin");
   const [panelHeight, setPanelHeight] = useState<number | null>(null);
   const [showLoginPassword, setShowLoginPassword] = useState(false);
@@ -59,12 +61,22 @@ export function AuthCard() {
     }
   });
 
-  const handleLoginSubmit = (values: LoginFormValues): void => {
-    void login(values);
+  const handleLoginSubmit = async (values: LoginFormValues): Promise<void> => {
+    try {
+      await login(values);
+      await navigate({ to: "/search" });
+    } catch {
+      return;
+    }
   };
 
-  const handleRegisterSubmit = (values: RegisterFormValues): void => {
-    void register(values);
+  const handleRegisterSubmit = async (values: RegisterFormValues): Promise<void> => {
+    try {
+      await register(values);
+      await navigate({ to: "/search" });
+    } catch {
+      return;
+    }
   };
 
   const toggleLoginPassword = (): void => {

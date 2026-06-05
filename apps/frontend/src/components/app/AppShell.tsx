@@ -5,6 +5,7 @@ import {
   GitCompareArrows,
   Grid2X2,
   Library,
+  LogOut,
   Orbit,
   PanelLeft,
   Search,
@@ -13,9 +14,19 @@ import {
 import { useEffect, useState, type ChangeEvent, type FormEvent, type ReactNode } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { defaultNasaSearchQuery } from "@/constants";
+import { useAuthSession } from "@/hooks/auth";
 import { cn } from "@/lib/utils";
+import { fallbackExplorerName, getUserDisplayName, getUserInitials } from "@/lib/userProfile";
 
 type AppShellProps = {
   children: ReactNode;
@@ -87,21 +98,77 @@ export function AppShell({ children, contentClassName }: AppShellProps) {
           </div>
           <ShellSearchField />
           <div className="flex items-center justify-end">
-            <button
-              type="button"
-              className="flex h-10 items-center gap-2 rounded-full border border-white/10 bg-space-panel px-2 pr-3 text-left text-sm text-foreground shadow-sm shadow-black/20 transition-colors hover:bg-space-panelStrong"
-            >
-              <Avatar className="h-7 w-7 border border-space-orange/30">
-                <AvatarFallback className="bg-space-orange text-xs font-semibold text-space-void">KJ</AvatarFallback>
-              </Avatar>
-              <span className="hidden font-medium sm:inline">Katherine Johnson</span>
-              <ChevronDown className="h-4 w-4 text-muted-foreground" />
-            </button>
+            <UserMenu />
           </div>
         </div>
       </header>
       <main className={cn("min-h-[calc(100vh-3.5rem)]", contentClassName)}>{children}</main>
     </div>
+  );
+}
+
+function UserMenu() {
+  const navigate = useNavigate();
+  const { user, isAuthenticated, logout } = useAuthSession();
+  const displayName = getUserDisplayName(user);
+  const initials = getUserInitials(user);
+
+  const handleLogout = () => {
+    logout();
+    void navigate({ to: "/auth" });
+  };
+
+  if (!isAuthenticated) {
+    return (
+      <Button
+        asChild
+        variant="ghost"
+        className="h-10 rounded-full border border-white/10 bg-space-panel px-2 pr-3 text-sm text-foreground shadow-sm shadow-black/20 hover:bg-space-panelStrong hover:text-white"
+      >
+        <Link to="/auth">
+          <Avatar className="h-7 w-7 border border-space-orange/30">
+            <AvatarFallback className="bg-space-orange text-xs font-semibold text-space-void">KJ</AvatarFallback>
+          </Avatar>
+          <span className="hidden font-medium sm:inline">Sign In</span>
+        </Link>
+      </Button>
+    );
+  }
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          className="flex h-10 items-center gap-2 rounded-full border border-white/10 bg-space-panel px-2 pr-3 text-left text-sm text-foreground shadow-sm shadow-black/20 transition-colors hover:bg-space-panelStrong"
+        >
+          <Avatar className="h-7 w-7 border border-space-orange/30">
+            <AvatarFallback className="bg-space-orange text-xs font-semibold text-space-void">{initials}</AvatarFallback>
+          </Avatar>
+          <span className="hidden max-w-36 truncate font-medium sm:inline">{displayName}</span>
+          <ChevronDown className="h-4 w-4 text-muted-foreground" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        align="end"
+        className="w-64 border-white/10 bg-space-panel p-2 text-foreground shadow-2xl shadow-black/35"
+      >
+        <DropdownMenuLabel className="px-2 py-2">
+          <span className="block text-sm text-white">{displayName}</span>
+          <span className="mt-1 block truncate text-xs font-normal text-muted-foreground">
+            {user?.email ?? fallbackExplorerName}
+          </span>
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator className="bg-white/10" />
+        <DropdownMenuItem
+          onSelect={handleLogout}
+          className="cursor-pointer rounded-md text-muted-foreground focus:bg-white/10 focus:text-white"
+        >
+          <LogOut className="h-4 w-4" />
+          Sign out
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 

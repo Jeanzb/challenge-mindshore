@@ -12,10 +12,10 @@ import type {
 
 export const useAuthSession = () => {
   const queryClient = useQueryClient();
-  const [user, setUser] = useState<AuthenticatedUser | null>(null);
+  const [user, setUser] = useState<AuthenticatedUser | null>(() => authTokenStorage.getUser());
 
   const storeSession = useCallback((session: AuthSession): void => {
-    authTokenStorage.setTokens(session);
+    authTokenStorage.setSession(session);
     setUser(session.user);
   }, []);
 
@@ -42,7 +42,7 @@ export const useAuthSession = () => {
 
   return {
     user,
-    isAuthenticated: user !== null || authTokenStorage.getAccessToken() !== null,
+    isAuthenticated: user !== null && authTokenStorage.getAccessToken() !== null,
     register: registerMutation.mutateAsync,
     login: loginMutation.mutateAsync,
     refresh: refreshMutation.mutateAsync,
