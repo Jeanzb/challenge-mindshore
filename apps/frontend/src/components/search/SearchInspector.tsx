@@ -1,10 +1,11 @@
-import { Database, Download, ExternalLink, GitCompareArrows, ImagePlus, Share2, Sparkles, X } from "lucide-react";
+import { Database, Download, ExternalLink, GitCompareArrows, ImagePlus, Loader2, Share2, Sparkles, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAiEnrichment } from "@/hooks/ai";
 import { useAuthSession } from "@/hooks/auth";
 import { useAddImageToCollection, useCollectionsList } from "@/hooks/collections";
 import { useUiStore, uiSelectors } from "@/store";
@@ -14,6 +15,8 @@ import type { NasaImage } from "@/types/search";
 type SearchInspectorProps = {
   fallbackImage?: NasaImage;
 };
+
+type AiContextPanel = "description" | "facts" | "history";
 
 const renderKeyword = (keyword: string) => (
   <span
@@ -35,6 +38,12 @@ const renderCollectionOption = (collection: CollectionSummary) => (
   </SelectItem>
 );
 
+const renderFunFact = (fact: string) => (
+  <li key={fact} className="rounded-md border border-white/10 bg-space-void/30 px-3 py-2 text-sm leading-6 text-muted-foreground">
+    {fact}
+  </li>
+);
+
 export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
   const selectedImage = useUiStore(uiSelectors.selectedImage) ?? fallbackImage;
   const inspectorOpen = useUiStore(uiSelectors.inspectorOpen);
@@ -43,12 +52,19 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
   const { isAuthenticated } = useAuthSession();
   const { collections } = useCollectionsList({ enabled: isAuthenticated });
   const { addImageToCollection, isAddingImageToCollection } = useAddImageToCollection();
+  const { enrichImage, enrichment, getCachedEnrichment, isEnriching } = useAiEnrichment();
   const [selectedCollectionId, setSelectedCollectionId] = useState<string>("none");
   const [addStatusMessage, setAddStatusMessage] = useState<string | null>(null);
+  const [aiStatusMessage, setAiStatusMessage] = useState<string | null>(null);
+  const [aiContextPanel, setAiContextPanel] = useState<AiContextPanel>("description");
   const addToCollectionDisabled = isAddingImageToCollection || selectedImage === undefined;
+  const cachedEnrichment = selectedImage === undefined ? undefined : getCachedEnrichment(selectedImage.nasaImageId);
+  const activeEnrichment = enrichment?.nasaImageId === selectedImage?.nasaImageId ? enrichment : cachedEnrichment;
 
   useEffect(() => {
     setAddStatusMessage(null);
+    setAiStatusMessage(null);
+    setAiContextPanel("description");
   }, [selectedImage?.nasaImageId]);
 
   if (selectedImage === undefined) {
@@ -77,6 +93,35 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
   const handleCollectionChange = (collectionId: string) => {
     setSelectedCollectionId(collectionId);
     setAddStatusMessage(null);
+  };
+
+  const handleAiContextPanelChange = (value: string) => {
+    setAiContextPanel(value as AiContextPanel);
+  };
+
+  const handleGenerateEnrichment = async () => {
+    if (!isAuthenticated) {
+      setAiStatusMessage("Sign in before generating AI context.");
+      return;
+    }
+
+    setAiStatusMessage(null);
+
+    try {
+      const result = await enrichImage({
+        nasaImageId: selectedImage.nasaImageId,
+        title: selectedImage.title,
+        description: selectedImage.description,
+        imageUrl: selectedImage.imageUrl,
+        thumbnailUrl: selectedImage.thumbnailUrl,
+        sourceUrl: selectedImage.sourceUrl,
+        dateCreated: selectedImage.dateCreated
+      });
+
+      setAiStatusMessage(result.fromCache ? "Loaded cached AI context." : "AI context generated.");
+    } catch (error) {
+      setAiStatusMessage(error instanceof Error ? error.message : "AI context could not be generated.");
+    }
   };
 
   const handleAddToCollection = async () => {
@@ -201,12 +246,75 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
               </TabsList>
               <TabsContent value="ai" className="space-y-4">
                 <div className="rounded-lg border border-white/10 bg-space-panel/70 p-3">
-                  <p className="mb-2 text-xs font-semibold uppercase text-space-orange">Context Summary</p>
-                  <p className="text-sm leading-6 text-muted-foreground">
-                    {selectedImage.description ??
-                      "AI enrichment will generate a concise context summary for this image once requested."}
-                  </p>
+                  <div className="flex flex-col gap-3">
+                    <div>
+                      <p className="text-xs font-semibold uppercase text-space-orange">AI Enrichment</p>
+                      <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                        Generate reusable context cached for this NASA image.
+                      </p>
+                    </div>
+                    <Button
+                      type="button"
+                      size="sm"
+                      className="h-9 rounded-md bg-space-orange text-space-void hover:bg-space-orange/90"
+                      disabled={isEnriching}
+                      onClick={handleGenerateEnrichment}
+                    >
+                      {isEnriching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                      {isEnriching ? "Generating" : activeEnrichment === undefined ? "Generate context" : "Load cached context"}
+                    </Button>
+                  </div>
+                  {aiStatusMessage !== null ? (
+                    <p className="mt-3 text-xs text-space-cyan">{aiStatusMessage}</p>
+                  ) : null}
                 </div>
+                <Tabs value={aiContextPanel} onValueChange={handleAiContextPanelChange}>
+                  <TabsList className="grid h-9 w-full grid-cols-3 rounded-md border border-white/10 bg-space-panel p-1">
+                    <TabsTrigger
+                      value="description"
+                      className="rounded text-[11px] data-[state=active]:bg-space-cyan data-[state=active]:text-space-void"
+                    >
+                      Description
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="facts"
+                      className="rounded text-[11px] data-[state=active]:bg-space-cyan data-[state=active]:text-space-void"
+                    >
+                      Fun Facts
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="history"
+                      className="rounded text-[11px] data-[state=active]:bg-space-cyan data-[state=active]:text-space-void"
+                    >
+                      History
+                    </TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="description" className="rounded-lg border border-white/10 bg-space-panel/70 p-3">
+                    <p className="mb-2 text-xs font-semibold uppercase text-space-orange">Context Summary</p>
+                    <p className="text-sm leading-6 text-muted-foreground">
+                      {activeEnrichment?.description ??
+                        selectedImage.description ??
+                        "Generate AI context to create a concise summary for this image."}
+                    </p>
+                  </TabsContent>
+                  <TabsContent value="facts" className="rounded-lg border border-white/10 bg-space-panel/70 p-3">
+                    <p className="mb-2 text-xs font-semibold uppercase text-space-orange">Fun Facts</p>
+                    {activeEnrichment === undefined ? (
+                      <p className="text-sm leading-6 text-muted-foreground">
+                        Generate AI context to reveal concise facts about this image.
+                      </p>
+                    ) : (
+                      <ul className="space-y-2">{activeEnrichment.funFacts.map(renderFunFact)}</ul>
+                    )}
+                  </TabsContent>
+                  <TabsContent value="history" className="rounded-lg border border-white/10 bg-space-panel/70 p-3">
+                    <p className="mb-2 text-xs font-semibold uppercase text-space-orange">Historical Context</p>
+                    <p className="text-sm leading-6 text-muted-foreground">
+                      {activeEnrichment?.historicalContext ??
+                        "Generate AI context to connect this image with mission and exploration history."}
+                    </p>
+                  </TabsContent>
+                </Tabs>
                 <div>
                   <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">Tags</p>
                   <div className="flex flex-wrap gap-2">{selectedImage.keywords.slice(0, 6).map(renderKeyword)}</div>
