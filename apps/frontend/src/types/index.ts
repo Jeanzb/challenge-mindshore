@@ -4,3 +4,4 @@ export type * from "@/types/collections";
 export type * from "@/types/ai";
 export type * from "@/types/tags";
 export type * from "@/types/export";
+export type * from "@/types/ui";
