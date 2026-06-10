@@ -157,7 +157,7 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
           <div className="min-w-0">
             <p className="mb-3 text-xs font-semibold uppercase text-muted-foreground">Selected Image</p>
             <h2 className="line-clamp-2 text-base font-semibold text-white">{selectedImage.title}</h2>
-            <p className="mt-1 text-xs text-muted-foreground">
+            <p className="mt-1 font-mono text-[11px] tracking-wide text-muted-foreground">
               {selectedImage.displayDate ?? "Unknown date"} -{" "}
               <span className="font-medium text-space-cyan">{selectedImage.camera ?? selectedImage.mission ?? "NASA"}</span>
             </p>

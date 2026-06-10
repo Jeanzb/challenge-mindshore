@@ -19,7 +19,7 @@ type TimelineHeightVars = CSSProperties & {
 };
 
 const renderYear = (year: string) => (
-  <span key={year} className="text-[10px] leading-none text-muted-foreground">
+  <span key={year} className="font-mono text-[10px] leading-none tracking-wider text-muted-foreground">
     {year}
   </span>
 );
@@ -89,7 +89,7 @@ export function SearchTimeline({ images, dateRangeLabel }: SearchTimelineProps) 
           <div className="flex min-w-0 items-center gap-2">
             <Timer className="h-4 w-4 shrink-0 text-space-orange" />
             <span className="text-xs font-semibold uppercase text-white">Timeline</span>
-            <span className="hidden truncate text-xs text-muted-foreground sm:inline">{dateRangeLabel}</span>
+            <span className="hidden truncate font-mono text-[11px] text-muted-foreground sm:inline">{dateRangeLabel}</span>
           </div>
           <div className="flex shrink-0 items-center gap-1">
             <Button
@@ -163,7 +163,7 @@ function TimelineImageButton({ image, selected, expanded, onSelect }: TimelineIm
       <img src={image.thumbnailUrl} alt="" loading="lazy" className="h-full w-full object-cover opacity-90 transition-opacity group-hover:opacity-100" />
       {expanded && (
         <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-space-void/95 via-space-void/70 to-transparent px-2 pb-1 pt-4 text-left">
-          <span className="block truncate text-[10px] font-medium leading-tight text-white">{image.displayDate}</span>
+          <span className="block truncate font-mono text-[10px] font-medium leading-tight text-white">{image.displayDate}</span>
           <span className="hidden truncate text-[10px] leading-tight text-muted-foreground lg:block">{image.title}</span>
         </span>
       )}

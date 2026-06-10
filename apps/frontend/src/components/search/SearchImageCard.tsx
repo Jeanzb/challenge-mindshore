@@ -45,7 +45,9 @@ export function SearchImageCard({ image, onPreviewIntent }: SearchImageCardProps
     <article
       className={cn(
         "group relative overflow-hidden rounded-lg border bg-space-panel text-left shadow-sm shadow-black/20 transition duration-200 hover:-translate-y-0.5 hover:border-space-cyan/40 hover:bg-space-panelStrong",
-        isSelected ? "border-space-orange shadow-space-orange/10" : "border-white/10",
+        isSelected
+          ? "border-space-orange shadow-[0_0_0_1px_rgba(249,160,63,0.3),0_8px_24px_rgba(0,0,0,0.3)]"
+          : "border-white/10",
         isMultiSelected && "border-space-orange/70"
       )}
       data-cy="image-card"
@@ -88,7 +90,7 @@ export function SearchImageCard({ image, onPreviewIntent }: SearchImageCardProps
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <h3 className="line-clamp-1 text-sm font-semibold text-white">{image.title}</h3>
-            <p className="mt-1 text-xs text-muted-foreground">{image.displayDate ?? "Unknown date"}</p>
+            <p className="mt-1 font-mono text-[11px] tracking-wide text-muted-foreground">{image.displayDate ?? "Unknown date"}</p>
           </div>
           <Button
             type="button"
