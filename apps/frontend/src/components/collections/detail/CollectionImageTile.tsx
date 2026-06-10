@@ -37,7 +37,7 @@ export function CollectionImageTile({ image, isRemoving, onRemove }: CollectionI
       </div>
       <div className="space-y-1 p-3">
         <h3 className="truncate text-sm font-semibold text-white">{image.title}</h3>
-        <p className="text-xs text-muted-foreground">{image.dateCreated?.slice(0, 10) ?? "Unknown date"}</p>
+        <p className="font-mono text-[11px] tracking-wide text-muted-foreground">{image.dateCreated?.slice(0, 10) ?? "Unknown date"}</p>
         {image.userNote ? <p className="line-clamp-2 text-xs leading-5 text-muted-foreground">{image.userNote}</p> : null}
       </div>
     </Card>
