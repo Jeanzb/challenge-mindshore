@@ -1,4 +1,5 @@
-import { Clock3, MoreHorizontal } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { ArrowRight, Clock3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import type { CollectionVisual } from "@/constants";
@@ -45,13 +46,18 @@ export function CollectionCard({ collection, visual }: CollectionCardProps) {
             </p>
           </div>
           <Button
-            type="button"
+            asChild
             variant="ghost"
             size="icon"
             className="h-8 w-8 shrink-0 rounded-full text-muted-foreground hover:bg-white/5 hover:text-white"
-            aria-label={`Collection actions for ${collection.name}`}
           >
-            <MoreHorizontal className="h-4 w-4" />
+            <Link
+              to="/collections/$collectionId"
+              params={{ collectionId: collection.id }}
+              aria-label={`Open ${collection.name}`}
+            >
+              <ArrowRight className="h-4 w-4" />
+            </Link>
           </Button>
         </div>
         <div className="flex items-center gap-2 text-xs text-muted-foreground">

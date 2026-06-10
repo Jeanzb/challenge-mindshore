@@ -2,6 +2,7 @@ import { Route as rootRouteImport } from "./routes/__root";
 import { Route as IndexRouteImport } from "./routes/index";
 import { Route as AuthIndexRouteImport } from "./routes/auth";
 import { Route as CollectionsIndexRouteImport } from "./routes/collections";
+import { Route as CollectionDetailRouteImport } from "./routes/collections/detail";
 import { Route as ComparatorIndexRouteImport } from "./routes/comparator";
 import { Route as ExportIndexRouteImport } from "./routes/export";
 import { Route as ImagesIndexRouteImport } from "./routes/images";
@@ -23,6 +24,12 @@ const AuthIndexRoute = AuthIndexRouteImport.update({
 const CollectionsIndexRoute = CollectionsIndexRouteImport.update({
   id: "/collections/",
   path: "/collections",
+  getParentRoute: () => rootRouteImport
+} as never);
+
+const CollectionDetailRoute = CollectionDetailRouteImport.update({
+  id: "/collections/$collectionId",
+  path: "/collections/$collectionId",
   getParentRoute: () => rootRouteImport
 } as never);
 
@@ -60,6 +67,7 @@ type RootRouteChildren = {
   IndexRoute: typeof IndexRoute;
   AuthIndexRoute: typeof AuthIndexRoute;
   CollectionsIndexRoute: typeof CollectionsIndexRoute;
+  CollectionDetailRoute: typeof CollectionDetailRoute;
   ComparatorIndexRoute: typeof ComparatorIndexRoute;
   ExportIndexRoute: typeof ExportIndexRoute;
   ImagesIndexRoute: typeof ImagesIndexRoute;
@@ -72,6 +80,7 @@ type FileRouteTypes = {
     "/": typeof IndexRoute;
     "/auth/": typeof AuthIndexRoute;
     "/collections/": typeof CollectionsIndexRoute;
+    "/collections/$collectionId": typeof CollectionDetailRoute;
     "/comparator/": typeof ComparatorIndexRoute;
     "/export/": typeof ExportIndexRoute;
     "/images/": typeof ImagesIndexRoute;
@@ -82,6 +91,7 @@ type FileRouteTypes = {
     | "/"
     | "/auth/"
     | "/collections/"
+    | "/collections/$collectionId"
     | "/comparator/"
     | "/export/"
     | "/images/"
@@ -91,6 +101,7 @@ type FileRouteTypes = {
     "/": typeof IndexRoute;
     "/auth": typeof AuthIndexRoute;
     "/collections": typeof CollectionsIndexRoute;
+    "/collections/$collectionId": typeof CollectionDetailRoute;
     "/comparator": typeof ComparatorIndexRoute;
     "/export": typeof ExportIndexRoute;
     "/images": typeof ImagesIndexRoute;
@@ -101,6 +112,7 @@ type FileRouteTypes = {
     | "/"
     | "/auth"
     | "/collections"
+    | "/collections/$collectionId"
     | "/comparator"
     | "/export"
     | "/images"
@@ -111,6 +123,7 @@ type FileRouteTypes = {
     | "/"
     | "/auth/"
     | "/collections/"
+    | "/collections/$collectionId"
     | "/comparator/"
     | "/export/"
     | "/images/"
@@ -121,6 +134,7 @@ type FileRouteTypes = {
     "/": typeof IndexRoute;
     "/auth/": typeof AuthIndexRoute;
     "/collections/": typeof CollectionsIndexRoute;
+    "/collections/$collectionId": typeof CollectionDetailRoute;
     "/comparator/": typeof ComparatorIndexRoute;
     "/export/": typeof ExportIndexRoute;
     "/images/": typeof ImagesIndexRoute;
@@ -150,6 +164,13 @@ declare module "@tanstack/react-router" {
       path: "/collections";
       fullPath: "/collections/";
       preLoaderRoute: typeof CollectionsIndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/collections/$collectionId": {
+      id: "/collections/$collectionId";
+      path: "/collections/$collectionId";
+      fullPath: "/collections/$collectionId";
+      preLoaderRoute: typeof CollectionDetailRouteImport;
       parentRoute: typeof rootRouteImport;
     };
     "/comparator/": {
@@ -194,6 +215,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute,
   AuthIndexRoute,
   CollectionsIndexRoute,
+  CollectionDetailRoute,
   ComparatorIndexRoute,
   ExportIndexRoute,
   ImagesIndexRoute,
