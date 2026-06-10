@@ -1,3 +1,4 @@
+import { useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect } from "react";
 import { useNasaSearch } from "@/hooks";
 import { defaultNasaSearchPageSize, defaultNasaSearchQuery, sampleSearchImages, sampleSearchTotalHits } from "@/constants";
@@ -15,6 +16,7 @@ type SearchDashboardProps = {
 };
 
 export function SearchDashboard({ initialQuery }: SearchDashboardProps) {
+  const navigate = useNavigate();
   const selectedImage = useUiStore(uiSelectors.selectedImage);
   const inspectorOpen = useUiStore(uiSelectors.inspectorOpen);
   const selectImage = useUiStore(uiSelectors.selectImageAction);
@@ -92,6 +94,21 @@ export function SearchDashboard({ initialQuery }: SearchDashboardProps) {
     }
   }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
+  const handleResetSearch = useCallback(() => {
+    updateFilters({
+      query: defaultNasaSearchQuery,
+      dateFrom: null,
+      dateTo: null,
+      rover: null,
+      camera: null,
+      mission: null
+    });
+
+    if (initialQuery !== undefined) {
+      void navigate({ to: "/search", search: {} });
+    }
+  }, [initialQuery, navigate, updateFilters]);
+
   return (
     <section
       className={cn(
@@ -113,6 +130,7 @@ export function SearchDashboard({ initialQuery }: SearchDashboardProps) {
         error={error}
         onImagePreviewIntent={prefetchPreviewImage}
         onLoadMore={loadNextPage}
+        onResetSearch={handleResetSearch}
       />
       <SearchInspector fallbackImage={fallbackImage} />
       <SearchTimeline images={displayImages} dateRangeLabel={timelineDateRange} />

@@ -18,6 +18,7 @@ type SearchResultsGridProps = {
   error: Error | null;
   onImagePreviewIntent: (image: NasaImage) => void;
   onLoadMore: () => void;
+  onResetSearch: () => void;
 };
 
 const formatResultsCount = new Intl.NumberFormat("en-US");
@@ -36,7 +37,8 @@ export function SearchResultsGrid({
   isUsingFallback,
   error,
   onImagePreviewIntent,
-  onLoadMore
+  onLoadMore,
+  onResetSearch
 }: SearchResultsGridProps) {
   const scrollRootRef = useRef<HTMLDivElement | null>(null);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
@@ -45,7 +47,8 @@ export function SearchResultsGrid({
   const semanticSearchEnabled = useUiStore(uiSelectors.semanticSearchEnabled);
   const setSemanticSearchEnabled = useUiStore(uiSelectors.setSemanticSearchEnabledAction);
   const openMobileFilters = useUiStore(uiSelectors.openMobileFiltersAction);
-  const hasNoResults = !isLoading && images.length === 0 && !isUsingFallback;
+  const showSkeletons = isLoading || (isFetching && images.length === 0);
+  const hasNoResults = !showSkeletons && images.length === 0 && !isUsingFallback;
 
   const showGrid = () => {
     setSearchViewMode("grid");
@@ -178,7 +181,11 @@ export function SearchResultsGrid({
                 : "grid-cols-1 lg:grid-cols-2"
             )}
           >
-            {isLoading ? skeletonKeys.map(renderSkeleton) : hasNoResults ? <SearchEmptyState /> : images.map(renderSearchImage)}
+            {showSkeletons
+              ? skeletonKeys.map(renderSkeleton)
+              : hasNoResults
+                ? <SearchEmptyState onReset={onResetSearch} />
+                : images.map(renderSearchImage)}
           </div>
           {!hasNoResults && !isLoading && !isUsingFallback && (
             <div ref={loadMoreRef} className="flex h-16 items-center justify-center text-xs text-muted-foreground">
@@ -192,13 +199,25 @@ export function SearchResultsGrid({
   );
 }
 
-function SearchEmptyState() {
+type SearchEmptyStateProps = {
+  onReset: () => void;
+};
+
+function SearchEmptyState({ onReset }: SearchEmptyStateProps) {
   return (
     <div className="max-w-sm rounded-lg border border-white/10 bg-space-panel px-6 py-8 text-center shadow-sm shadow-black/20">
       <p className="text-sm font-semibold text-white">No NASA images found</p>
       <p className="mt-2 text-sm leading-6 text-muted-foreground">
         Try a broader mission, camera, date range, or search query.
       </p>
+      <Button
+        type="button"
+        size="sm"
+        className="mt-5 h-9 rounded-full bg-space-orange px-5 text-space-void hover:bg-space-orange/90"
+        onClick={onReset}
+      >
+        Reset search
+      </Button>
     </div>
   );
 }
