@@ -13,6 +13,11 @@ public sealed class AiEnrichmentService : IAiEnrichmentService
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
+    private static readonly JsonSerializerOptions RequestJsonOptions = new(JsonSerializerDefaults.Web)
+    {
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+    };
+
     private readonly HttpClient _httpClient;
     private readonly OpenAiOptions _options;
 
@@ -41,7 +46,7 @@ public sealed class AiEnrichmentService : IAiEnrichmentService
             Return JSON with string description, string[] funFacts, and string historicalContext.
             """;
 
-        string content = await CreateChatCompletionAsync(OpenAiPrompts.EnrichImage, userPrompt, fallbackDescription, cancellationToken);
+        string content = await CreateChatCompletionAsync(OpenAiPrompts.EnrichImage, userPrompt, fallbackDescription, cancellationToken, expectJson: true);
         AiEnrichmentResponse? parsed = TryDeserialize<AiEnrichmentResponse>(content);
 
         return new AiImageEnrichmentResult(
@@ -82,7 +87,8 @@ public sealed class AiEnrichmentService : IAiEnrichmentService
             OpenAiPrompts.SuggestTags,
             $"Title: {imageTitle}\nDescription: {imageDescription ?? "No description provided."}",
             "[]",
-            cancellationToken);
+            cancellationToken,
+            expectJson: true);
         string[]? parsed = TryDeserialize<string[]>(content);
 
         return (parsed ?? BuildFallbackTags(imageTitle))
@@ -111,7 +117,8 @@ public sealed class AiEnrichmentService : IAiEnrichmentService
         string systemPrompt,
         string userPrompt,
         string fallback,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        bool expectJson = false)
     {
         using HttpRequestMessage request = new(HttpMethod.Post, "chat/completions")
         {
@@ -120,7 +127,8 @@ public sealed class AiEnrichmentService : IAiEnrichmentService
                 [
                     new ChatMessage("system", systemPrompt),
                     new ChatMessage("user", userPrompt)
-                ]))
+                ],
+                expectJson ? new ChatResponseFormat("json_object") : null), options: RequestJsonOptions)
         };
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _options.ApiKey);
 
@@ -152,7 +160,7 @@ public sealed class AiEnrichmentService : IAiEnrichmentService
     {
         try
         {
-            return JsonSerializer.Deserialize<T>(content, JsonOptions);
+            return JsonSerializer.Deserialize<T>(ExtractJsonPayload(content), JsonOptions);
         }
         catch (JsonException)
         {
@@ -160,7 +168,32 @@ public sealed class AiEnrichmentService : IAiEnrichmentService
         }
     }
 
-    private sealed record ChatCompletionRequest(string Model, IReadOnlyCollection<ChatMessage> Messages);
+    private static string ExtractJsonPayload(string content)
+    {
+        string trimmed = content.Trim();
+
+        if (!trimmed.StartsWith("```", StringComparison.Ordinal))
+        {
+            return trimmed;
+        }
+
+        int firstLineEnd = trimmed.IndexOf('\n');
+        int closingFence = trimmed.LastIndexOf("```", StringComparison.Ordinal);
+
+        if (firstLineEnd < 0 || closingFence <= firstLineEnd)
+        {
+            return trimmed;
+        }
+
+        return trimmed[(firstLineEnd + 1)..closingFence].Trim();
+    }
+
+    private sealed record ChatCompletionRequest(
+        string Model,
+        IReadOnlyCollection<ChatMessage> Messages,
+        [property: JsonPropertyName("response_format")] ChatResponseFormat? ResponseFormat = null);
+
+    private sealed record ChatResponseFormat(string Type);
 
     private sealed record ChatMessage(string Role, string Content);
 
