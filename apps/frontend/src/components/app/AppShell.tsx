@@ -1,7 +1,6 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   ChevronDown,
-  Command,
   GitCompareArrows,
   Grid2X2,
   Library,
@@ -224,12 +223,9 @@ function ShellSearchField() {
           value={query}
           onChange={handleChange}
           placeholder="Search NASA imagery..."
-          className="h-9 rounded-full border-white/10 bg-space-void/60 pl-10 pr-12 text-sm text-foreground shadow-inner shadow-black/20 placeholder:text-muted-foreground focus-visible:ring-space-cyan/70"
+          className="h-9 rounded-full border-white/10 bg-space-void/60 pl-10 pr-4 text-sm text-foreground shadow-inner shadow-black/20 placeholder:text-muted-foreground focus-visible:ring-space-cyan/70"
           aria-label="Search NASA imagery"
         />
-        <span className="pointer-events-none absolute right-2 top-1/2 inline-flex h-5 -translate-y-1/2 items-center gap-1 rounded border border-white/10 bg-space-panel px-1.5 text-[10px] text-muted-foreground">
-          <Command className="h-3 w-3" />K
-        </span>
       </div>
     </form>
   );
