@@ -60,15 +60,18 @@ public static class DependencyInjection
         services.AddScoped<INasaApiService, CachedNasaApiService>();
         services.Configure<OpenAiOptions>(options =>
         {
-            options.BaseUrl = config["OPENAI_BASE_URL"]
+            options.BaseUrl = config["AI_BASE_URL"]
+                ?? config["OPENAI_BASE_URL"]
                 ?? config[$"{OpenAiOptions.SectionName}:BaseUrl"]
-                ?? "https://api.openai.com/v1/";
-            options.ApiKey = config["OPENAI_API_KEY"]
+                ?? "https://generativelanguage.googleapis.com/v1beta/openai/";
+            options.ApiKey = config["AI_API_KEY"]
+                ?? config["OPENAI_API_KEY"]
                 ?? config[$"{OpenAiOptions.SectionName}:ApiKey"]
                 ?? string.Empty;
-            options.Model = config["OPENAI_MODEL"]
+            options.Model = config["AI_MODEL"]
+                ?? config["OPENAI_MODEL"]
                 ?? config[$"{OpenAiOptions.SectionName}:Model"]
-                ?? "gpt-4o-mini";
+                ?? "gemini-2.5-flash";
         });
         services.AddHttpClient<IAiEnrichmentService, AiEnrichmentService>((serviceProvider, client) =>
         {
