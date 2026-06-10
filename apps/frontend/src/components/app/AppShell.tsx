@@ -21,6 +21,7 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import { NotificationCenter } from "@/components/app/NotificationCenter";
 import { defaultNasaSearchQuery } from "@/constants";
 import { useAuthSession } from "@/hooks/auth";
 import { cn } from "@/lib/utils";
@@ -94,6 +95,7 @@ export function AppShell({ children, contentClassName }: AppShellProps) {
       </header>
       <main className={cn("min-h-[calc(100vh-3.5rem)] pb-14 md:pb-0", contentClassName)}>{children}</main>
       <MobileBottomNav pathname={pathname} />
+      <NotificationCenter />
     </div>
   );
 }

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuthSession } from "@/hooks/auth";
 import { useAddImageToCollection, useCollectionsList } from "@/hooks/collections";
-import { useUiStore, uiSelectors } from "@/store";
+import { notificationSelectors, useNotificationStore, useUiStore, uiSelectors } from "@/store";
 import type { NasaImage } from "@/types/search";
 
 type SearchBatchBarProps = {
@@ -17,8 +17,8 @@ export function SearchBatchBar({ images }: SearchBatchBarProps) {
   const { isAuthenticated } = useAuthSession();
   const { collections } = useCollectionsList({ enabled: isAuthenticated });
   const { addImageToCollection } = useAddImageToCollection();
+  const notify = useNotificationStore(notificationSelectors.notifyAction);
   const [targetCollectionId, setTargetCollectionId] = useState<string>("none");
-  const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
   if (selectedIds.length === 0) {
@@ -29,29 +29,27 @@ export function SearchBatchBar({ images }: SearchBatchBarProps) {
 
   const handleClear = () => {
     clearMultiSelect();
-    setStatusMessage(null);
   };
 
   const handleCollectionChange = (collectionId: string) => {
     setTargetCollectionId(collectionId);
-    setStatusMessage(null);
   };
 
   const handleAddAll = async () => {
     if (!isAuthenticated) {
-      setStatusMessage("Sign in to save images.");
+      notify("Sign in to save images.", "error");
       return;
     }
 
     if (targetCollectionId === "none") {
-      setStatusMessage("Choose a collection first.");
+      notify("Choose a collection first.", "error");
       return;
     }
 
     setIsSaving(true);
-    setStatusMessage(null);
 
     const targetCollection = collections.find((collection) => collection.id === targetCollectionId);
+    const collectionName = targetCollection?.name ?? "collection";
     const results = await Promise.allSettled(
       selectedImages.map((image) => addImageToCollection({ collectionId: targetCollectionId, image }))
     );
@@ -61,12 +59,12 @@ export function SearchBatchBar({ images }: SearchBatchBarProps) {
     setIsSaving(false);
 
     if (failedCount === 0) {
-      setStatusMessage(`Saved ${savedCount} to ${targetCollection?.name ?? "collection"}.`);
+      notify(`Saved ${savedCount} to ${collectionName}`, "success");
       clearMultiSelect();
       return;
     }
 
-    setStatusMessage(`Saved ${savedCount}, ${failedCount} could not be added.`);
+    notify(`Saved ${savedCount}, ${failedCount} could not be added`, "error");
   };
 
   return (
@@ -132,9 +130,6 @@ export function SearchBatchBar({ images }: SearchBatchBarProps) {
             <X className="h-4 w-4" />
           </Button>
         </div>
-        {statusMessage !== null ? (
-          <p className="w-full text-xs text-space-cyan sm:order-last sm:w-full sm:text-right">{statusMessage}</p>
-        ) : null}
       </div>
     </div>
   );

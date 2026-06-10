@@ -8,7 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { useImageComparison } from "@/hooks/ai";
 import { useAuthSession } from "@/hooks/auth";
 import { useCollectionDetail, useCollectionsList } from "@/hooks/collections";
-import { useUiStore, uiSelectors } from "@/store";
+import { notificationSelectors, useNotificationStore, useUiStore, uiSelectors } from "@/store";
 import { ComparatorAnalysis } from "@/components/comparator/ComparatorAnalysis";
 import { ComparatorAuthPrompt } from "@/components/comparator/ComparatorAuthPrompt";
 import { ComparatorImageCard } from "@/components/comparator/ComparatorImageCard";
@@ -45,6 +45,7 @@ export function ImageComparator() {
   });
   const { compareImages, comparison, error, isComparing } = useImageComparison();
   const dashboardCompareIds = useUiStore(uiSelectors.compareImageIds);
+  const notify = useNotificationStore(notificationSelectors.notifyAction);
 
   useEffect(() => {
     if (activeCollectionId.length === 0 && defaultCollectionId.length > 0) {
@@ -125,10 +126,16 @@ export function ImageComparator() {
     }
 
     setStatusMessage(null);
-    await compareImages({
-      imageIds: selectedImageIds,
-      title: comparisonTitle
-    });
+
+    try {
+      await compareImages({
+        imageIds: selectedImageIds,
+        title: comparisonTitle
+      });
+      notify("Comparative analysis ready", "success");
+    } catch {
+      notify("Comparison could not be generated", "error");
+    }
   };
 
   if (!isAuthenticated) {

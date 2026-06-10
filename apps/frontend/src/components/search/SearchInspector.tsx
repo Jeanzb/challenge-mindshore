@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAiEnrichment } from "@/hooks/ai";
 import { useAuthSession } from "@/hooks/auth";
 import { useAddImageToCollection, useCollectionsList } from "@/hooks/collections";
-import { useUiStore, uiSelectors } from "@/store";
+import { notificationSelectors, useNotificationStore, useUiStore, uiSelectors } from "@/store";
 import type { CollectionSummary } from "@/types/collections";
 import type { NasaImage } from "@/types/search";
 
@@ -46,20 +46,17 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
   const { collections } = useCollectionsList({ enabled: isAuthenticated });
   const { addImageToCollection, isAddingImageToCollection } = useAddImageToCollection();
   const { enrichImage, enrichment, getCachedEnrichment, isEnriching } = useAiEnrichment();
+  const notify = useNotificationStore(notificationSelectors.notifyAction);
   const [selectedCollectionId, setSelectedCollectionId] = useState<string>("none");
-  const [addStatusMessage, setAddStatusMessage] = useState<string | null>(null);
   const [aiStatusMessage, setAiStatusMessage] = useState<string | null>(null);
   const [compareStatusMessage, setCompareStatusMessage] = useState<string | null>(null);
-  const [actionStatusMessage, setActionStatusMessage] = useState<string | null>(null);
   const addToCollectionDisabled = isAddingImageToCollection || selectedImage === undefined;
   const cachedEnrichment = selectedImage === undefined ? undefined : getCachedEnrichment(selectedImage.nasaImageId);
   const activeEnrichment = enrichment?.nasaImageId === selectedImage?.nasaImageId ? enrichment : cachedEnrichment;
 
   useEffect(() => {
-    setAddStatusMessage(null);
     setAiStatusMessage(null);
     setCompareStatusMessage(null);
-    setActionStatusMessage(null);
   }, [selectedImage?.nasaImageId]);
 
   if (selectedImage === undefined) {
@@ -87,7 +84,6 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
   };
 
   const handleDownload = async () => {
-    setActionStatusMessage(null);
     const downloadUrl = selectedImage.urls.full || selectedImage.imageUrl;
 
     try {
@@ -106,15 +102,14 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
       anchor.click();
       anchor.remove();
       URL.revokeObjectURL(objectUrl);
-      setActionStatusMessage("Image downloaded.");
+      notify("Image downloaded", "success");
     } catch {
       window.open(downloadUrl, "_blank", "noopener,noreferrer");
-      setActionStatusMessage("Opened the full image in a new tab.");
+      notify("Opened the full image in a new tab", "info");
     }
   };
 
   const handleShare = async () => {
-    setActionStatusMessage(null);
     const shareUrl = selectedImage.sourceUrl ?? selectedImage.urls.source ?? selectedImage.imageUrl;
 
     if (typeof navigator.share === "function") {
@@ -130,15 +125,14 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
 
     try {
       await navigator.clipboard.writeText(shareUrl);
-      setActionStatusMessage("Link copied to clipboard.");
+      notify("Link copied to clipboard", "success");
     } catch {
-      setActionStatusMessage("Sharing is not available in this browser.");
+      notify("Sharing is not available in this browser", "error");
     }
   };
 
   const handleCollectionChange = (collectionId: string) => {
     setSelectedCollectionId(collectionId);
-    setAddStatusMessage(null);
   };
 
   const handleGenerateEnrichment = async () => {
@@ -168,12 +162,12 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
 
   const handleAddToCollection = async () => {
     if (!isAuthenticated) {
-      setAddStatusMessage("Sign in before saving images.");
+      notify("Sign in before saving images.", "error");
       return;
     }
 
     if (selectedCollectionId === "none") {
-      setAddStatusMessage("Select a collection first.");
+      notify("Select a collection first.", "error");
       return;
     }
 
@@ -184,9 +178,9 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
         collectionId: selectedCollectionId,
         image: selectedImage
       });
-      setAddStatusMessage(`Saved to ${selectedCollection?.name ?? "collection"}.`);
+      notify(`Saved to ${selectedCollection?.name ?? "collection"}`, "success");
     } catch (error) {
-      setAddStatusMessage(error instanceof Error ? error.message : "Image could not be saved.");
+      notify(error instanceof Error ? error.message : "Image could not be saved.", "error");
     }
   };
 
@@ -274,9 +268,6 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
                 {isAddingImageToCollection ? "Adding" : "Add"}
               </Button>
             </div>
-            {actionStatusMessage !== null ? (
-              <p className="mt-2 text-xs text-space-cyan">{actionStatusMessage}</p>
-            ) : null}
             {compareStatusMessage !== null ? (
               <p className="mt-2 text-xs text-space-cyan">
                 {compareStatusMessage}{" "}
@@ -386,9 +377,6 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
                   {collections.map(renderCollectionOption)}
                 </SelectContent>
               </Select>
-              {addStatusMessage !== null ? (
-                <p className="mt-2 text-xs text-space-orange">{addStatusMessage}</p>
-              ) : null}
             </div>
           </div>
         </ScrollArea>
