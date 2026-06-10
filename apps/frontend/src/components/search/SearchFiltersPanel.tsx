@@ -1,4 +1,4 @@
-import { CalendarDays, Info, Search, SlidersHorizontal, X } from "lucide-react";
+import { Info, Search, SlidersHorizontal, X } from "lucide-react";
 import { useEffect, useState, type ChangeEvent, type FormEvent, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,7 @@ import { defaultNasaSearchQuery } from "@/constants";
 import { cn } from "@/lib/utils";
 import { useUiStore, uiSelectors } from "@/store";
 import type { NasaSearchFilters } from "@/types/search";
+import { DateRangeFilter } from "@/components/search/DateRangeFilter";
 
 type SearchFiltersPanelProps = {
   filters: NasaSearchFilters;
@@ -108,13 +109,6 @@ const cameraOptions: readonly FilterOption[] = [
 
 const mediaTypeOptions: readonly FilterOption[] = [
   { label: "Images", value: "image" }
-];
-
-const datePresetOptions: readonly FilterOption[] = [
-  { label: "Any date", value: "any" },
-  { label: "Custom range", value: "custom" },
-  { label: "Last 30 days", value: "last-30" },
-  { label: "Last year", value: "last-year" }
 ];
 
 const toDraft = (filters: Partial<NasaSearchFilters>, mediaType = "image"): SearchFilterDraft => ({
@@ -296,11 +290,13 @@ export function SearchFiltersPanel({ filters, isFetching, onApplyFilters }: Sear
               </label>
             </FilterGroup>
             <FilterGroup label="Date Range" hasInfo>
-              <FilterSelect value={draft.datePreset} options={datePresetOptions} onValueChange={updateDatePreset} />
-              <div className="grid grid-cols-1 gap-2">
-                <DateInput label="From" value={draft.dateFrom} onChange={updateDateDraftField("dateFrom")} />
-                <DateInput label="To" value={draft.dateTo} onChange={updateDateDraftField("dateTo")} />
-              </div>
+              <DateRangeFilter
+                preset={draft.datePreset}
+                dateFrom={draft.dateFrom}
+                dateTo={draft.dateTo}
+                onPresetChange={updateDatePreset}
+                onDateChange={updateDateDraftField}
+              />
             </FilterGroup>
             <FilterGroup label="Mission" hasInfo>
               <FilterSelect value={draft.mission} options={missionOptions} onValueChange={updateSelectDraftField("mission")} />
@@ -391,29 +387,6 @@ function FilterSelect({ value, options, onValueChange }: FilterSelectProps) {
         {options.map(renderFilterOption)}
       </SelectContent>
     </Select>
-  );
-}
-
-type DateInputProps = {
-  label: string;
-  value: string;
-  onChange: (event: ChangeEvent<HTMLInputElement>) => void;
-};
-
-function DateInput({ label, value, onChange }: DateInputProps) {
-  return (
-    <label className="block min-w-0">
-      <span className="mb-1.5 block text-[10px] font-semibold uppercase text-muted-foreground">{label}</span>
-      <span className="relative block min-w-0">
-        <input
-          type="date"
-          value={value}
-          onChange={onChange}
-          className="cosmara-control cosmara-date min-w-0 pr-9 text-xs font-medium"
-        />
-        <CalendarDays className="pointer-events-none absolute right-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-      </span>
-    </label>
   );
 }
 

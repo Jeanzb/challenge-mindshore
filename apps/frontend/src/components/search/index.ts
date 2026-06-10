@@ -1,3 +1,4 @@
+export { DateRangeFilter } from "@/components/search/DateRangeFilter";
 export { SearchBatchBar } from "@/components/search/SearchBatchBar";
 export { SearchDashboard } from "@/components/search/SearchDashboard";
 export { SearchFiltersPanel } from "@/components/search/SearchFiltersPanel";
