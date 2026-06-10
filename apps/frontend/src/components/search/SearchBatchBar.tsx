@@ -3,8 +3,9 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuthSession } from "@/hooks/auth";
+import { toast } from "sonner";
 import { useAddImageToCollection, useCollectionsList } from "@/hooks/collections";
-import { notificationSelectors, useNotificationStore, useUiStore, uiSelectors } from "@/store";
+import { useUiStore, uiSelectors } from "@/store";
 import type { NasaImage } from "@/types/search";
 
 type SearchBatchBarProps = {
@@ -17,7 +18,6 @@ export function SearchBatchBar({ images }: SearchBatchBarProps) {
   const { isAuthenticated } = useAuthSession();
   const { collections } = useCollectionsList({ enabled: isAuthenticated });
   const { addImageToCollection } = useAddImageToCollection();
-  const notify = useNotificationStore(notificationSelectors.notifyAction);
   const [targetCollectionId, setTargetCollectionId] = useState<string>("none");
   const [isSaving, setIsSaving] = useState(false);
 
@@ -37,12 +37,12 @@ export function SearchBatchBar({ images }: SearchBatchBarProps) {
 
   const handleAddAll = async () => {
     if (!isAuthenticated) {
-      notify("Sign in to save images.", "error");
+      toast.error("Sign in to save images.");
       return;
     }
 
     if (targetCollectionId === "none") {
-      notify("Choose a collection first.", "error");
+      toast.error("Choose a collection first.");
       return;
     }
 
@@ -59,12 +59,12 @@ export function SearchBatchBar({ images }: SearchBatchBarProps) {
     setIsSaving(false);
 
     if (failedCount === 0) {
-      notify(`Saved ${savedCount} to ${collectionName}`, "success");
+      toast.success(`Saved ${savedCount} to ${collectionName}`);
       clearMultiSelect();
       return;
     }
 
-    notify(`Saved ${savedCount}, ${failedCount} could not be added`, "error");
+    toast.error(`Saved ${savedCount}, ${failedCount} could not be added`);
   };
 
   return (

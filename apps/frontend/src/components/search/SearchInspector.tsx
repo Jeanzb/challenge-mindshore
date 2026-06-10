@@ -9,7 +9,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAiEnrichment } from "@/hooks/ai";
 import { useAuthSession } from "@/hooks/auth";
 import { useAddImageToCollection, useCollectionsList } from "@/hooks/collections";
-import { notificationSelectors, useNotificationStore, useUiStore, uiSelectors } from "@/store";
+import { toast } from "sonner";
+import { useUiStore, uiSelectors } from "@/store";
 import type { CollectionSummary } from "@/types/collections";
 import type { NasaImage } from "@/types/search";
 
@@ -46,7 +47,6 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
   const { collections } = useCollectionsList({ enabled: isAuthenticated });
   const { addImageToCollection, isAddingImageToCollection } = useAddImageToCollection();
   const { enrichImage, enrichment, getCachedEnrichment, isEnriching } = useAiEnrichment();
-  const notify = useNotificationStore(notificationSelectors.notifyAction);
   const [selectedCollectionId, setSelectedCollectionId] = useState<string>("none");
   const [aiStatusMessage, setAiStatusMessage] = useState<string | null>(null);
   const [compareStatusMessage, setCompareStatusMessage] = useState<string | null>(null);
@@ -102,10 +102,10 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
       anchor.click();
       anchor.remove();
       URL.revokeObjectURL(objectUrl);
-      notify("Image downloaded", "success");
+      toast.success("Image downloaded");
     } catch {
       window.open(downloadUrl, "_blank", "noopener,noreferrer");
-      notify("Opened the full image in a new tab", "info");
+      toast.info("Opened the full image in a new tab");
     }
   };
 
@@ -125,9 +125,9 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
 
     try {
       await navigator.clipboard.writeText(shareUrl);
-      notify("Link copied to clipboard", "success");
+      toast.success("Link copied to clipboard");
     } catch {
-      notify("Sharing is not available in this browser", "error");
+      toast.error("Sharing is not available in this browser");
     }
   };
 
@@ -162,12 +162,12 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
 
   const handleAddToCollection = async () => {
     if (!isAuthenticated) {
-      notify("Sign in before saving images.", "error");
+      toast.error("Sign in before saving images.");
       return;
     }
 
     if (selectedCollectionId === "none") {
-      notify("Select a collection first.", "error");
+      toast.error("Select a collection first.");
       return;
     }
 
@@ -178,9 +178,9 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
         collectionId: selectedCollectionId,
         image: selectedImage
       });
-      notify(`Saved to ${selectedCollection?.name ?? "collection"}`, "success");
+      toast.success(`Saved to ${selectedCollection?.name ?? "collection"}`);
     } catch (error) {
-      notify(error instanceof Error ? error.message : "Image could not be saved.", "error");
+      toast.error(error instanceof Error ? error.message : "Image could not be saved.");
     }
   };
 

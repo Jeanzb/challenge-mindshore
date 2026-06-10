@@ -10,9 +10,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
+import { toast } from "sonner";
 import { useAuthSession } from "@/hooks/auth";
 import { useAddImageToCollection, useCollectionsList } from "@/hooks/collections";
-import { notificationSelectors, useNotificationStore } from "@/store";
 import { cn } from "@/lib/utils";
 import type { CollectionSummary } from "@/types/collections";
 import type { NasaImage } from "@/types/search";
@@ -29,7 +29,6 @@ export function SaveToCollectionMenu({ image }: SaveToCollectionMenuProps) {
   const { isAuthenticated } = useAuthSession();
   const { collections } = useCollectionsList({ enabled: isAuthenticated });
   const { addImageToCollection, isAddingImageToCollection } = useAddImageToCollection();
-  const notify = useNotificationStore(notificationSelectors.notifyAction);
   const [savedCollectionIds, setSavedCollectionIds] = useState<string[]>([]);
   const isSaved = savedCollectionIds.length > 0;
 
@@ -43,9 +42,9 @@ export function SaveToCollectionMenu({ image }: SaveToCollectionMenuProps) {
     try {
       await addImageToCollection({ collectionId, image });
       setSavedCollectionIds((current) => [...current, collectionId]);
-      notify(`Saved to ${collectionName}`, "success");
+      toast.success(`Saved to ${collectionName}`);
     } catch {
-      notify(`Could not save to ${collectionName}`, "error");
+      toast.error(`Could not save to ${collectionName}`);
     }
   };
 
