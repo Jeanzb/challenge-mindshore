@@ -31,7 +31,7 @@ export function ComparatorImageCard({ image, isSelected = true, label, onToggle 
     >
       <div className="relative aspect-[16/11] overflow-hidden bg-space-void">
         <img src={image.imageUrl} alt={image.title} className="h-full w-full object-cover" />
-        <span className="absolute left-3 top-3 rounded-full bg-space-void/80 px-3 py-1 text-[11px] font-semibold uppercase text-white backdrop-blur">
+        <span className="absolute left-3 top-3 rounded-md border border-white/10 bg-space-void/80 px-2 py-1 font-mono text-[10px] font-semibold uppercase tracking-wider text-space-cyan backdrop-blur">
           {label}
         </span>
         {onToggle !== undefined ? (
@@ -57,7 +57,7 @@ export function ComparatorImageCard({ image, isSelected = true, label, onToggle 
           <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{image.description ?? "NASA collection image"}</p>
         </div>
         <div className="grid gap-2 text-xs text-muted-foreground sm:grid-cols-2">
-          <span className="inline-flex items-center gap-2">
+          <span className="inline-flex items-center gap-2 font-mono tracking-wide">
             <CalendarDays className="h-3.5 w-3.5 text-space-cyan" />
             {imageDate}
           </span>
