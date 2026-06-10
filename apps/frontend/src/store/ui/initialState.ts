@@ -10,6 +10,7 @@ export type UiStoreState = {
   searchViewMode: SearchViewMode;
   semanticSearchEnabled: boolean;
   compareImageIds: string[];
+  multiSelectImageIds: string[];
 };
 
 export const initialUiState: UiStoreState = {
@@ -20,5 +21,6 @@ export const initialUiState: UiStoreState = {
   timelinePanelState: "compact",
   searchViewMode: "grid",
   semanticSearchEnabled: false,
-  compareImageIds: []
+  compareImageIds: [],
+  multiSelectImageIds: []
 };

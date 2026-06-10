@@ -25,6 +25,8 @@ export type UiStoreAction = {
   addCompareImage: (nasaImageId: string) => void;
   removeCompareImage: (nasaImageId: string) => void;
   clearCompareImages: () => void;
+  toggleMultiSelectImage: (nasaImageId: string) => void;
+  clearMultiSelectImages: () => void;
   resetUiState: () => void;
 };
 
@@ -86,6 +88,18 @@ export const useUiStore = create<UiStore>()(
       },
       clearCompareImages: () => {
         set({ compareImageIds: [] });
+      },
+      toggleMultiSelectImage: (nasaImageId) => {
+        const current = get().multiSelectImageIds;
+
+        set({
+          multiSelectImageIds: current.includes(nasaImageId)
+            ? current.filter((imageId) => imageId !== nasaImageId)
+            : [...current, nasaImageId]
+        });
+      },
+      clearMultiSelectImages: () => {
+        set({ multiSelectImageIds: [] });
       },
       resetUiState: () => {
         set(initialUiState);

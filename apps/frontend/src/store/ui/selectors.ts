@@ -28,6 +28,19 @@ const isImageInComparison =
   (state: UiStore): boolean =>
     state.compareImageIds.includes(nasaImageId);
 
+const multiSelectImageIds = (state: UiStore) => state.multiSelectImageIds;
+
+const multiSelectActive = (state: UiStore) => state.multiSelectImageIds.length > 0;
+
+const isImageMultiSelected =
+  (nasaImageId: string) =>
+  (state: UiStore): boolean =>
+    state.multiSelectImageIds.includes(nasaImageId);
+
+const toggleMultiSelectImageAction = (state: UiStore) => state.toggleMultiSelectImage;
+
+const clearMultiSelectImagesAction = (state: UiStore) => state.clearMultiSelectImages;
+
 const selectImageAction = (state: UiStore) => state.selectImage;
 
 const clearSelectedImageAction = (state: UiStore) => state.clearSelectedImage;
@@ -75,5 +88,10 @@ export const uiSelectors = {
   setSearchViewModeAction,
   setSemanticSearchEnabledAction,
   addCompareImageAction,
-  removeCompareImageAction
+  removeCompareImageAction,
+  multiSelectImageIds,
+  multiSelectActive,
+  isImageMultiSelected,
+  toggleMultiSelectImageAction,
+  clearMultiSelectImagesAction
 };

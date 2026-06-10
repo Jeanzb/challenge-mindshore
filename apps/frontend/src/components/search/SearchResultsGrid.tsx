@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useUiStore, uiSelectors } from "@/store";
 import type { NasaImage } from "@/types/search";
+import { SearchBatchBar } from "@/components/search/SearchBatchBar";
 import { SearchImageCard } from "@/components/search/SearchImageCard";
 
 type SearchResultsGridProps = {
@@ -90,7 +91,7 @@ export function SearchResultsGrid({
   }, [hasNextPage, isFetchingNextPage, isLoading, onLoadMore]);
 
   return (
-    <section className="min-h-0 overflow-hidden border-white/10 lg:border-r" aria-label="NASA search results">
+    <section className="relative min-h-0 overflow-hidden border-white/10 lg:border-r" aria-label="NASA search results">
       <div className="flex h-full min-h-0 flex-col">
         <div className="flex min-h-16 shrink-0 flex-wrap items-center justify-between gap-3 border-b border-white/10 px-4 py-3">
           <div>
@@ -186,6 +187,7 @@ export function SearchResultsGrid({
           )}
         </div>
       </div>
+      <SearchBatchBar images={images} />
     </section>
   );
 }
