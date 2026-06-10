@@ -21,3 +21,8 @@ build/
 .bun/
 **/appsettings.Local.json
 **/appsettings.*.local.json
+.agents/
+.playwright-cli/
+.runlogs/
+skills-lock.json
+.claude/launch.json
