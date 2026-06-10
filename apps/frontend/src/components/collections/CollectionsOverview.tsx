@@ -1,14 +1,10 @@
-import { Clock3, FolderOpen, Image, Plus } from "lucide-react";
+import { FolderOpen, Image, Plus } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { collectionVisuals } from "@/constants";
 import { useAuthSession } from "@/hooks/auth";
 import { useCollectionsList } from "@/hooks/collections";
-import {
-  formatCollectionCount,
-  getLatestCollectionUpdate,
-  getTotalCollectionImages
-} from "@/lib/collectionMetrics";
+import { formatCollectionCount, getTotalCollectionImages } from "@/lib/collectionMetrics";
 import { CollectionCard } from "@/components/collections/CollectionCard";
 import { CollectionMetricCard } from "@/components/collections/CollectionMetricCard";
 import { CollectionsAuthPrompt } from "@/components/collections/CollectionsAuthPrompt";
@@ -24,7 +20,6 @@ export function CollectionsOverview() {
     enabled: isAuthenticated
   });
   const totalImages = getTotalCollectionImages(collections);
-  const latestUpdate = getLatestCollectionUpdate(collections) ?? "No activity";
   const collectionCountLabel = formatCollectionCount(collections.length, "collection", "collections");
   const imageCountLabel = formatCollectionCount(totalImages, "curated image", "curated images");
 
@@ -68,10 +63,9 @@ export function CollectionsOverview() {
         </Button>
       </div>
 
-      <div className="mt-6 grid gap-3 md:grid-cols-3">
+      <div className="mt-6 grid gap-3 sm:grid-cols-2">
         <CollectionMetricCard icon={FolderOpen} value={String(collections.length)} label="Collections" />
         <CollectionMetricCard icon={Image} value={String(totalImages)} label="Total images" />
-        <CollectionMetricCard icon={Clock3} value={latestUpdate} label="Last updated" />
       </div>
 
       <div className="mt-8">
