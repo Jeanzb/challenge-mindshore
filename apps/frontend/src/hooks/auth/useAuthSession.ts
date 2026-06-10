@@ -1,48 +1,39 @@
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { authTokenStorage } from "@/api";
 import { AuthService } from "@/services/auth";
-import type {
-  AuthenticatedUser,
-  AuthSession,
-  LoginUserRequest,
-  RefreshTokenRequest,
-  RegisterUserRequest
-} from "@/types/auth";
+import { authSelectors, useAuthStore } from "@/store";
+import type { LoginUserRequest, RefreshTokenRequest, RegisterUserRequest } from "@/types/auth";
 
 export const useAuthSession = () => {
   const queryClient = useQueryClient();
-  const [user, setUser] = useState<AuthenticatedUser | null>(() => authTokenStorage.getUser());
-
-  const storeSession = useCallback((session: AuthSession): void => {
-    authTokenStorage.setSession(session);
-    setUser(session.user);
-  }, []);
+  const user = useAuthStore(authSelectors.user);
+  const isAuthenticated = useAuthStore(authSelectors.isAuthenticated);
+  const setSession = useAuthStore(authSelectors.setSessionAction);
+  const clearSession = useAuthStore(authSelectors.clearSessionAction);
 
   const registerMutation = useMutation({
     mutationFn: (request: RegisterUserRequest) => AuthService.register(request),
-    onSuccess: storeSession
+    onSuccess: setSession
   });
 
   const loginMutation = useMutation({
     mutationFn: (request: LoginUserRequest) => AuthService.login(request),
-    onSuccess: storeSession
+    onSuccess: setSession
   });
 
   const refreshMutation = useMutation({
     mutationFn: (request: RefreshTokenRequest) => AuthService.refresh(request),
-    onSuccess: storeSession
+    onSuccess: setSession
   });
 
   const logout = useCallback((): void => {
-    authTokenStorage.clear();
-    setUser(null);
+    clearSession();
     queryClient.clear();
-  }, [queryClient]);
+  }, [clearSession, queryClient]);
 
   return {
     user,
-    isAuthenticated: user !== null && authTokenStorage.getAccessToken() !== null,
+    isAuthenticated,
     register: registerMutation.mutateAsync,
     login: loginMutation.mutateAsync,
     refresh: refreshMutation.mutateAsync,
