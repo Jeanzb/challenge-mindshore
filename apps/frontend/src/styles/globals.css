@@ -52,11 +52,13 @@
       radial-gradient(circle at 18% 22%, rgba(255, 255, 255, 0.18) 0 1px, transparent 1px),
       radial-gradient(circle at 70% 18%, rgba(255, 255, 255, 0.14) 0 1px, transparent 1px),
       radial-gradient(circle at 88% 68%, rgba(56, 198, 220, 0.16) 0 1px, transparent 1px),
+      radial-gradient(circle at 35% 80%, rgba(255, 255, 255, 0.10) 0 1px, transparent 1px),
       linear-gradient(135deg, rgba(3, 5, 10, 0.82), rgba(7, 16, 29, 0.88));
     background-size:
       180px 180px,
       260px 260px,
       320px 320px,
+      220px 220px,
       cover;
     content: "";
     pointer-events: none;
@@ -70,6 +72,11 @@
 
   * {
     border-color: hsl(var(--border));
+  }
+
+  ::selection {
+    background: rgba(249, 160, 63, 0.45);
+    color: #fff;
   }
 }
 
