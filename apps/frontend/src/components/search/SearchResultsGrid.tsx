@@ -43,6 +43,7 @@ export function SearchResultsGrid({
   const setSearchViewMode = useUiStore(uiSelectors.setSearchViewModeAction);
   const semanticSearchEnabled = useUiStore(uiSelectors.semanticSearchEnabled);
   const setSemanticSearchEnabled = useUiStore(uiSelectors.setSemanticSearchEnabledAction);
+  const openMobileFilters = useUiStore(uiSelectors.openMobileFiltersAction);
   const hasNoResults = !isLoading && images.length === 0 && !isUsingFallback;
 
   const showGrid = () => {
@@ -123,6 +124,16 @@ export function SearchResultsGrid({
             >
               <SlidersHorizontal className="h-4 w-4" />
               Semantic Search
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 rounded-full border border-white/10 bg-space-panel text-muted-foreground hover:bg-white/5 hover:text-white lg:hidden"
+              aria-label="Open filters"
+              onClick={openMobileFilters}
+            >
+              <SlidersHorizontal className="h-4 w-4" />
             </Button>
             <div className="flex h-9 items-center rounded-full border border-white/10 bg-space-panel p-1">
               <Button

@@ -7,7 +7,6 @@ import {
   Library,
   LogOut,
   Orbit,
-  PanelLeft,
   Search,
   type LucideIcon
 } from "lucide-react";
@@ -55,20 +54,11 @@ export function AppShell({ children, contentClassName }: AppShellProps) {
       <header className="sticky top-0 z-40 border-b border-white/10 bg-space-shell/95 backdrop-blur-xl">
         <div className="grid h-14 grid-cols-[auto_1fr_auto] items-center gap-4 px-4">
           <div className="flex min-w-0 items-center gap-4">
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="hidden h-9 w-9 text-muted-foreground hover:bg-white/5 hover:text-foreground lg:inline-flex"
-              aria-label="Toggle navigation"
-            >
-              <PanelLeft className="h-5 w-5" />
-            </Button>
             <Link to="/search" className="flex min-w-0 items-center gap-3">
               <span className="flex h-8 w-8 items-center justify-center rounded-md border border-space-orange/30 bg-space-orange/10 text-space-orange">
                 <Orbit className="h-5 w-5" />
               </span>
-              <span className="min-w-0">
+              <span className="hidden min-w-0 sm:block">
                 <span className="block text-base font-semibold leading-4 tracking-normal text-white">Cosmara</span>
                 <span className="block text-[10px] font-medium uppercase tracking-normal text-muted-foreground">
                   AI Space Archive
@@ -97,12 +87,14 @@ export function AppShell({ children, contentClassName }: AppShellProps) {
             </nav>
           </div>
           <ShellSearchField />
-          <div className="flex items-center justify-end">
+          <div className="flex items-center gap-2 justify-end">
+            <MobileSearchLink />
             <UserMenu />
           </div>
         </div>
       </header>
-      <main className={cn("min-h-[calc(100vh-3.5rem)]", contentClassName)}>{children}</main>
+      <main className={cn("min-h-[calc(100vh-3.5rem)] pb-14 md:pb-0", contentClassName)}>{children}</main>
+      <MobileBottomNav pathname={pathname} />
     </div>
   );
 }
@@ -240,5 +232,61 @@ function ShellSearchField() {
         </span>
       </div>
     </form>
+  );
+}
+
+function MobileSearchLink() {
+  return (
+    <Button
+      asChild
+      variant="ghost"
+      size="icon"
+      className="h-9 w-9 text-muted-foreground hover:bg-white/5 hover:text-foreground md:hidden"
+      aria-label="Search"
+    >
+      <Link to="/search">
+        <Search className="h-5 w-5" />
+      </Link>
+    </Button>
+  );
+}
+
+type MobileBottomNavProps = {
+  pathname: string;
+};
+
+type MobileNavItem = {
+  to: AppNavTarget;
+  label: string;
+  icon: LucideIcon;
+};
+
+const mobileNavItems: readonly MobileNavItem[] = [
+  { to: "/search", label: "Explore", icon: Grid2X2 },
+  { to: "/collections", label: "Collections", icon: Library },
+  { to: "/comparator", label: "Compare", icon: GitCompareArrows }
+];
+
+function MobileBottomNav({ pathname }: MobileBottomNavProps) {
+  return (
+    <nav className="cosmara-mobile-nav" aria-label="Mobile navigation">
+      {mobileNavItems.map((item) => {
+        const active = isRouteActive(pathname, item.to);
+        return (
+          <Link
+            key={item.to}
+            to={item.to}
+            className={cn(
+              "flex flex-col items-center gap-0.5 rounded-md px-3 py-1.5 text-[10px] font-medium transition-colors",
+              active ? "text-space-orange" : "text-muted-foreground"
+            )}
+            aria-current={active ? "page" : undefined}
+          >
+            <item.icon className="h-5 w-5" />
+            {item.label}
+          </Link>
+        );
+      })}
+    </nav>
   );
 }

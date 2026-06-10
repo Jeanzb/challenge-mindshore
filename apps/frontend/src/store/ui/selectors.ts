@@ -36,6 +36,12 @@ const openInspectorAction = (state: UiStore) => state.openInspector;
 
 const closeInspectorAction = (state: UiStore) => state.closeInspector;
 
+const mobileFiltersOpen = (state: UiStore) => state.mobileFiltersOpen;
+
+const openMobileFiltersAction = (state: UiStore) => state.openMobileFilters;
+
+const closeMobileFiltersAction = (state: UiStore) => state.closeMobileFilters;
+
 const setTimelinePanelStateAction = (state: UiStore) => state.setTimelinePanelState;
 
 const setSearchViewModeAction = (state: UiStore) => state.setSearchViewMode;
@@ -51,6 +57,7 @@ export const uiSelectors = {
   selectedImage,
   selectedImageId,
   inspectorOpen,
+  mobileFiltersOpen,
   timelinePanelState,
   searchViewMode,
   semanticSearchEnabled,
@@ -62,6 +69,8 @@ export const uiSelectors = {
   clearSelectedImageAction,
   openInspectorAction,
   closeInspectorAction,
+  openMobileFiltersAction,
+  closeMobileFiltersAction,
   setTimelinePanelStateAction,
   setSearchViewModeAction,
   setSemanticSearchEnabledAction,

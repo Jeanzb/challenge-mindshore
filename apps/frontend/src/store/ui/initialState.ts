@@ -5,6 +5,7 @@ export type UiStoreState = {
   currentLanguage: AppLanguage;
   selectedImage: NasaImage | null;
   inspectorOpen: boolean;
+  mobileFiltersOpen: boolean;
   timelinePanelState: TimelinePanelState;
   searchViewMode: SearchViewMode;
   semanticSearchEnabled: boolean;
@@ -15,6 +16,7 @@ export const initialUiState: UiStoreState = {
   currentLanguage: "en",
   selectedImage: null,
   inspectorOpen: true,
+  mobileFiltersOpen: false,
   timelinePanelState: "compact",
   searchViewMode: "grid",
   semanticSearchEnabled: false,

@@ -16,6 +16,8 @@ export type UiStoreAction = {
   openInspector: () => void;
   closeInspector: () => void;
   toggleInspector: () => void;
+  openMobileFilters: () => void;
+  closeMobileFilters: () => void;
   setTimelinePanelState: (panelState: TimelinePanelState) => void;
   toggleTimelinePanel: () => void;
   setSearchViewMode: (viewMode: SearchViewMode) => void;
@@ -49,6 +51,12 @@ export const useUiStore = create<UiStore>()(
       },
       toggleInspector: () => {
         set({ inspectorOpen: !get().inspectorOpen });
+      },
+      openMobileFilters: () => {
+        set({ mobileFiltersOpen: true });
+      },
+      closeMobileFilters: () => {
+        set({ mobileFiltersOpen: false });
       },
       setTimelinePanelState: (timelinePanelState) => {
         set({ timelinePanelState });

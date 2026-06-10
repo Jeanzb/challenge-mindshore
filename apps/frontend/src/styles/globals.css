@@ -113,4 +113,81 @@
   .cosmara-date::-webkit-calendar-picker-indicator {
     opacity: 0;
   }
+
+  .cosmara-fade-in {
+    animation: cosmara-fade-in 0.4s ease-out both;
+  }
+
+  .cosmara-float {
+    animation: cosmara-float 3s ease-in-out infinite;
+  }
+
+  .cosmara-shimmer {
+    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.04) 50%, transparent 100%);
+    background-size: 200% 100%;
+    animation: cosmara-shimmer 1.8s ease-in-out infinite;
+  }
+
+  .cosmara-glow-cyan {
+    box-shadow: 0 0 24px -4px rgba(56, 198, 220, 0.15);
+  }
+
+  .cosmara-glow-orange {
+    box-shadow: 0 0 24px -4px rgba(249, 160, 63, 0.15);
+  }
+
+  .cosmara-mobile-nav {
+    @apply fixed inset-x-0 bottom-0 z-50 flex items-center justify-around border-t border-white/10 bg-space-shell/95 px-2 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl md:hidden;
+    height: calc(3.5rem + env(safe-area-inset-bottom));
+  }
+
+  .cosmara-mobile-overlay {
+    @apply fixed inset-0 z-50 bg-black/60 backdrop-blur-sm;
+    animation: cosmara-fade-in 0.2s ease-out both;
+  }
+
+  .cosmara-mobile-drawer {
+    @apply fixed inset-y-0 left-0 z-50 w-[280px] border-r border-white/10 bg-space-shell;
+    animation: cosmara-slide-in-left 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+}
+
+@keyframes cosmara-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes cosmara-float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes cosmara-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes cosmara-slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }

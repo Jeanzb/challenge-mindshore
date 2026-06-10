@@ -1,10 +1,12 @@
-import { CalendarDays, Info, Search, SlidersHorizontal } from "lucide-react";
+import { CalendarDays, Info, Search, SlidersHorizontal, X } from "lucide-react";
 import { useEffect, useState, type ChangeEvent, type FormEvent, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { defaultNasaSearchQuery } from "@/constants";
+import { cn } from "@/lib/utils";
+import { useUiStore, uiSelectors } from "@/store";
 import type { NasaSearchFilters } from "@/types/search";
 
 type SearchFiltersPanelProps = {
@@ -136,6 +138,8 @@ const formatDateInput = (date: Date): string => date.toISOString().slice(0, 10);
 
 export function SearchFiltersPanel({ filters, isFetching, onApplyFilters }: SearchFiltersPanelProps) {
   const [draft, setDraft] = useState<SearchFilterDraft>(() => toDraft(filters));
+  const mobileFiltersOpen = useUiStore(uiSelectors.mobileFiltersOpen);
+  const closeMobileFilters = useUiStore(uiSelectors.closeMobileFiltersAction);
 
   useEffect(() => {
     setDraft((currentDraft) => toDraft(filters, currentDraft.mediaType));
@@ -211,7 +215,7 @@ export function SearchFiltersPanel({ filters, isFetching, onApplyFilters }: Sear
 
   const applyDraft = (nextDraft: SearchFilterDraft) => {
     onApplyFilters({
-      query: nextDraft.query.trim() || defaultDraft.query,
+      query: nextDraft.query.trim(),
       dateFrom: toNullable(nextDraft.dateFrom),
       dateTo: toNullable(nextDraft.dateTo),
       mission: toNullable(nextDraft.mission),
@@ -245,15 +249,37 @@ export function SearchFiltersPanel({ filters, isFetching, onApplyFilters }: Sear
   );
 
   return (
-    <aside className="hidden min-h-0 border-r border-white/10 bg-space-shell/70 lg:block" aria-label="Search filters">
-      <form className="flex h-full min-h-0 flex-col" onSubmit={handleSubmit}>
-        <div className="flex items-center justify-between border-b border-white/10 px-3 py-4">
-          <p className="text-xs font-semibold uppercase text-white">Filters</p>
-          <button type="button" className="text-xs font-medium text-space-cyan hover:text-white" onClick={clearFilters}>
-            Clear all
-          </button>
-        </div>
-        <ScrollArea className="min-h-0 flex-1">
+    <>
+      {mobileFiltersOpen ? (
+        <div className="cosmara-mobile-overlay lg:hidden" aria-hidden="true" onClick={closeMobileFilters} />
+      ) : null}
+      <aside
+        className={cn(
+          "min-h-0 border-r border-white/10 bg-space-shell/70 lg:block",
+          mobileFiltersOpen ? "cosmara-mobile-drawer" : "hidden"
+        )}
+        aria-label="Search filters"
+      >
+        <form className="flex h-full min-h-0 flex-col" onSubmit={handleSubmit}>
+          <div className="flex items-center justify-between border-b border-white/10 px-3 py-4">
+            <p className="text-xs font-semibold uppercase text-white">Filters</p>
+            <div className="flex items-center gap-3">
+              <button type="button" className="text-xs font-medium text-space-cyan hover:text-white" onClick={clearFilters}>
+                Clear all
+              </button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 rounded-md text-muted-foreground hover:bg-white/5 hover:text-white lg:hidden"
+                aria-label="Close filters"
+                onClick={closeMobileFilters}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+          <ScrollArea className="min-h-0 flex-1">
           <div className="space-y-5 px-3 py-4 pr-4">
             <FilterGroup label="Search Query">
               <label className="relative block">
@@ -296,19 +322,21 @@ export function SearchFiltersPanel({ filters, isFetching, onApplyFilters }: Sear
             </div>
           </div>
         </ScrollArea>
-        <div className="border-t border-white/10 p-3">
-          <Button
-            type="submit"
-            className="h-10 w-full rounded-md bg-space-cyan text-space-void hover:bg-space-cyan/90"
-            disabled={isFetching}
-            data-cy="search-btn"
-          >
-            <SlidersHorizontal className="h-4 w-4" />
-            {isFetching ? "Applying..." : "Apply Filters"}
-          </Button>
-        </div>
-      </form>
-    </aside>
+          <div className="border-t border-white/10 p-3">
+            <Button
+              type="submit"
+              className="h-10 w-full rounded-md bg-space-cyan text-space-void hover:bg-space-cyan/90"
+              disabled={isFetching}
+              data-cy="search-btn"
+              onClick={closeMobileFilters}
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+              {isFetching ? "Applying..." : "Apply Filters"}
+            </Button>
+          </div>
+        </form>
+      </aside>
+    </>
   );
 }
 
