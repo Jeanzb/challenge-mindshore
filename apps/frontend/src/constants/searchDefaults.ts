@@ -1,3 +1,3 @@
-export const defaultNasaSearchQuery = "mars rover";
+export const defaultNasaSearchQuery = "";
 
 export const defaultNasaSearchPageSize = 24;

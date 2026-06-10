@@ -18,7 +18,7 @@ public sealed class SearchController : ControllerBase
 
     [HttpGet]
     public async Task<IActionResult> Search(
-        [FromQuery(Name = "q")] string query,
+        [FromQuery(Name = "q")] string? query,
         [FromQuery] DateOnly? dateFrom,
         [FromQuery] DateOnly? dateTo,
         [FromQuery] string? rover,
@@ -43,7 +43,7 @@ public sealed class SearchController : ControllerBase
 
     [HttpGet("semantic")]
     public async Task<IActionResult> SemanticSearch(
-        [FromQuery(Name = "q")] string query,
+        [FromQuery(Name = "q")] string? query,
         [FromQuery] DateOnly? dateFrom,
         [FromQuery] DateOnly? dateTo,
         [FromQuery] string? rover,

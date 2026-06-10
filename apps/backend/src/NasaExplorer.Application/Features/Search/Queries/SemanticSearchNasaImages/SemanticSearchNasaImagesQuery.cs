@@ -4,7 +4,7 @@ using NasaExplorer.Application.DTOs.Search;
 namespace NasaExplorer.Application.Features.Search.Queries.SemanticSearchNasaImages;
 
 public sealed record SemanticSearchNasaImagesQuery(
-    string Query,
+    string? Query,
     DateOnly? DateFrom,
     DateOnly? DateTo,
     string? Rover,

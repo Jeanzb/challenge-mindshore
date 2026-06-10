@@ -19,10 +19,10 @@ public sealed class SemanticSearchNasaImagesQueryHandler : IRequestHandler<Seman
 
     public async Task<NasaSearchResultDto> Handle(SemanticSearchNasaImagesQuery request, CancellationToken cancellationToken)
     {
-        string optimizedQuery = await _aiEnrichmentService.CreateSemanticSearchAsync(request.Query, cancellationToken);
+        string optimizedQuery = await _aiEnrichmentService.CreateSemanticSearchAsync(request.Query ?? string.Empty, cancellationToken);
         NasaSearchResult result = await _nasaApiService.SearchImagesAsync(
             new NasaSearchCriteria(
-                optimizedQuery.Trim(),
+                (optimizedQuery ?? string.Empty).Trim(),
                 request.DateFrom,
                 request.DateTo,
                 request.Rover,

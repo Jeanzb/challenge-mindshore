@@ -52,7 +52,7 @@ export const useNasaSearch = (options: UseNasaSearchOptions = {}) => {
 
       return lastPage.page + 1;
     },
-    enabled: (options.enabled ?? true) && filters.query.trim().length > 0,
+    enabled: options.enabled ?? true,
     placeholderData: keepPreviousData
   });
   const pages = searchQuery.data?.pages;

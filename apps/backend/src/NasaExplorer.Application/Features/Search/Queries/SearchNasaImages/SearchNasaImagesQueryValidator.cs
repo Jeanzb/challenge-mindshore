@@ -7,7 +7,6 @@ public sealed class SearchNasaImagesQueryValidator : AbstractValidator<SearchNas
     public SearchNasaImagesQueryValidator()
     {
         RuleFor(query => query.Query)
-            .NotEmpty()
             .MaximumLength(160);
 
         RuleFor(query => query.Rover)

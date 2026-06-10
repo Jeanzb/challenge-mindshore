@@ -35,7 +35,7 @@ export function SearchDashboard({ initialQuery }: SearchDashboardProps) {
     updateFilters
   } = useNasaSearch({
     initialFilters: {
-      query: initialQuery?.trim() || defaultNasaSearchQuery,
+      query: initialQuery?.trim() ?? defaultNasaSearchQuery,
       pageSize: defaultNasaSearchPageSize
     },
     initialSemanticSearch: semanticSearchEnabled
@@ -55,7 +55,7 @@ export function SearchDashboard({ initialQuery }: SearchDashboardProps) {
   }, [setSemanticSearch, semanticSearchEnabled]);
 
   useEffect(() => {
-    const nextQuery = initialQuery?.trim() || defaultNasaSearchQuery;
+    const nextQuery = initialQuery?.trim() ?? defaultNasaSearchQuery;
 
     if (filters.query !== nextQuery) {
       updateFilters({ query: nextQuery });

@@ -123,16 +123,24 @@ public sealed class NasaApiService : INasaApiService
     {
         string[] terms =
         [
-            criteria.Query,
+            criteria.Query ?? string.Empty,
             criteria.Rover ?? string.Empty,
             criteria.Camera ?? string.Empty,
             criteria.Mission ?? string.Empty
         ];
 
-        return terms
+        var distinctTerms = terms
             .Select(term => term.Trim())
             .Where(term => !string.IsNullOrWhiteSpace(term))
-            .Distinct(StringComparer.OrdinalIgnoreCase);
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        if (distinctTerms.Count == 0)
+        {
+            distinctTerms.Add("space");
+        }
+
+        return distinctTerms;
     }
 
     private static NasaImageAsset? ToImageAsset(NasaSearchItem item)

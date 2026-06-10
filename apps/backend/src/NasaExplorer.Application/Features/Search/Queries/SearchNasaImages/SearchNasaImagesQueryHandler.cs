@@ -19,7 +19,7 @@ public sealed class SearchNasaImagesQueryHandler : IRequestHandler<SearchNasaIma
     {
         NasaSearchResult result = await _nasaApiService.SearchImagesAsync(
             new NasaSearchCriteria(
-                request.Query.Trim(),
+                (request.Query ?? string.Empty).Trim(),
                 request.DateFrom,
                 request.DateTo,
                 request.Rover,
