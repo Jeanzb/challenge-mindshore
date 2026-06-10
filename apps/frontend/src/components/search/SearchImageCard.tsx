@@ -1,6 +1,7 @@
-import { Bookmark, Check, GitCompareArrows } from "lucide-react";
+import { Check, GitCompareArrows } from "lucide-react";
 import type { MouseEvent } from "react";
 import { Button } from "@/components/ui/button";
+import { SaveToCollectionMenu } from "@/components/search/SaveToCollectionMenu";
 import { useUiStore, uiSelectors } from "@/store";
 import type { NasaImage } from "@/types/search";
 import { cn } from "@/lib/utils";
@@ -14,6 +15,8 @@ export function SearchImageCard({ image, onPreviewIntent }: SearchImageCardProps
   const selectedImageId = useUiStore(uiSelectors.selectedImageId);
   const selectImage = useUiStore(uiSelectors.selectImageAction);
   const addCompareImage = useUiStore(uiSelectors.addCompareImageAction);
+  const removeCompareImage = useUiStore(uiSelectors.removeCompareImageAction);
+  const isInComparison = useUiStore(uiSelectors.isImageInComparison(image.nasaImageId));
   const multiSelectActive = useUiStore(uiSelectors.multiSelectActive);
   const isMultiSelected = useUiStore(uiSelectors.isImageMultiSelected(image.nasaImageId));
   const toggleMultiSelectImage = useUiStore(uiSelectors.toggleMultiSelectImageAction);
@@ -30,11 +33,13 @@ export function SearchImageCard({ image, onPreviewIntent }: SearchImageCardProps
 
   const handleCompare = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
-    addCompareImage(image.nasaImageId);
-  };
 
-  const handleBookmark = (event: MouseEvent<HTMLButtonElement>) => {
-    event.stopPropagation();
+    if (isInComparison) {
+      removeCompareImage(image.nasaImageId);
+      return;
+    }
+
+    addCompareImage(image.nasaImageId);
   };
 
   const handlePreviewIntent = () => {
@@ -92,16 +97,7 @@ export function SearchImageCard({ image, onPreviewIntent }: SearchImageCardProps
             <h3 className="line-clamp-1 text-sm font-semibold text-white">{image.title}</h3>
             <p className="mt-1 font-mono text-[11px] tracking-wide text-muted-foreground">{image.displayDate ?? "Unknown date"}</p>
           </div>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 shrink-0 rounded-md text-muted-foreground hover:bg-white/5 hover:text-space-orange"
-            aria-label={`Save ${image.title}`}
-            onClick={handleBookmark}
-          >
-            <Bookmark className="h-4 w-4" />
-          </Button>
+          <SaveToCollectionMenu image={image} />
         </div>
         <div className="flex items-center justify-between gap-2">
           <span className="inline-flex max-w-[70%] items-center rounded-md border border-space-cyan/20 bg-space-cyan/10 px-2 py-1 text-[11px] font-medium text-space-cyan">
@@ -111,12 +107,16 @@ export function SearchImageCard({ image, onPreviewIntent }: SearchImageCardProps
             type="button"
             variant="ghost"
             size="sm"
-            className="h-7 rounded-md px-2 text-[11px] text-muted-foreground hover:bg-white/5 hover:text-space-cyan"
+            className={cn(
+              "h-7 rounded-md px-2 text-[11px] text-muted-foreground hover:bg-white/5 hover:text-space-cyan",
+              isInComparison && "bg-space-cyan/10 text-space-cyan"
+            )}
+            aria-pressed={isInComparison}
             onClick={handleCompare}
             data-cy="compare-btn"
           >
             <GitCompareArrows className="h-3.5 w-3.5" />
-            Compare
+            {isInComparison ? "Comparing" : "Compare"}
           </Button>
         </div>
       </div>
