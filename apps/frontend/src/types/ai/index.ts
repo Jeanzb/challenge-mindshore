@@ -29,3 +29,13 @@ export type ComparisonResult = {
   imageIds: readonly string[];
   createdAt: string;
 };
+
+export type ComparisonSections = {
+  title: string;
+  summary: string;
+  similarities: readonly string[];
+  differences: readonly string[];
+  historicalContext: string;
+  scientificValue: string;
+  conclusion: string;
+};

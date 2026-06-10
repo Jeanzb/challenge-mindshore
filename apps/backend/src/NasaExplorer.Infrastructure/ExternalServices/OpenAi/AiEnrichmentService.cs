@@ -66,11 +66,14 @@ public sealed class AiEnrichmentService : IAiEnrichmentService
             Environment.NewLine,
             images.Select(image => $"- {image.SpaceImage?.Title ?? image.SpaceImageId.ToString()}: {image.SpaceImage?.Description ?? "No description."}"));
 
-        return await CreateChatCompletionAsync(
+        string content = await CreateChatCompletionAsync(
             OpenAiPrompts.CompareImages,
             $"Compare these images:\n{imageList}",
             "AI comparison is unavailable.",
-            cancellationToken);
+            cancellationToken,
+            expectJson: true);
+
+        return ExtractJsonPayload(content);
     }
 
     public async Task<IReadOnlyCollection<string>> SuggestTagsAsync(

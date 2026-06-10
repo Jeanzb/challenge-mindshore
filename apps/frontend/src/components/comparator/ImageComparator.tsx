@@ -9,6 +9,7 @@ import { useImageComparison } from "@/hooks/ai";
 import { useAuthSession } from "@/hooks/auth";
 import { useCollectionDetail, useCollectionsList } from "@/hooks/collections";
 import { useUiStore, uiSelectors } from "@/store";
+import { ComparatorAnalysis } from "@/components/comparator/ComparatorAnalysis";
 import { ComparatorAuthPrompt } from "@/components/comparator/ComparatorAuthPrompt";
 import { ComparatorImageCard } from "@/components/comparator/ComparatorImageCard";
 import { ComparatorSkeleton } from "@/components/comparator/ComparatorSkeleton";
@@ -295,9 +296,7 @@ function ComparisonPanel({ analysis, errorMessage, isComparing, title }: Compari
           {errorMessage}
         </div>
       ) : null}
-      {!isComparing && analysis !== undefined ? (
-        <p className="whitespace-pre-line text-sm leading-7 text-muted-foreground">{analysis}</p>
-      ) : null}
+      {!isComparing && analysis !== undefined ? <ComparatorAnalysis analysis={analysis} /> : null}
       {!isComparing && analysis === undefined && (errorMessage === null || errorMessage === undefined) ? (
         <p className="text-sm leading-7 text-muted-foreground">
           The generated analysis will appear here after comparing two or more saved images.
