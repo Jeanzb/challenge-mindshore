@@ -46,7 +46,7 @@ export function SearchImageCard({ image, onPreviewIntent }: SearchImageCardProps
       className={cn(
         "group relative overflow-hidden rounded-lg border bg-space-panel text-left shadow-sm shadow-black/20 transition duration-200 hover:-translate-y-0.5 hover:border-space-cyan/40 hover:bg-space-panelStrong",
         isSelected
-          ? "border-space-orange shadow-[0_0_0_1px_rgba(249,160,63,0.3),0_8px_24px_rgba(0,0,0,0.3)]"
+          ? "border-space-orange ring-1 ring-space-orange/30 shadow-lg shadow-black/30"
           : "border-white/10",
         isMultiSelected && "border-space-orange/70"
       )}
