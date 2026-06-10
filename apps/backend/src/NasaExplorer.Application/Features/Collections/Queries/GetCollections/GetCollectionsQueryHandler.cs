@@ -30,6 +30,13 @@ public sealed class GetCollectionsQueryHandler : IRequestHandler<GetCollectionsQ
             Name = collection.Name,
             Description = collection.Description,
             ImageCount = collection.Images.Count,
+            PreviewImageUrls = collection.Images
+                .OrderBy(image => image.SortOrder)
+                .Where(image => image.SpaceImage is not null)
+                .Select(image => image.SpaceImage!.ThumbnailUrl)
+                .Where(url => !string.IsNullOrWhiteSpace(url))
+                .Take(4)
+                .ToArray(),
             CreatedAt = collection.CreatedAt,
             UpdatedAt = collection.UpdatedAt
         }).ToArray();

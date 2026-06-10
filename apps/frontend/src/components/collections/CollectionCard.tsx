@@ -13,7 +13,12 @@ type CollectionCardProps = {
 };
 
 export function CollectionCard({ collection, visual }: CollectionCardProps) {
-  const [heroImage, secondaryImage, tertiaryImage] = visual.previewImages;
+  const realImageUrls = collection.previewImageUrls;
+  const hasRealImages = realImageUrls.length > 0;
+  const resolveSlotUrl = (slotIndex: number): string =>
+    hasRealImages
+      ? realImageUrls[slotIndex % realImageUrls.length]
+      : selectNasaImageCardUrl(visual.previewImages[slotIndex]);
 
   return (
     <Card
@@ -24,14 +29,14 @@ export function CollectionCard({ collection, visual }: CollectionCardProps) {
       <div className="relative grid aspect-[16/8] grid-cols-[2fr_1fr] overflow-hidden border-b border-white/10 bg-space-void">
         <div className={`absolute inset-0 bg-gradient-to-br ${visual.accentClassName}`} />
         <img
-          src={selectNasaImageCardUrl(heroImage)}
+          src={resolveSlotUrl(0)}
           alt=""
           loading="lazy"
           className="relative h-full w-full object-cover opacity-90 transition-transform duration-300 group-hover:scale-105"
         />
         <div className="relative grid grid-rows-2 border-l border-white/10">
-          <img src={selectNasaImageCardUrl(secondaryImage)} alt="" loading="lazy" className="h-full w-full object-cover" />
-          <img src={selectNasaImageCardUrl(tertiaryImage)} alt="" loading="lazy" className="h-full w-full object-cover border-t border-white/10" />
+          <img src={resolveSlotUrl(1)} alt="" loading="lazy" className="h-full w-full object-cover" />
+          <img src={resolveSlotUrl(2)} alt="" loading="lazy" className="h-full w-full object-cover border-t border-white/10" />
         </div>
         <span className="absolute left-3 top-3 rounded-full bg-space-void/75 px-2.5 py-1 text-xs font-semibold text-white shadow-sm shadow-black/30 backdrop-blur">
           {formatCollectionCount(collection.imageCount, "image", "images")}

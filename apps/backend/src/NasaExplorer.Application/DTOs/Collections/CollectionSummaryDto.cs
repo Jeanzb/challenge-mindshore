@@ -10,6 +10,8 @@ public sealed class CollectionSummaryDto
 
     public int ImageCount { get; set; }
 
+    public IReadOnlyCollection<string> PreviewImageUrls { get; set; } = Array.Empty<string>();
+
     public DateTimeOffset CreatedAt { get; set; }
 
     public DateTimeOffset UpdatedAt { get; set; }

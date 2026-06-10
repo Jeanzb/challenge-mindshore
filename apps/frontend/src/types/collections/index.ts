@@ -19,6 +19,7 @@ export type CollectionSummary = {
   name: string;
   description?: string | null;
   imageCount: number;
+  previewImageUrls: readonly string[];
   createdAt: string;
   updatedAt: string;
 };
