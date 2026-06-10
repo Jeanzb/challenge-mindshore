@@ -24,6 +24,7 @@ import { Input } from "@/components/ui/input";
 import { NotificationCenter } from "@/components/app/NotificationCenter";
 import { defaultNasaSearchQuery } from "@/constants";
 import { useAuthSession } from "@/hooks/auth";
+import { useUiStore, uiSelectors } from "@/store";
 import { cn } from "@/lib/utils";
 import { fallbackExplorerName, getUserDisplayName, getUserInitials } from "@/lib/userProfile";
 
@@ -234,17 +235,24 @@ function ShellSearchField() {
 }
 
 function MobileSearchLink() {
+  const navigate = useNavigate();
+  const openMobileFilters = useUiStore(uiSelectors.openMobileFiltersAction);
+
+  const handleClick = () => {
+    void navigate({ to: "/search" });
+    openMobileFilters();
+  };
+
   return (
     <Button
-      asChild
+      type="button"
       variant="ghost"
       size="icon"
       className="h-9 w-9 text-muted-foreground hover:bg-white/5 hover:text-foreground md:hidden"
       aria-label="Search"
+      onClick={handleClick}
     >
-      <Link to="/search">
-        <Search className="h-5 w-5" />
-      </Link>
+      <Search className="h-5 w-5" />
     </Button>
   );
 }
