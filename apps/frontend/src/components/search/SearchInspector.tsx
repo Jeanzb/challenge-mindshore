@@ -50,6 +50,7 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
   const [addStatusMessage, setAddStatusMessage] = useState<string | null>(null);
   const [aiStatusMessage, setAiStatusMessage] = useState<string | null>(null);
   const [compareStatusMessage, setCompareStatusMessage] = useState<string | null>(null);
+  const [actionStatusMessage, setActionStatusMessage] = useState<string | null>(null);
   const addToCollectionDisabled = isAddingImageToCollection || selectedImage === undefined;
   const cachedEnrichment = selectedImage === undefined ? undefined : getCachedEnrichment(selectedImage.nasaImageId);
   const activeEnrichment = enrichment?.nasaImageId === selectedImage?.nasaImageId ? enrichment : cachedEnrichment;
@@ -58,6 +59,7 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
     setAddStatusMessage(null);
     setAiStatusMessage(null);
     setCompareStatusMessage(null);
+    setActionStatusMessage(null);
   }, [selectedImage?.nasaImageId]);
 
   if (selectedImage === undefined) {
@@ -82,6 +84,56 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
   const handleCompare = () => {
     addCompareImage(selectedImage.nasaImageId);
     setCompareStatusMessage("Marked for comparison. Saved images are analyzed on the Compare page.");
+  };
+
+  const handleDownload = async () => {
+    setActionStatusMessage(null);
+    const downloadUrl = selectedImage.urls.full || selectedImage.imageUrl;
+
+    try {
+      const response = await fetch(downloadUrl);
+
+      if (!response.ok) {
+        throw new Error("Download request failed.");
+      }
+
+      const blob = await response.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = objectUrl;
+      anchor.download = `${selectedImage.nasaImageId || "nasa-image"}.jpg`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(objectUrl);
+      setActionStatusMessage("Image downloaded.");
+    } catch {
+      window.open(downloadUrl, "_blank", "noopener,noreferrer");
+      setActionStatusMessage("Opened the full image in a new tab.");
+    }
+  };
+
+  const handleShare = async () => {
+    setActionStatusMessage(null);
+    const shareUrl = selectedImage.sourceUrl ?? selectedImage.urls.source ?? selectedImage.imageUrl;
+
+    if (typeof navigator.share === "function") {
+      try {
+        await navigator.share({ title: selectedImage.title, url: shareUrl });
+        return;
+      } catch (error) {
+        if (error instanceof Error && error.name === "AbortError") {
+          return;
+        }
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setActionStatusMessage("Link copied to clipboard.");
+    } catch {
+      setActionStatusMessage("Sharing is not available in this browser.");
+    }
   };
 
   const handleCollectionChange = (collectionId: string) => {
@@ -179,11 +231,23 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
               <img src={selectedImage.urls.preview} alt={selectedImage.title} className="aspect-[4/3] w-full object-cover" />
             </div>
             <div className="mt-3 grid grid-cols-2 gap-2">
-              <Button type="button" variant="secondary" size="sm" className="rounded-md bg-white/10 hover:bg-white/15">
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                className="rounded-md bg-white/10 hover:bg-white/15"
+                onClick={handleDownload}
+              >
                 <Download className="h-4 w-4" />
                 Download
               </Button>
-              <Button type="button" variant="secondary" size="sm" className="rounded-md bg-white/10 hover:bg-white/15">
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                className="rounded-md bg-white/10 hover:bg-white/15"
+                onClick={handleShare}
+              >
                 <Share2 className="h-4 w-4" />
                 Share
               </Button>
@@ -210,6 +274,9 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
                 {isAddingImageToCollection ? "Adding" : "Add"}
               </Button>
             </div>
+            {actionStatusMessage !== null ? (
+              <p className="mt-2 text-xs text-space-cyan">{actionStatusMessage}</p>
+            ) : null}
             {compareStatusMessage !== null ? (
               <p className="mt-2 text-xs text-space-cyan">
                 {compareStatusMessage}{" "}
