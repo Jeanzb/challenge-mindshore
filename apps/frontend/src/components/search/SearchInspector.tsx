@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { Database, Download, ExternalLink, GitCompareArrows, ImagePlus, Loader2, Share2, Sparkles, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -48,6 +49,7 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
   const [selectedCollectionId, setSelectedCollectionId] = useState<string>("none");
   const [addStatusMessage, setAddStatusMessage] = useState<string | null>(null);
   const [aiStatusMessage, setAiStatusMessage] = useState<string | null>(null);
+  const [compareStatusMessage, setCompareStatusMessage] = useState<string | null>(null);
   const addToCollectionDisabled = isAddingImageToCollection || selectedImage === undefined;
   const cachedEnrichment = selectedImage === undefined ? undefined : getCachedEnrichment(selectedImage.nasaImageId);
   const activeEnrichment = enrichment?.nasaImageId === selectedImage?.nasaImageId ? enrichment : cachedEnrichment;
@@ -55,6 +57,7 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
   useEffect(() => {
     setAddStatusMessage(null);
     setAiStatusMessage(null);
+    setCompareStatusMessage(null);
   }, [selectedImage?.nasaImageId]);
 
   if (selectedImage === undefined) {
@@ -78,6 +81,7 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
 
   const handleCompare = () => {
     addCompareImage(selectedImage.nasaImageId);
+    setCompareStatusMessage("Marked for comparison. Saved images are analyzed on the Compare page.");
   };
 
   const handleCollectionChange = (collectionId: string) => {
@@ -206,6 +210,14 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
                 {isAddingImageToCollection ? "Adding" : "Add"}
               </Button>
             </div>
+            {compareStatusMessage !== null ? (
+              <p className="mt-2 text-xs text-space-cyan">
+                {compareStatusMessage}{" "}
+                <Link to="/comparator" className="font-medium underline underline-offset-2 hover:text-white">
+                  Open Compare
+                </Link>
+              </p>
+            ) : null}
             <Tabs defaultValue="ai" className="mt-4">
               <TabsList className="grid h-10 w-full grid-cols-3 rounded-md border border-white/10 bg-space-panel p-1">
                 <TabsTrigger

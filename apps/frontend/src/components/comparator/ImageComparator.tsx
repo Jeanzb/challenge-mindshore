@@ -8,6 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { useImageComparison } from "@/hooks/ai";
 import { useAuthSession } from "@/hooks/auth";
 import { useCollectionDetail, useCollectionsList } from "@/hooks/collections";
+import { useUiStore, uiSelectors } from "@/store";
 import { ComparatorAuthPrompt } from "@/components/comparator/ComparatorAuthPrompt";
 import { ComparatorImageCard } from "@/components/comparator/ComparatorImageCard";
 import { ComparatorSkeleton } from "@/components/comparator/ComparatorSkeleton";
@@ -42,6 +43,7 @@ export function ImageComparator() {
     enabled: isAuthenticated && activeCollectionId.length > 0
   });
   const { compareImages, comparison, error, isComparing } = useImageComparison();
+  const dashboardCompareIds = useUiStore(uiSelectors.compareImageIds);
 
   useEffect(() => {
     if (activeCollectionId.length === 0 && defaultCollectionId.length > 0) {
@@ -65,6 +67,18 @@ export function ImageComparator() {
       }
 
       const nextSelection = [...validSelection];
+      const dashboardPicks = images.filter((image) => dashboardCompareIds.includes(image.nasaImageId));
+
+      for (const image of dashboardPicks) {
+        if (nextSelection.length >= maximumComparedImages) {
+          break;
+        }
+
+        if (!nextSelection.includes(image.id)) {
+          nextSelection.push(image.id);
+        }
+      }
+
       for (const image of images) {
         if (nextSelection.length >= minimumSelection) {
           break;
@@ -77,7 +91,7 @@ export function ImageComparator() {
 
       return areStringArraysEqual(current, nextSelection) ? current : nextSelection;
     });
-  }, [images]);
+  }, [dashboardCompareIds, images]);
 
   const selectedImages = useMemo(
     () => selectedImageIds
