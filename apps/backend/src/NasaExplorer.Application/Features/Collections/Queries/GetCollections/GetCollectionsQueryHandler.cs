@@ -35,6 +35,7 @@ public sealed class GetCollectionsQueryHandler : IRequestHandler<GetCollectionsQ
                 .Where(image => image.SpaceImage is not null)
                 .Select(image => image.SpaceImage!.ThumbnailUrl)
                 .Where(url => !string.IsNullOrWhiteSpace(url))
+                .Select(url => url!)
                 .Take(4)
                 .ToArray(),
             CreatedAt = collection.CreatedAt,
