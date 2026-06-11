@@ -174,7 +174,7 @@ export function AuthCard() {
             )}
           >
             <Form {...loginForm}>
-              <form onSubmit={loginForm.handleSubmit(handleLoginSubmit)} className="space-y-5">
+              <form noValidate onSubmit={loginForm.handleSubmit(handleLoginSubmit)} className="space-y-5">
                 <FormField
                   control={loginForm.control}
                   name="email"
@@ -249,7 +249,7 @@ export function AuthCard() {
             )}
           >
             <Form {...registerForm}>
-              <form onSubmit={registerForm.handleSubmit(handleRegisterSubmit)} className="space-y-5">
+              <form noValidate onSubmit={registerForm.handleSubmit(handleRegisterSubmit)} className="space-y-5">
                 <FormField
                   control={registerForm.control}
                   name="displayName"
