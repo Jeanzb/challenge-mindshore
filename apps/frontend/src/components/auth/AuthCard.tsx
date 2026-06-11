@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuthSession } from "@/hooks/auth";
+import { extractApiErrorMessages } from "@/lib/apiErrorMessages";
 import { cn } from "@/lib/utils";
 
 const loginSchema = z.object({
@@ -27,12 +28,19 @@ const loginSchema = z.object({
 const registerSchema = z.object({
   displayName: z.string().min(2, "Display name is required."),
   email: z.string().email("Enter a valid email."),
-  password: z.string().min(8, "Password must be at least 8 characters.")
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters.")
+    .regex(/[A-Z]/, "Include at least one uppercase letter.")
+    .regex(/[a-z]/, "Include at least one lowercase letter.")
+    .regex(/[0-9]/, "Include at least one number.")
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 type RegisterFormValues = z.infer<typeof registerSchema>;
 type AuthMode = "signin" | "register";
+
+const renderAuthError = (message: string) => <li key={message}>{message}</li>;
 
 export function AuthCard() {
   const navigate = useNavigate();
@@ -43,6 +51,7 @@ export function AuthCard() {
   const signInPanelRef = useRef<HTMLDivElement>(null);
   const registerPanelRef = useRef<HTMLDivElement>(null);
   const { login, register, isLoggingIn, isRegistering, authError } = useAuthSession();
+  const authErrorMessages = extractApiErrorMessages(authError);
 
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -341,7 +350,11 @@ export function AuthCard() {
           </TabsContent>
         </div>
       </Tabs>
-      {authError ? <p className="mt-4 text-center text-xs text-destructive">{authError.message}</p> : null}
+      {authErrorMessages.length > 0 ? (
+        <ul className="mt-4 space-y-1 text-center text-xs text-destructive" data-cy="auth-error">
+          {authErrorMessages.map(renderAuthError)}
+        </ul>
+      ) : null}
       <div className="my-6 flex w-full min-w-0 items-center gap-3 overflow-hidden">
         <Separator className="min-w-0 flex-1 bg-white/10" />
         <span className="text-xs text-muted-foreground">OR</span>
