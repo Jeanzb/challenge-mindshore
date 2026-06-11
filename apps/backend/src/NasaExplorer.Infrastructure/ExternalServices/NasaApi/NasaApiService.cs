@@ -94,13 +94,18 @@ public sealed class NasaApiService : INasaApiService
 
     private static string BuildSearchUri(NasaSearchCriteria criteria)
     {
+        string searchTerm = string.Join(' ', BuildSearchTerms(criteria));
         List<KeyValuePair<string, string>> parameters =
         [
-            new("q", string.Join(' ', BuildSearchTerms(criteria))),
             new("media_type", "image"),
             new("page", criteria.Page.ToString(CultureInfo.InvariantCulture)),
             new("page_size", criteria.PageSize.ToString(CultureInfo.InvariantCulture))
         ];
+
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            parameters.Insert(0, new KeyValuePair<string, string>("q", searchTerm));
+        }
 
         if (criteria.DateFrom.HasValue)
         {
@@ -134,11 +139,6 @@ public sealed class NasaApiService : INasaApiService
             .Where(term => !string.IsNullOrWhiteSpace(term))
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToList();
-
-        if (distinctTerms.Count == 0)
-        {
-            distinctTerms.Add("space");
-        }
 
         return distinctTerms;
     }

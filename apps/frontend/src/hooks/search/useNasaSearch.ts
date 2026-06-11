@@ -1,5 +1,5 @@
 import { keepPreviousData, useInfiniteQuery } from "@tanstack/react-query";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { defaultNasaSearchPageSize, defaultNasaSearchQuery, queryKeys } from "@/constants";
 import { preloadImageUrls } from "@/lib/imagePreload";
 import { selectNasaImageCardUrl, selectNasaImagePreviewUrl } from "@/lib/nasaImageAssets";
@@ -17,12 +17,28 @@ const defaultSearchFilters: NasaSearchFilters = {
   pageSize: defaultNasaSearchPageSize
 };
 
+const nasaGeneralSearchPageLimit = 100;
+
+const createSearchRunId = (): string => `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+const hasFilterValue = (value?: string | null): boolean => (value ?? "").trim().length > 0;
+
+const isGeneralImageSearch = (filters: NasaSearchFilters): boolean =>
+  !hasFilterValue(filters.query)
+  && !hasFilterValue(filters.dateFrom)
+  && !hasFilterValue(filters.dateTo)
+  && !hasFilterValue(filters.rover)
+  && !hasFilterValue(filters.camera)
+  && !hasFilterValue(filters.mission);
+
 export const useNasaSearch = (options: UseNasaSearchOptions = {}) => {
   const [filters, setFilters] = useState<NasaSearchFilters>({
     ...defaultSearchFilters,
     ...options.initialFilters
   });
   const [isSemanticSearch, setIsSemanticSearch] = useState(options.initialSemanticSearch ?? false);
+  const [generalSearchRunId, setGeneralSearchRunId] = useState(createSearchRunId);
+  const filtersRef = useRef(filters);
   const baseFilters = useMemo<NasaSearchFilters>(
     () => ({
       ...filters,
@@ -30,16 +46,38 @@ export const useNasaSearch = (options: UseNasaSearchOptions = {}) => {
     }),
     [filters]
   );
+  const effectiveSemanticSearch = isSemanticSearch && hasFilterValue(baseFilters.query);
+  const shouldRandomizeGeneralSearch = !effectiveSemanticSearch && isGeneralImageSearch(baseFilters);
 
   const searchQuery = useInfiniteQuery({
-    queryKey: queryKeys.search.results(baseFilters, isSemanticSearch),
-    queryFn: ({ pageParam }) => {
+    queryKey: queryKeys.search.results(
+      baseFilters,
+      effectiveSemanticSearch,
+      shouldRandomizeGeneralSearch ? generalSearchRunId : undefined
+    ),
+    queryFn: async ({ pageParam }) => {
       const pageFilters: NasaSearchFilters = {
         ...baseFilters,
         page: pageParam
       };
 
-      return isSemanticSearch ? SearchService.semanticSearchImages(pageFilters) : SearchService.searchImages(pageFilters);
+      if (shouldRandomizeGeneralSearch && pageParam === 1) {
+        const firstPage = await SearchService.searchImages(pageFilters);
+        const pageSize = firstPage.pageSize || baseFilters.pageSize || defaultNasaSearchPageSize;
+        const maxPages = Math.max(1, Math.ceil(firstPage.totalHits / pageSize));
+        const randomPage = Math.floor(Math.random() * Math.min(maxPages, nasaGeneralSearchPageLimit)) + 1;
+
+        if (randomPage === 1) {
+          return firstPage;
+        }
+
+        return SearchService.searchImages({
+          ...baseFilters,
+          page: randomPage
+        });
+      }
+
+      return effectiveSemanticSearch ? SearchService.semanticSearchImages(pageFilters) : SearchService.searchImages(pageFilters);
     },
     initialPageParam: 1,
     getNextPageParam: (lastPage, pages): number | undefined => {
@@ -74,6 +112,10 @@ export const useNasaSearch = (options: UseNasaSearchOptions = {}) => {
   }, [images, pages]);
 
   useEffect(() => {
+    filtersRef.current = filters;
+  }, [filters]);
+
+  useEffect(() => {
     if (images.length === 0) {
       return;
     }
@@ -82,11 +124,17 @@ export const useNasaSearch = (options: UseNasaSearchOptions = {}) => {
   }, [images]);
 
   const updateFilters = useCallback((nextFilters: Partial<NasaSearchFilters>): void => {
-    setFilters((currentFilters) => ({
-      ...currentFilters,
+    const updatedFilters = {
+      ...filtersRef.current,
       ...nextFilters,
       page: undefined
-    }));
+    };
+
+    setFilters(updatedFilters);
+
+    if (isGeneralImageSearch(updatedFilters)) {
+      setGeneralSearchRunId(createSearchRunId());
+    }
   }, []);
 
   const setSemanticSearch = useCallback((nextValue: boolean): void => {

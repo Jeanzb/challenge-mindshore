@@ -2,8 +2,8 @@ import type { NasaSearchFilters } from "@/types/search";
 
 export const queryKeys = {
   search: {
-    results: (filters: NasaSearchFilters, isSemantic: boolean) =>
-      ["search", "results", isSemantic ? "semantic" : "standard", filters] as const
+    results: (filters: NasaSearchFilters, isSemantic: boolean, runId?: string) =>
+      ["search", "results", isSemantic ? "semantic" : "standard", filters, runId] as const
   },
   collections: {
     root: ["collections"] as const,

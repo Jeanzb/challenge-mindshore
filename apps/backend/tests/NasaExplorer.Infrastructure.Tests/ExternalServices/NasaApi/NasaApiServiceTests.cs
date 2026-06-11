@@ -75,6 +75,31 @@ public sealed class NasaApiServiceTests
     }
 
     [Fact]
+    public async Task SearchImagesAsync_omits_query_parameter_for_general_image_search()
+    {
+        StubHttpMessageHandler handler = new(SearchResponseJson);
+        NasaApiService service = new(new HttpClient(handler)
+        {
+            BaseAddress = new Uri("https://images-api.nasa.gov/")
+        });
+
+        await service.SearchImagesAsync(new NasaSearchCriteria(
+            "",
+            null,
+            null,
+            null,
+            null,
+            null,
+            7,
+            24));
+
+        Assert.DoesNotContain("q=", handler.RequestUri!.Query);
+        Assert.Contains("media_type=image", handler.RequestUri.Query);
+        Assert.Contains("page=7", handler.RequestUri.Query);
+        Assert.Contains("page_size=24", handler.RequestUri.Query);
+    }
+
+    [Fact]
     public async Task GetAssetFilesAsync_maps_asset_file_metadata()
     {
         StubHttpMessageHandler handler = new(AssetResponseJson);
