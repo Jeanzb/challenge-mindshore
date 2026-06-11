@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import type { CollectionVisual } from "@/constants";
 import { formatCollectionCount, formatCollectionDate } from "@/lib/collectionMetrics";
-import { selectNasaImageCardUrl } from "@/lib/nasaImageAssets";
+import { CollectionPreviewCollage } from "@/components/collections/CollectionPreviewCollage";
 import type { CollectionSummary } from "@/types/collections";
 
 type CollectionCardProps = {
@@ -13,31 +13,17 @@ type CollectionCardProps = {
 };
 
 export function CollectionCard({ collection, visual }: CollectionCardProps) {
-  const realImageUrls = collection.previewImageUrls;
-  const hasRealImages = realImageUrls.length > 0;
-  const resolveSlotUrl = (slotIndex: number): string =>
-    hasRealImages
-      ? realImageUrls[slotIndex % realImageUrls.length]
-      : selectNasaImageCardUrl(visual.previewImages[slotIndex]);
-
   return (
     <Card
       data-cy="collection-card"
       role="article"
       className="group overflow-hidden rounded-lg border-white/10 bg-space-panel shadow-sm shadow-black/20 transition-[border-color,transform,box-shadow] duration-200 hover:-translate-y-1 hover:border-space-cyan/35 hover:shadow-xl hover:shadow-black/30"
     >
-      <div className="relative grid aspect-[16/8] grid-cols-[2fr_1fr] overflow-hidden border-b border-white/10 bg-space-void">
-        <div className={`absolute inset-0 bg-gradient-to-br ${visual.accentClassName}`} />
-        <img
-          src={resolveSlotUrl(0)}
-          alt=""
-          loading="lazy"
-          className="relative h-full w-full object-cover opacity-90 transition-transform duration-300 group-hover:scale-105"
+      <div className="relative">
+        <CollectionPreviewCollage
+          accentClassName={visual.accentClassName}
+          previewImageUrls={collection.previewImageUrls}
         />
-        <div className="relative grid grid-rows-2 border-l border-white/10">
-          <img src={resolveSlotUrl(1)} alt="" loading="lazy" className="h-full w-full object-cover" />
-          <img src={resolveSlotUrl(2)} alt="" loading="lazy" className="h-full w-full object-cover border-t border-white/10" />
-        </div>
         <span className="absolute left-3 top-3 rounded-full bg-space-void/75 px-2.5 py-1 text-xs font-semibold text-white shadow-sm shadow-black/30 backdrop-blur">
           {formatCollectionCount(collection.imageCount, "image", "images")}
         </span>

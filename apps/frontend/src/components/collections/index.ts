@@ -1,4 +1,5 @@
 export { CollectionCard } from "@/components/collections/CollectionCard";
+export { CollectionPreviewCollage } from "@/components/collections/CollectionPreviewCollage";
 export { CollectionMetricCard } from "@/components/collections/CollectionMetricCard";
 export { CollectionsAuthPrompt } from "@/components/collections/CollectionsAuthPrompt";
 export { CollectionsEmptyState } from "@/components/collections/CollectionsEmptyState";
