@@ -1,4 +1,4 @@
-import { Grid2X2, List, SlidersHorizontal } from "lucide-react";
+import { SlidersHorizontal } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -42,21 +42,11 @@ export function SearchResultsGrid({
 }: SearchResultsGridProps) {
   const scrollRootRef = useRef<HTMLDivElement | null>(null);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
-  const searchViewMode = useUiStore(uiSelectors.searchViewMode);
-  const setSearchViewMode = useUiStore(uiSelectors.setSearchViewModeAction);
   const semanticSearchEnabled = useUiStore(uiSelectors.semanticSearchEnabled);
   const setSemanticSearchEnabled = useUiStore(uiSelectors.setSemanticSearchEnabledAction);
   const openMobileFilters = useUiStore(uiSelectors.openMobileFiltersAction);
   const showSkeletons = isLoading || (isFetching && images.length === 0);
   const hasNoResults = !showSkeletons && images.length === 0 && !isUsingFallback;
-
-  const showGrid = () => {
-    setSearchViewMode("grid");
-  };
-
-  const showList = () => {
-    setSearchViewMode("list");
-  };
 
   const toggleSemanticSearch = () => {
     setSemanticSearchEnabled(!semanticSearchEnabled);
@@ -103,14 +93,14 @@ export function SearchResultsGrid({
             </p>
             <p className="text-xs text-muted-foreground">
               {isUsingFallback
-                ? "Showing cached layout fallback while the API is unavailable"
+                ? "Showing a saved preview while NASA is unavailable"
                 : isFetching
-                  ? "Refreshing normalized NASA imagery"
-                  : "Normalized NASA imagery ready for rendering"}
+                  ? "Refreshing NASA imagery"
+                  : "NASA imagery ready to explore"}
             </p>
             {error !== null && (
               <p className="mt-1 max-w-xl text-xs text-space-orange">
-                NASA API request failed, so the dashboard keeps a local fallback active.
+                NASA imagery is temporarily unavailable. A saved preview is shown instead.
               </p>
             )}
           </div>
@@ -139,46 +129,14 @@ export function SearchResultsGrid({
             >
               <SlidersHorizontal className="h-4 w-4" />
             </Button>
-            <div className="flex h-9 items-center rounded-full border border-white/10 bg-space-panel p-1">
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className={cn(
-                  "h-7 w-7 rounded-full text-muted-foreground hover:bg-white/5 hover:text-white",
-                  searchViewMode === "grid" && "bg-space-orange text-space-void hover:bg-space-orange hover:text-space-void"
-                )}
-                aria-label="Grid view"
-                aria-pressed={searchViewMode === "grid"}
-                onClick={showGrid}
-              >
-                <Grid2X2 className="h-4 w-4" />
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className={cn(
-                  "h-7 w-7 rounded-full text-muted-foreground hover:bg-white/5 hover:text-white",
-                  searchViewMode === "list" && "bg-space-orange text-space-void hover:bg-space-orange hover:text-space-void"
-                )}
-                aria-label="List view"
-                aria-pressed={searchViewMode === "list"}
-                onClick={showList}
-              >
-                <List className="h-4 w-4" />
-              </Button>
-            </div>
           </div>
         </div>
         <div ref={scrollRootRef} className="cosmara-scrollbar min-h-0 flex-1 overflow-y-auto px-4 py-4">
           <div
             className={cn(
-              "grid gap-4",
-              hasNoResults && "h-full place-items-center",
-              searchViewMode === "grid"
-                ? "grid-cols-1 md:grid-cols-2 xl:grid-cols-3 min-[1500px]:grid-cols-4"
-                : "grid-cols-1 lg:grid-cols-2"
+              hasNoResults
+                ? "flex min-h-full items-center justify-center"
+                : "grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 min-[1500px]:grid-cols-4"
             )}
           >
             {showSkeletons

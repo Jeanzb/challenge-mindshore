@@ -32,8 +32,8 @@ public sealed class AiEnrichmentService : IAiEnrichmentService
         string? imageDescription,
         CancellationToken cancellationToken = default)
     {
-        string fallbackDescription = $"AI enrichment is unavailable. NASA image: {imageTitle}.";
-        string fallbackContext = "Historical context is unavailable until OpenAI is configured.";
+        string fallbackDescription = $"NASA archive image: {imageTitle}.";
+        string fallbackContext = $"This NASA archive image, {imageTitle}, can be explored through its mission context, capture date, source center, and related imagery to understand how it fits into the broader history of space exploration.";
 
         if (string.IsNullOrWhiteSpace(_options.ApiKey))
         {

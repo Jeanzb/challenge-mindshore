@@ -50,7 +50,7 @@ const defaultDraft: SearchFilterDraft = {
 
 const emptySelectValue = "__all__";
 
-const suggestedSearches: readonly SuggestedSearch[] = [
+const suggestedSearchPool: readonly SuggestedSearch[] = [
   {
     label: "Mars Curiosity - 2024",
     filters: {
@@ -79,8 +79,50 @@ const suggestedSearches: readonly SuggestedSearch[] = [
     filters: {
       query: "earth at night"
     }
+  },
+  {
+    label: "Apollo Moonwalk Archive",
+    filters: {
+      query: "apollo moonwalk",
+      mission: "Apollo"
+    }
+  },
+  {
+    label: "Saturn Rings",
+    filters: {
+      query: "saturn rings",
+      mission: "Cassini"
+    }
+  },
+  {
+    label: "Solar Flares",
+    filters: {
+      query: "solar flare"
+    }
+  },
+  {
+    label: "International Space Station",
+    filters: {
+      query: "international space station"
+    }
+  },
+  {
+    label: "Jupiter Storms",
+    filters: {
+      query: "jupiter storm",
+      mission: "Juno"
+    }
+  },
+  {
+    label: "Hubble Deep Field",
+    filters: {
+      query: "hubble deep field",
+      mission: "Hubble"
+    }
   }
 ];
+
+const suggestedSearchCount = 4;
 
 const missionOptions: readonly FilterOption[] = [
   { label: "All Missions", value: "" },
@@ -130,8 +172,20 @@ const toNullable = (value: string): string | null => {
 
 const formatDateInput = (date: Date): string => date.toISOString().slice(0, 10);
 
+const pickSuggestedSearches = (): readonly SuggestedSearch[] => {
+  const pool = [...suggestedSearchPool];
+
+  for (let index = pool.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    [pool[index], pool[swapIndex]] = [pool[swapIndex], pool[index]];
+  }
+
+  return pool.slice(0, suggestedSearchCount);
+};
+
 export function SearchFiltersPanel({ filters, isFetching, onApplyFilters }: SearchFiltersPanelProps) {
   const [draft, setDraft] = useState<SearchFilterDraft>(() => toDraft(filters));
+  const [suggestedSearches] = useState(pickSuggestedSearches);
   const mobileFiltersOpen = useUiStore(uiSelectors.mobileFiltersOpen);
   const closeMobileFilters = useUiStore(uiSelectors.closeMobileFiltersAction);
 

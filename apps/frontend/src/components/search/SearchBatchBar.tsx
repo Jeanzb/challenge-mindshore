@@ -55,6 +55,15 @@ export function SearchBatchBar({ images }: SearchBatchBarProps) {
     );
     const savedCount = results.filter((result) => result.status === "fulfilled").length;
     const failedCount = results.length - savedCount;
+    const failedImageTitles: string[] = [];
+
+    for (let index = 0; index < results.length && failedImageTitles.length < 2; index += 1) {
+      if (results[index]?.status === "rejected" && selectedImages[index]?.title !== undefined) {
+        failedImageTitles.push(selectedImages[index].title);
+      }
+    }
+
+    const failedTitles = failedImageTitles.join(", ");
 
     setIsSaving(false);
 
@@ -64,7 +73,11 @@ export function SearchBatchBar({ images }: SearchBatchBarProps) {
       return;
     }
 
-    toast.error(`Saved ${savedCount}, ${failedCount} could not be added`);
+    toast.error(
+      failedTitles.length > 0
+        ? `Saved ${savedCount}. Could not add: ${failedTitles}.`
+        : `Saved ${savedCount}. ${failedCount} could not be added.`
+    );
   };
 
   return (

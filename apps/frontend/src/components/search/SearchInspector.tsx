@@ -154,7 +154,7 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
         dateCreated: selectedImage.dateCreated
       });
 
-      setAiStatusMessage(result.fromCache ? "Loaded cached AI context." : "AI context generated.");
+      setAiStatusMessage(result.fromCache ? "AI context ready." : "AI context generated.");
     } catch (error) {
       setAiStatusMessage(error instanceof Error ? error.message : "AI context could not be generated.");
     }
@@ -306,7 +306,7 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
                     <div>
                       <p className="text-xs font-semibold uppercase text-space-orange">AI Enrichment</p>
                       <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                        Generate AI historical context for this NASA image, cached for reuse.
+                        Generate historical context for this NASA image.
                       </p>
                     </div>
                     <Button
@@ -317,7 +317,7 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
                       onClick={handleGenerateEnrichment}
                     >
                       {isEnriching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                      {isEnriching ? "Generating" : activeEnrichment === undefined ? "Generate context" : "Load cached context"}
+                      {isEnriching ? "Generating" : "Generate context"}
                     </Button>
                   </div>
                   {aiStatusMessage !== null ? (

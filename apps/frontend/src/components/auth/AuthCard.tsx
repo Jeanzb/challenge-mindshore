@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "@tanstack/react-router";
-import { ArrowRight, Eye, Lock, Mail, Orbit, User } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, Lock, Mail, Orbit, User } from "lucide-react";
 import { useLayoutEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -93,6 +93,10 @@ export function AuthCard() {
 
   const showRegisterTab = (): void => {
     setAuthMode("register");
+  };
+
+  const showSignInTab = (): void => {
+    setAuthMode("signin");
   };
 
   useLayoutEffect(() => {
@@ -216,9 +220,9 @@ export function AuthCard() {
                           type="button"
                           onClick={toggleLoginPassword}
                           className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-white"
-                          aria-label="Toggle password visibility"
+                          aria-label={showLoginPassword ? "Hide password" : "Show password"}
                         >
-                          <Eye className="h-4 w-4" />
+                          {showLoginPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </button>
                       </div>
                       <FormMessage />
@@ -314,9 +318,9 @@ export function AuthCard() {
                           type="button"
                           onClick={toggleRegisterPassword}
                           className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-white"
-                          aria-label="Toggle password visibility"
+                          aria-label={showRegisterPassword ? "Hide password" : "Show password"}
                         >
-                          <Eye className="h-4 w-4" />
+                          {showRegisterPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </button>
                       </div>
                       <FormMessage />
@@ -343,12 +347,21 @@ export function AuthCard() {
         <span className="text-xs text-muted-foreground">OR</span>
         <Separator className="min-w-0 flex-1 bg-white/10" />
       </div>
-      <p className="text-center text-sm text-muted-foreground">
-        New to Cosmara?{" "}
-        <button type="button" onClick={showRegisterTab} className="font-semibold text-space-orange">
-          Create an account
-        </button>
-      </p>
+      {authMode === "signin" ? (
+        <p className="text-center text-sm text-muted-foreground">
+          New to Cosmara?{" "}
+          <button type="button" onClick={showRegisterTab} className="font-semibold text-space-orange">
+            Create an account
+          </button>
+        </p>
+      ) : (
+        <p className="text-center text-sm text-muted-foreground">
+          Already have an account?{" "}
+          <button type="button" onClick={showSignInTab} className="font-semibold text-space-orange">
+            Sign in
+          </button>
+        </p>
+      )}
     </div>
   );
 }
