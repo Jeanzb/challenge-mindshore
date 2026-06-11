@@ -1,13 +1,20 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "lib": ["ES2022", "DOM"],
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
     "types": ["cypress", "cypress-real-events", "node"],
+    "baseUrl": "..",
+    "paths": {
+      "@/*": ["./src/*"]
+    },
     "isolatedModules": false,
     "skipLibCheck": true,
+    "esModuleInterop": true,
+    "strict": true,
     "noEmit": true
   },
-  "include": ["**/*.ts"]
+  "include": ["**/*.ts", "**/*.tsx"]
 }

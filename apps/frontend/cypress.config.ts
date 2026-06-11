@@ -1,6 +1,7 @@
 import { defineConfig } from "cypress";
 
 export default defineConfig({
+  projectId: '7b72cb',
   allowCypressEnv: false,
   e2e: {
     baseUrl: "http://localhost:5173",
@@ -17,5 +18,17 @@ export default defineConfig({
       runMode: 1,
       openMode: 0
     }
+  },
+  component: {
+    devServer: {
+      framework: "react",
+      bundler: "vite"
+    },
+    supportFile: "cypress/support/component.ts",
+    indexHtmlFile: "cypress/support/component-index.html",
+    specPattern: "cypress/component/**/*.cy.{ts,tsx}",
+    viewportWidth: 500,
+    viewportHeight: 500,
+    video: false
   }
 });

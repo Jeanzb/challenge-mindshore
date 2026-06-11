@@ -3,6 +3,9 @@
 !.env.example
 *.log
 logs/
+cypress/screenshots/
+cypress/videos/
+cypress/downloads/
 .DS_Store
 Thumbs.db
 .vs/
