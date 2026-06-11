@@ -15,6 +15,9 @@ obj/
 TestResults/
 coverage/
 node_modules/
+**/cypress/screenshots/
+**/cypress/videos/
+**/cypress/downloads/
 dist/
 build/
 .vite/
