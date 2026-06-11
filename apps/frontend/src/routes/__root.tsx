@@ -6,11 +6,13 @@ export const Route = createRootRoute({
   component: RootRoute
 });
 
+const isUnderCypress = typeof window !== "undefined" && "Cypress" in window;
+
 function RootRoute() {
   return (
     <>
       <Outlet />
-      {import.meta.env.DEV ? (
+      {import.meta.env.DEV && !isUnderCypress ? (
         <>
           <TanStackRouterDevtools position="bottom-right" />
           <ReactQueryDevtools buttonPosition="bottom-left" />
