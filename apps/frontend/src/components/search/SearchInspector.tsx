@@ -9,6 +9,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAiEnrichment } from "@/hooks/ai";
 import { useAuthSession } from "@/hooks/auth";
 import { useAddImageToCollection, useCollectionsList } from "@/hooks/collections";
+import {
+  getImageSaveFailureMessage,
+  getSingleImageDuplicateMessage,
+  getSingleImageSaveSuccessMessage,
+  isDuplicateCollectionImageError
+} from "@/lib/collectionSaveFeedback";
 import { toast } from "sonner";
 import { useUiStore, uiSelectors } from "@/store";
 import type { CollectionSummary } from "@/types/collections";
@@ -172,15 +178,20 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
     }
 
     const selectedCollection = collections.find((collection) => collection.id === selectedCollectionId);
+    const collectionName = selectedCollection?.name ?? "collection";
 
     try {
       await addImageToCollection({
         collectionId: selectedCollectionId,
         image: selectedImage
       });
-      toast.success(`Saved to ${selectedCollection?.name ?? "collection"}`);
+      toast.success(getSingleImageSaveSuccessMessage(collectionName));
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Image could not be saved.");
+      toast.error(
+        isDuplicateCollectionImageError(error)
+          ? getSingleImageDuplicateMessage(collectionName)
+          : getImageSaveFailureMessage()
+      );
     }
   };
 

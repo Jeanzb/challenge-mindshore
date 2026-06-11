@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAuthSession } from "@/hooks/auth";
 import { toast } from "sonner";
 import { useAddImageToCollection, useCollectionsList } from "@/hooks/collections";
+import { getBatchSaveFeedbackMessage, isDuplicateCollectionImageError } from "@/lib/collectionSaveFeedback";
 import { useUiStore, uiSelectors } from "@/store";
 import type { NasaImage } from "@/types/search";
 
@@ -54,30 +55,35 @@ export function SearchBatchBar({ images }: SearchBatchBarProps) {
       selectedImages.map((image) => addImageToCollection({ collectionId: targetCollectionId, image }))
     );
     const savedCount = results.filter((result) => result.status === "fulfilled").length;
-    const failedCount = results.length - savedCount;
-    const failedImageTitles: string[] = [];
+    let duplicateCount = 0;
+    let failedCount = 0;
 
-    for (let index = 0; index < results.length && failedImageTitles.length < 2; index += 1) {
-      if (results[index]?.status === "rejected" && selectedImages[index]?.title !== undefined) {
-        failedImageTitles.push(selectedImages[index].title);
+    for (const result of results) {
+      if (result.status === "fulfilled") {
+        continue;
       }
-    }
 
-    const failedTitles = failedImageTitles.join(", ");
+      if (isDuplicateCollectionImageError(result.reason)) {
+        duplicateCount += 1;
+        continue;
+      }
+
+      failedCount += 1;
+    }
 
     setIsSaving(false);
 
-    if (failedCount === 0) {
-      toast.success(`Saved ${savedCount} to ${collectionName}`);
-      clearMultiSelect();
-      return;
+    const feedback = getBatchSaveFeedbackMessage(savedCount, duplicateCount, failedCount, collectionName);
+
+    if (feedback.type === "success") {
+      toast.success(feedback.message);
+    } else {
+      toast.error(feedback.message);
     }
 
-    toast.error(
-      failedTitles.length > 0
-        ? `Saved ${savedCount}. Could not add: ${failedTitles}.`
-        : `Saved ${savedCount}. ${failedCount} could not be added.`
-    );
+    if (feedback.shouldClearSelection) {
+      clearMultiSelect();
+    }
   };
 
   return (

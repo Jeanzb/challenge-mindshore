@@ -1,4 +1,36 @@
+import { apiBaseUrl, demoCredentials } from "../../support/commands";
+
 describe("Search batch actions", () => {
+  let token = "";
+  let collectionId = "";
+  const collectionName = `E2E Batch ${Date.now()}`;
+
+  before(() => {
+    cy.request("POST", `${apiBaseUrl}/api/auth/login`, demoCredentials).then((response) => {
+      token = response.body.accessToken;
+
+      cy.request({
+        method: "POST",
+        url: `${apiBaseUrl}/api/collections`,
+        headers: { Authorization: `Bearer ${token}` },
+        body: { name: collectionName }
+      }).then((created) => {
+        collectionId = created.body.id;
+      });
+    });
+  });
+
+  after(() => {
+    if (collectionId) {
+      cy.request({
+        method: "DELETE",
+        url: `${apiBaseUrl}/api/collections/${collectionId}`,
+        headers: { Authorization: `Bearer ${token}` },
+        failOnStatusCode: false
+      });
+    }
+  });
+
   beforeEach(() => {
     cy.login();
     cy.visit("/search");
@@ -18,10 +50,10 @@ describe("Search batch actions", () => {
 
     cy.get('[data-cy="batch-action-bar"]').should("be.visible");
     cy.get('[data-cy="batch-action-bar"] [role="combobox"]').click();
-    cy.get('[role="option"]').contains("Apollo Missions").click();
+    cy.get('[role="option"]').contains(collectionName).click();
     cy.get('[data-cy="batch-add-btn"]').click();
 
-    cy.contains("Saved", { timeout: 20000 }).should("be.visible");
+    cy.contains(`2 images saved to “${collectionName}”.`, { timeout: 20000 }).should("be.visible");
   });
 
   it("clears the selection", () => {

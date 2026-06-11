@@ -13,6 +13,12 @@ import {
 import { toast } from "sonner";
 import { useAuthSession } from "@/hooks/auth";
 import { useAddImageToCollection, useCollectionsList } from "@/hooks/collections";
+import {
+  getImageSaveFailureMessage,
+  getSingleImageDuplicateMessage,
+  getSingleImageSaveSuccessMessage,
+  isDuplicateCollectionImageError
+} from "@/lib/collectionSaveFeedback";
 import { cn } from "@/lib/utils";
 import type { CollectionSummary } from "@/types/collections";
 import type { NasaImage } from "@/types/search";
@@ -42,9 +48,15 @@ export function SaveToCollectionMenu({ image }: SaveToCollectionMenuProps) {
     try {
       await addImageToCollection({ collectionId, image });
       setSavedCollectionIds((current) => [...current, collectionId]);
-      toast.success(`Saved to ${collectionName}`);
-    } catch {
-      toast.error(`Could not save to ${collectionName}`);
+      toast.success(getSingleImageSaveSuccessMessage(collectionName));
+    } catch (error) {
+      if (isDuplicateCollectionImageError(error)) {
+        setSavedCollectionIds((current) => [...current, collectionId]);
+        toast.error(getSingleImageDuplicateMessage(collectionName));
+        return;
+      }
+
+      toast.error(getImageSaveFailureMessage());
     }
   };
 
