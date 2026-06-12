@@ -9,21 +9,21 @@ La exploración de imágenes es pública. Las funciones que modifican datos del 
 ## Stack tecnológico
 
 ### Frontend
-- **React** — librería principal para construir la interfaz.
-- **React DOM** — renderizado de la aplicación React en el navegador.
-- **TypeScript** — tipado estático para mejorar mantenibilidad y reducir errores.
-- **Vite** — herramienta de desarrollo y build del frontend.
-- **Bun** — gestor de paquetes y runtime usado para instalar dependencias y ejecutar scripts.
-- **TanStack Router** — manejo de rutas del lado del cliente.
-- **TanStack Query** — gestión de datos remotos, caché de requests, estados de carga y errores.
-- **Zustand** — estado global liviano para preferencias y estado compartido de UI.
-- **React Hook Form** — manejo eficiente de formularios.
-- **Zod** — validación de esquemas y datos.
-- **Tailwind CSS** — estilos utilitarios y responsive design.
-- **shadcn/ui** — componentes reutilizables construidos sobre Radix UI y Tailwind CSS.
-- **Sonner** — notificaciones tipo toast para feedback de acciones del usuario.
-- **Paraglide JS** — internacionalización de la aplicación en español e inglés.
-- **Cypress** — pruebas de componentes y pruebas end-to-end.
+- **React** 
+- **React DOM**
+- **TypeScript**
+- **Vite**
+- **Bun**
+- **TanStack Router** 
+- **TanStack Query** 
+- **Zustand** 
+- **React Hook Form** .
+- **Zod** —
+- **Tailwind CSS** 
+- **shadcn/ui** 
+- **Sonner** 
+- **Paraglide JS** 
+- **Cypress** 
 
 ### Backend
 - **.NET 10**
