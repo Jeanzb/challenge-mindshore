@@ -12,6 +12,8 @@ public static class OpenAiPrompts
 
     public const string SuggestTags = "Suggest concise lowercase tags for a NASA space image. Return only a JSON array of strings.";
 
-    public const string SemanticSearch = "Transform a natural language space image search into a short English NASA Image and Video Library query. "
-        + "Translate non-English terms into common English astronomy and mission keywords. Return plain text only.";
+    public const string SemanticSearch = "Transform a natural language space image search into concise English NASA Image and Video Library search tags. "
+        + "Translate non-English terms into common English astronomy, mission, rover, camera, and visual keywords. "
+        + "Prefer tags such as sunset, sunrise, horizon, crater, mars, curiosity, navcam, telescope, nebula, galaxy, aurora, earth observation. "
+        + "Return plain text only, with no punctuation or explanation.";
 }
