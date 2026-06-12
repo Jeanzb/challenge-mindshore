@@ -32,7 +32,22 @@ public static class DependencyInjection
         services.AddScoped<ICollectionExportFileService, PdfCollectionExportFileService>();
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
-        services.AddMemoryCache();
+        string? redisConnectionString = config["Redis:ConnectionString"]
+            ?? config["REDIS_CONNECTION_STRING"];
+
+        if (string.IsNullOrWhiteSpace(redisConnectionString))
+        {
+            services.AddDistributedMemoryCache();
+        }
+        else
+        {
+            services.AddStackExchangeRedisCache(options =>
+            {
+                options.Configuration = redisConnectionString;
+                options.InstanceName = "cosmara:";
+            });
+        }
+
         services.Configure<NasaApiOptions>(options =>
         {
             options.BaseUrl = config["NASA_API_BASE_URL"]
@@ -42,13 +57,14 @@ public static class DependencyInjection
                 ?? config[$"{NasaApiOptions.SectionName}:ApiKey"]
                 ?? string.Empty;
             options.SearchCacheMinutes = ReadPositiveInt(
+                15,
+                config["Redis:NasaSearchTtlMinutes"],
                 config["NASA_SEARCH_CACHE_MINUTES"],
-                config[$"{NasaApiOptions.SectionName}:SearchCacheMinutes"],
-                15);
+                config[$"{NasaApiOptions.SectionName}:SearchCacheMinutes"]);
             options.AssetManifestCacheHours = ReadPositiveInt(
+                12,
                 config["NASA_ASSET_CACHE_HOURS"],
-                config[$"{NasaApiOptions.SectionName}:AssetManifestCacheHours"],
-                12);
+                config[$"{NasaApiOptions.SectionName}:AssetManifestCacheHours"]);
         });
         services.AddHttpClient<NasaApiService>((serviceProvider, client) =>
         {
@@ -95,12 +111,16 @@ public static class DependencyInjection
         return services;
     }
 
-    private static int ReadPositiveInt(string? environmentValue, string? configuredValue, int fallback)
+    private static int ReadPositiveInt(int fallback, params string?[] values)
     {
-        string? value = environmentValue ?? configuredValue;
+        foreach (string? value in values)
+        {
+            if (int.TryParse(value, out int parsedValue) && parsedValue > 0)
+            {
+                return parsedValue;
+            }
+        }
 
-        return int.TryParse(value, out int parsedValue) && parsedValue > 0
-            ? parsedValue
-            : fallback;
+        return fallback;
     }
 }

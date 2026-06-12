@@ -1,4 +1,6 @@
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using NasaExplorer.Domain.Models.Nasa;
 using NasaExplorer.Infrastructure.ExternalServices.NasaApi;
@@ -27,7 +29,12 @@ public sealed class CachedNasaApiServiceTests
         NasaSearchResult firstResult = await service.SearchImagesAsync(criteria);
         NasaSearchResult secondResult = await service.SearchImagesAsync(criteria);
 
-        Assert.Same(firstResult, secondResult);
+        Assert.Equal(firstResult.TotalHits, secondResult.TotalHits);
+        Assert.Equal(firstResult.Page, secondResult.Page);
+        Assert.Equal(firstResult.PageSize, secondResult.PageSize);
+        Assert.Equal(
+            firstResult.Images.Select(image => image.NasaImageId),
+            secondResult.Images.Select(image => image.NasaImageId));
         Assert.Equal(1, handler.RequestCount);
     }
 
@@ -40,7 +47,7 @@ public sealed class CachedNasaApiServiceTests
         IReadOnlyCollection<NasaAssetFile> firstResult = await service.GetAssetFilesAsync("NHQ201906010007");
         IReadOnlyCollection<NasaAssetFile> secondResult = await service.GetAssetFilesAsync("NHQ201906010007");
 
-        Assert.Same(firstResult, secondResult);
+        Assert.Equal(firstResult, secondResult);
         Assert.Equal(1, handler.RequestCount);
     }
 
@@ -53,12 +60,13 @@ public sealed class CachedNasaApiServiceTests
 
         return new CachedNasaApiService(
             innerService,
-            new MemoryCache(new MemoryCacheOptions()),
+            new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions())),
             Options.Create(new NasaApiOptions
             {
                 SearchCacheMinutes = 15,
                 AssetManifestCacheHours = 12
-            }));
+            }),
+            NullLogger<CachedNasaApiService>.Instance);
     }
 
     private const string SearchResponseJson = """
