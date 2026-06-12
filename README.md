@@ -136,11 +136,6 @@ Detalles de la infraestructura:
 - **Más cobertura de tests** — tests de integración de la API end-to-end y más component tests en el frontend.
 - **Paginación en colecciones grandes** — hoy se cargan todas las imágenes de una colección de una vez.
 - **Optimistic UI** — las operaciones sobre colecciones esperan la respuesta del servidor en lugar de actualizar de inmediato y revertir ante error.
-- **Recuperación de contraseña real** — hoy no hay flujo de email (no integré una librería de mensajería).
+- **Recuperación de contraseña real** — El flujo actual de autenticación no incluye recuperación real de contraseña por correo. En producción integraría un proveedor de email y un flujo seguro de restablecimiento de contraseña.
 
-## Cosas a saber antes de revisar
 
-- **Funciona sin claves.** NASA expone endpoints públicos y la IA cae a su fallback determinístico, así que la app corre sin `NASA_API_KEY` ni `AI_API_KEY`.
-- **Proveedor de IA por defecto: Gemini** (`gemini-2.5-flash`) vía endpoint compatible-OpenAI. Migrar a OpenAI u otro es cambiar `AI_BASE_URL`, `AI_MODEL` y `AI_API_KEY` en `.env`.
-- **Migraciones automáticas.** La API aplica las migraciones de EF Core al arrancar; no hay que correr nada manual sobre la base.
-- **Sin usuario de demo / seed.** Hay que registrarse para usar las funciones autenticadas (colecciones, IA).
