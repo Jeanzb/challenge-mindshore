@@ -143,6 +143,8 @@ internal sealed class StubAiEnrichmentService : IAiEnrichmentService
 
     public int CompareCalls { get; private set; }
 
+    public string? LastComparisonLanguage { get; private set; }
+
     public int SuggestTagsCalls { get; private set; }
 
     public int SemanticSearchCalls { get; private set; }
@@ -157,9 +159,10 @@ internal sealed class StubAiEnrichmentService : IAiEnrichmentService
         return Task.FromResult(_enrichmentResult);
     }
 
-    public Task<string> CompareImagesAsync(IReadOnlyCollection<CollectionImage> images, CancellationToken cancellationToken = default)
+    public Task<string> CompareImagesAsync(IReadOnlyCollection<CollectionImage> images, string language, CancellationToken cancellationToken = default)
     {
         CompareCalls++;
+        LastComparisonLanguage = language;
 
         return Task.FromResult(_comparisonResult);
     }

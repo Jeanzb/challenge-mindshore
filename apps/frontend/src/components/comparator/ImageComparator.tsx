@@ -11,6 +11,7 @@ import { useCollectionDetail, useCollectionsList } from "@/hooks/collections";
 import { toast } from "sonner";
 import { useUiStore, uiSelectors } from "@/store";
 import { m } from "@/paraglide/messages";
+import { getCurrentAppLanguage } from "@/lib/i18n";
 import { ComparatorAnalysis } from "@/components/comparator/ComparatorAnalysis";
 import { ComparatorAuthPrompt } from "@/components/comparator/ComparatorAuthPrompt";
 import { ComparatorImageCard } from "@/components/comparator/ComparatorImageCard";
@@ -131,7 +132,8 @@ export function ImageComparator() {
     try {
       await compareImages({
         imageIds: selectedImageIds,
-        title: comparisonTitle
+        title: comparisonTitle,
+        language: getCurrentAppLanguage()
       });
       toast.success(m.compare_ready());
     } catch {

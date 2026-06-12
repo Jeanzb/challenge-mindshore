@@ -19,5 +19,9 @@ public sealed class CompareImagesCommandValidator : AbstractValidator<CompareIma
 
         RuleFor(command => command.Title)
             .MaximumLength(DomainConstraints.ImageComparisons.TitleMaxLength);
+
+        RuleFor(command => command.Language)
+            .Must(language => language is "en" or "es")
+            .WithMessage("Language must be en or es.");
     }
 }

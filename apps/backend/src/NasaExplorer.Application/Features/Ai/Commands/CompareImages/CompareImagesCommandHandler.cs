@@ -44,7 +44,7 @@ public sealed class CompareImagesCommandHandler : IRequestHandler<CompareImagesC
             throw new NotFoundException("One or more collection images were not found.");
         }
 
-        string analysis = await _aiEnrichmentService.CompareImagesAsync(images, cancellationToken);
+        string analysis = await _aiEnrichmentService.CompareImagesAsync(images, request.Language, cancellationToken);
         DateTimeOffset now = DateTimeOffset.UtcNow;
         Guid[] spaceImageIds = images
             .OrderBy(image => request.ImageIds.ToList().IndexOf(image.Id))

@@ -20,6 +20,7 @@ export type EnrichmentResult = {
 export type CompareImagesRequest = {
   imageIds: readonly string[];
   title?: string | null;
+  language: "en" | "es";
 };
 
 export type ComparisonResult = {

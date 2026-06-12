@@ -7,7 +7,7 @@ public interface IAiEnrichmentService
 {
     Task<AiImageEnrichmentResult> EnrichImageAsync(string imageTitle, string? imageDescription, CancellationToken cancellationToken = default);
 
-    Task<string> CompareImagesAsync(IReadOnlyCollection<CollectionImage> images, CancellationToken cancellationToken = default);
+    Task<string> CompareImagesAsync(IReadOnlyCollection<CollectionImage> images, string language, CancellationToken cancellationToken = default);
 
     Task<IReadOnlyCollection<string>> SuggestTagsAsync(string imageTitle, string? imageDescription, CancellationToken cancellationToken = default);
 

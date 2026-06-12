@@ -29,7 +29,7 @@ public sealed class CompareImagesCommandHandlerTests
             new StubCurrentUserService(userId));
 
         ComparisonResultDto result = await handler.Handle(
-            new CompareImagesCommand([firstCollectionImage.Id, secondCollectionImage.Id], "Mars comparison"),
+            new CompareImagesCommand([firstCollectionImage.Id, secondCollectionImage.Id], "Mars comparison", "es"),
             CancellationToken.None);
 
         Assert.NotNull(comparisonRepository.AddedComparison);
@@ -38,6 +38,7 @@ public sealed class CompareImagesCommandHandlerTests
         Assert.Equal("The images show changing Martian terrain.", result.Analysis);
         Assert.Equal([firstCollectionImage.Id, secondCollectionImage.Id], result.ImageIds);
         Assert.Equal(1, aiService.CompareCalls);
+        Assert.Equal("es", aiService.LastComparisonLanguage);
     }
 
     [Fact]

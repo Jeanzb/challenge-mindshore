@@ -16,10 +16,11 @@ export const useImageComparison = () => {
   });
 
   const compareSelectedImages = useCallback(
-    (title?: string | null): Promise<ComparisonResult> =>
+    (title?: string | null, language: CompareImagesRequest["language"] = "en"): Promise<ComparisonResult> =>
       compareImagesMutation.mutateAsync({
         imageIds,
-        title
+        title,
+        language
       }),
     [compareImagesMutation, imageIds]
   );

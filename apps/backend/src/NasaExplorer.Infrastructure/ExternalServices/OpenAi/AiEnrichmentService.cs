@@ -55,11 +55,17 @@ public sealed class AiEnrichmentService : IAiEnrichmentService
             string.IsNullOrWhiteSpace(parsed?.HistoricalContext) ? fallbackContext : parsed.HistoricalContext);
     }
 
-    public async Task<string> CompareImagesAsync(IReadOnlyCollection<CollectionImage> images, CancellationToken cancellationToken = default)
+    public async Task<string> CompareImagesAsync(
+        IReadOnlyCollection<CollectionImage> images,
+        string language,
+        CancellationToken cancellationToken = default)
     {
+        string normalizedLanguage = language.Equals("es", StringComparison.OrdinalIgnoreCase) ? "es" : "en";
+        string fallback = BuildComparisonFallback(images, normalizedLanguage);
+
         if (string.IsNullOrWhiteSpace(_options.ApiKey))
         {
-            return "AI comparison is unavailable until OpenAI is configured.";
+            return fallback;
         }
 
         string imageList = string.Join(
@@ -68,8 +74,8 @@ public sealed class AiEnrichmentService : IAiEnrichmentService
 
         string content = await CreateChatCompletionAsync(
             OpenAiPrompts.CompareImages,
-            $"Compare these images:\n{imageList}",
-            "AI comparison is unavailable.",
+            $"Respond in {(normalizedLanguage == "es" ? "Spanish" : "English")}.\nCompare these images:\n{imageList}",
+            fallback,
             cancellationToken,
             expectJson: true);
 
@@ -189,6 +195,35 @@ public sealed class AiEnrichmentService : IAiEnrichmentService
         }
 
         return trimmed[(firstLineEnd + 1)..closingFence].Trim();
+    }
+
+    private static string BuildComparisonFallback(IReadOnlyCollection<CollectionImage> images, string language)
+    {
+        string titles = string.Join(", ", images.Select(image => image.SpaceImage?.Title ?? image.SpaceImageId.ToString()).Take(4));
+
+        object fallback = language == "es"
+            ? new
+            {
+                title = "Comparación de imágenes NASA",
+                summary = $"Estas imágenes guardadas permiten contrastar {titles} usando sus títulos, descripciones y metadatos disponibles.",
+                similarities = new[] { "Todas pertenecen al archivo visual de NASA.", "Cada imagen puede analizarse por misión, fecha, centro de origen y contenido visual." },
+                differences = new[] { "Las imágenes pueden variar por misión, instrumento, época y objetivo científico.", "El contexto visual depende de los metadatos disponibles para cada registro." },
+                historicalContext = "El contexto histórico puede revisarse a partir de la misión, la fecha, el centro de origen y la descripción archivada de cada imagen.",
+                scientificValue = "La comparación ayuda a revisar patrones visuales, objetivos de exploración y metadatos científicos disponibles.",
+                conclusion = "Estas imágenes ofrecen una base clara para comparar momentos, instrumentos y objetivos dentro del archivo visual de NASA."
+            }
+            : new
+            {
+                title = "NASA image comparison",
+                summary = $"These saved images can be compared through {titles} using their available titles, descriptions, and metadata.",
+                similarities = new[] { "They all belong to NASA's visual archive.", "Each image can be reviewed by mission, date, source center, and visible subject matter." },
+                differences = new[] { "The images may differ by mission, instrument, era, and scientific objective.", "Visual context depends on the metadata available for each record." },
+                historicalContext = "Historical context can be reviewed through each image's mission, date, source center, and archived description.",
+                scientificValue = "The comparison helps review visual patterns, exploration goals, and available scientific metadata.",
+                conclusion = "These images provide a clear basis for comparing moments, instruments, and objectives across NASA's visual archive."
+            };
+
+        return JsonSerializer.Serialize(fallback, JsonOptions);
     }
 
     private sealed record ChatCompletionRequest(
