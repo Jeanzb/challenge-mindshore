@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "@tanstack/react-router";
-import { ArrowRight, Eye, EyeOff, Lock, Mail, Orbit, User } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, Loader2, Lock, Mail, Orbit, User } from "lucide-react";
 import { useLayoutEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -89,6 +89,7 @@ export function AuthCard() {
   const handleLoginSubmit = async (values: LoginFormValues): Promise<void> => {
     try {
       await login(values);
+      toast.success(m.auth_login_success());
       await navigate({ to: "/search" });
     } catch (error) {
       showAuthErrorToast(error);
@@ -99,6 +100,7 @@ export function AuthCard() {
   const handleRegisterSubmit = async (values: RegisterFormValues): Promise<void> => {
     try {
       await register(values);
+      toast.success(m.auth_register_success());
       await navigate({ to: "/search" });
     } catch (error) {
       showAuthErrorToast(error);
@@ -263,10 +265,11 @@ export function AuthCard() {
                   type="submit"
                   data-cy="save-btn"
                   disabled={isLoggingIn}
+                  aria-busy={isLoggingIn}
                   className="h-11 w-full rounded-xl bg-space-orange text-sm font-semibold text-space-void transition-[background-color,transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:bg-space-orange/90 hover:shadow-lg hover:shadow-space-orange/15"
                 >
-                  <ArrowRight className="h-4 w-4" />
-                  {m.auth_sign_in()}
+                  {isLoggingIn ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
+                  {isLoggingIn ? m.auth_signing_in() : m.auth_sign_in()}
                 </Button>
               </form>
             </Form>
@@ -361,10 +364,11 @@ export function AuthCard() {
                   type="submit"
                   data-cy="save-btn"
                   disabled={isRegistering}
+                  aria-busy={isRegistering}
                   className="h-11 w-full rounded-xl bg-space-orange text-sm font-semibold text-space-void transition-[background-color,transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:bg-space-orange/90 hover:shadow-lg hover:shadow-space-orange/15"
                 >
-                  <ArrowRight className="h-4 w-4" />
-                  {m.auth_create_account()}
+                  {isRegistering ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
+                  {isRegistering ? m.auth_creating_account() : m.auth_create_account()}
                 </Button>
               </form>
             </Form>
