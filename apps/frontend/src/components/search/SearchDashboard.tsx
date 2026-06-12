@@ -21,7 +21,6 @@ export function SearchDashboard({ initialQuery }: SearchDashboardProps) {
   const lastAppliedRouteQueryRef = useRef(initialRouteQuery);
   const selectedImage = useUiStore(uiSelectors.selectedImage);
   const inspectorOpen = useUiStore(uiSelectors.inspectorOpen);
-  const selectImage = useUiStore(uiSelectors.selectImageAction);
   const clearSelectedImage = useUiStore(uiSelectors.clearSelectedImageAction);
   const semanticSearchEnabled = useUiStore(uiSelectors.semanticSearchEnabled);
   const {
@@ -89,10 +88,10 @@ export function SearchDashboard({ initialQuery }: SearchDashboardProps) {
     const selectedImageStillVisible =
       selectedImage !== null && displayImages.some((image) => image.nasaImageId === selectedImage.nasaImageId);
 
-    if (!selectedImageStillVisible) {
-      selectImage(displayImages[0]);
+    if (selectedImage !== null && !selectedImageStillVisible) {
+      clearSelectedImage();
     }
-  }, [clearSelectedImage, displayImages, hasSearchResult, selectImage, selectedImage]);
+  }, [clearSelectedImage, displayImages, hasSearchResult, selectedImage]);
 
   const prefetchPreviewImage = useCallback(
     (image: NasaImage) => {

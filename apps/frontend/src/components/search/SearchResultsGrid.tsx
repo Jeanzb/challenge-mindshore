@@ -1,4 +1,4 @@
-import { SlidersHorizontal } from "lucide-react";
+import { SlidersHorizontal, Sparkles } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -108,6 +108,20 @@ export function SearchResultsGrid({
             )}
           </div>
           <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className={cn(
+                "h-9 w-9 rounded-full border border-white/10 bg-space-panel text-muted-foreground hover:bg-white/5 hover:text-white sm:hidden",
+                semanticSearchEnabled && "border-space-cyan/40 text-space-cyan"
+              )}
+              aria-label={m.search_semantic()}
+              aria-pressed={semanticSearchEnabled}
+              onClick={toggleSemanticSearch}
+            >
+              <Sparkles className="h-4 w-4" />
+            </Button>
             <Button
               type="button"
               variant="ghost"

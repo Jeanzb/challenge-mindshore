@@ -46,7 +46,8 @@ const renderCollectionOption = (collection: CollectionSummary) => (
 );
 
 export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
-  const selectedImage = useUiStore(uiSelectors.selectedImage) ?? fallbackImage;
+  const explicitSelectedImage = useUiStore(uiSelectors.selectedImage);
+  const selectedImage = explicitSelectedImage ?? fallbackImage;
   const inspectorOpen = useUiStore(uiSelectors.inspectorOpen);
   const closeInspector = useUiStore(uiSelectors.closeInspectorAction);
   const addCompareImage = useUiStore(uiSelectors.addCompareImageAction);
@@ -197,22 +198,9 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
     }
   };
 
-  if (!inspectorOpen) {
-    return (
-      <div
-        className="hidden min-h-0 overflow-hidden border-l border-white/10 bg-space-shell/70 opacity-0 transition-opacity duration-200 lg:block"
-        aria-hidden="true"
-      />
-    );
-  }
-
-  return (
-    <aside
-      className="hidden min-h-0 overflow-hidden border-l border-white/10 bg-space-shell/80 opacity-100 shadow-[-16px_0_40px_rgba(0,0,0,0.18)] transition-opacity duration-300 lg:block"
-      aria-label={m.search_selected_image()}
-      data-cy="search-inspector"
-    >
-      <div className="flex h-full min-h-0 flex-col">
+  const renderPanelContent = () => (
+    <div className="flex h-full min-h-0 flex-col">
+      <div className="mx-auto mt-2 h-1 w-10 rounded-full bg-white/20 lg:hidden" />
         <div className="flex items-start justify-between gap-4 px-4 py-4">
           <div className="min-w-0">
             <p className="mb-3 text-xs font-semibold uppercase text-muted-foreground">{m.search_selected_image()}</p>
@@ -394,8 +382,41 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
             </div>
           </div>
         </ScrollArea>
-      </div>
-    </aside>
+    </div>
+  );
+
+  if (!inspectorOpen) {
+    return (
+      <div
+        className="hidden min-h-0 overflow-hidden border-l border-white/10 bg-space-shell/70 opacity-0 transition-opacity duration-200 lg:block"
+        aria-hidden="true"
+      />
+    );
+  }
+
+  return (
+    <>
+      <aside
+        className="hidden min-h-0 overflow-hidden border-l border-white/10 bg-space-shell/80 opacity-100 shadow-[-16px_0_40px_rgba(0,0,0,0.18)] transition-opacity duration-300 lg:block"
+        aria-label={m.search_selected_image()}
+        data-cy="search-inspector"
+      >
+        {renderPanelContent()}
+      </aside>
+      <button
+        type="button"
+        className={explicitSelectedImage === null ? "hidden" : "cosmara-mobile-inspector-overlay"}
+        aria-label={m.search_close_inspector()}
+        onClick={closeInspector}
+      />
+      <aside
+        className={explicitSelectedImage === null ? "hidden" : "cosmara-mobile-inspector"}
+        aria-label={m.search_selected_image()}
+        data-cy="search-inspector-mobile"
+      >
+        {renderPanelContent()}
+      </aside>
+    </>
   );
 }
 

@@ -1,5 +1,5 @@
 import { Check } from "lucide-react";
-import type { MouseEvent } from "react";
+import type { KeyboardEvent, MouseEvent } from "react";
 import { SaveToCollectionMenu } from "@/components/search/SaveToCollectionMenu";
 import { useUiStore, uiSelectors } from "@/store";
 import type { NasaImage } from "@/types/search";
@@ -23,9 +23,20 @@ export function SearchImageCard({ image, onPreviewIntent }: SearchImageCardProps
     selectImage(image);
   };
 
+  const handleCardKeyDown = (event: KeyboardEvent<HTMLElement>) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      handleSelect();
+    }
+  };
+
   const handleToggleMultiSelect = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     toggleMultiSelectImage(image.nasaImageId);
+  };
+
+  const stopCardSelection = (event: MouseEvent<HTMLDivElement>) => {
+    event.stopPropagation();
   };
 
   const handlePreviewIntent = () => {
@@ -42,24 +53,22 @@ export function SearchImageCard({ image, onPreviewIntent }: SearchImageCardProps
         isMultiSelected && "border-space-orange/70"
       )}
       data-cy="image-card"
+      role="button"
+      tabIndex={0}
+      onClick={handleSelect}
+      onFocus={handlePreviewIntent}
+      onKeyDown={handleCardKeyDown}
+      onMouseEnter={handlePreviewIntent}
+      aria-pressed={isSelected}
     >
-      <button
-        type="button"
-        className="block w-full text-left"
-        onClick={handleSelect}
-        onFocus={handlePreviewIntent}
-        onMouseEnter={handlePreviewIntent}
-        aria-pressed={isSelected}
-      >
-        <div className="relative aspect-[4/3] overflow-hidden bg-space-void">
-          <img
-            src={image.urls.card}
-            alt={image.title}
-            loading="lazy"
-            className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
-          />
-        </div>
-      </button>
+      <div className="relative aspect-[4/3] overflow-hidden bg-space-void">
+        <img
+          src={image.urls.card}
+          alt={image.title}
+          loading="lazy"
+          className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
+        />
+      </div>
       <button
         type="button"
         className={cn(
@@ -89,7 +98,9 @@ export function SearchImageCard({ image, onPreviewIntent }: SearchImageCardProps
               {image.displayDate ?? m.search_unknown_date()}
             </p>
           </div>
-          <SaveToCollectionMenu image={image} />
+          <div onClick={stopCardSelection}>
+            <SaveToCollectionMenu image={image} />
+          </div>
         </div>
         <div className="flex items-center">
           <span className="inline-flex max-w-full items-center rounded-md border border-space-cyan/20 bg-space-cyan/10 px-2 py-1 text-[11px] font-medium text-space-cyan">
