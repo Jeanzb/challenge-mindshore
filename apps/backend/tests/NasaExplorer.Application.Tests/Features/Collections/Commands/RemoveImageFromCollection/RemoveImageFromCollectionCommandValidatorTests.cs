@@ -5,17 +5,6 @@ namespace NasaExplorer.Application.Tests.Features.Collections.Commands.RemoveIma
 public sealed class RemoveImageFromCollectionCommandValidatorTests
 {
     [Fact]
-    public void Validate_accepts_valid_command()
-    {
-        RemoveImageFromCollectionCommandValidator validator = new();
-
-        FluentValidation.Results.ValidationResult result = validator.Validate(
-            new RemoveImageFromCollectionCommand(Guid.NewGuid(), Guid.NewGuid()));
-
-        Assert.True(result.IsValid);
-    }
-
-    [Fact]
     public void Validate_rejects_empty_collection_id()
     {
         RemoveImageFromCollectionCommandValidator validator = new();

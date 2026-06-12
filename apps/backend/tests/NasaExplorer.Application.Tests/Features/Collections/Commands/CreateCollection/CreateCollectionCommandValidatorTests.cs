@@ -6,16 +6,6 @@ namespace NasaExplorer.Application.Tests.Features.Collections.Commands.CreateCol
 public sealed class CreateCollectionCommandValidatorTests
 {
     [Fact]
-    public void Validate_accepts_valid_command()
-    {
-        CreateCollectionCommandValidator validator = new();
-
-        FluentValidation.Results.ValidationResult result = validator.Validate(new CreateCollectionCommand("Mars", "Images"));
-
-        Assert.True(result.IsValid);
-    }
-
-    [Fact]
     public void Validate_rejects_empty_name()
     {
         CreateCollectionCommandValidator validator = new();

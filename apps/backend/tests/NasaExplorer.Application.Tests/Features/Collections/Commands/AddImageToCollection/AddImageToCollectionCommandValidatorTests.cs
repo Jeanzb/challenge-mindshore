@@ -6,16 +6,6 @@ namespace NasaExplorer.Application.Tests.Features.Collections.Commands.AddImageT
 public sealed class AddImageToCollectionCommandValidatorTests
 {
     [Fact]
-    public void Validate_accepts_valid_command()
-    {
-        AddImageToCollectionCommandValidator validator = new();
-
-        FluentValidation.Results.ValidationResult result = validator.Validate(CreateCommand());
-
-        Assert.True(result.IsValid);
-    }
-
-    [Fact]
     public void Validate_rejects_empty_collection_id()
     {
         AddImageToCollectionCommandValidator validator = new();

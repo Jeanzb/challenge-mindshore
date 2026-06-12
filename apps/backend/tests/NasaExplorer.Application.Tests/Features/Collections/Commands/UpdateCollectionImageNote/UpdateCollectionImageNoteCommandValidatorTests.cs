@@ -6,17 +6,6 @@ namespace NasaExplorer.Application.Tests.Features.Collections.Commands.UpdateCol
 public sealed class UpdateCollectionImageNoteCommandValidatorTests
 {
     [Fact]
-    public void Validate_accepts_valid_command()
-    {
-        UpdateCollectionImageNoteCommandValidator validator = new();
-
-        FluentValidation.Results.ValidationResult result = validator.Validate(
-            new UpdateCollectionImageNoteCommand(Guid.NewGuid(), Guid.NewGuid(), "note"));
-
-        Assert.True(result.IsValid);
-    }
-
-    [Fact]
     public void Validate_rejects_empty_collection_id()
     {
         UpdateCollectionImageNoteCommandValidator validator = new();

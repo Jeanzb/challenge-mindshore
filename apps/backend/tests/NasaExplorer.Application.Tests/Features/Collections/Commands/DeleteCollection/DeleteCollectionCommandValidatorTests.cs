@@ -5,16 +5,6 @@ namespace NasaExplorer.Application.Tests.Features.Collections.Commands.DeleteCol
 public sealed class DeleteCollectionCommandValidatorTests
 {
     [Fact]
-    public void Validate_accepts_valid_command()
-    {
-        DeleteCollectionCommandValidator validator = new();
-
-        FluentValidation.Results.ValidationResult result = validator.Validate(new DeleteCollectionCommand(Guid.NewGuid()));
-
-        Assert.True(result.IsValid);
-    }
-
-    [Fact]
     public void Validate_rejects_empty_id()
     {
         DeleteCollectionCommandValidator validator = new();

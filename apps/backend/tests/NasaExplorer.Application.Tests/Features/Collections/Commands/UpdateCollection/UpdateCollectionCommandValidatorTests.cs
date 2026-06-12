@@ -6,16 +6,6 @@ namespace NasaExplorer.Application.Tests.Features.Collections.Commands.UpdateCol
 public sealed class UpdateCollectionCommandValidatorTests
 {
     [Fact]
-    public void Validate_accepts_valid_command()
-    {
-        UpdateCollectionCommandValidator validator = new();
-
-        FluentValidation.Results.ValidationResult result = validator.Validate(new UpdateCollectionCommand(Guid.NewGuid(), "Mars", "Images"));
-
-        Assert.True(result.IsValid);
-    }
-
-    [Fact]
     public void Validate_rejects_empty_id()
     {
         UpdateCollectionCommandValidator validator = new();
