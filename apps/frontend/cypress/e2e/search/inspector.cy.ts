@@ -4,12 +4,12 @@ describe("Image inspector", () => {
     cy.visit("/search");
     cy.get('[data-cy="image-card"]', { timeout: 30000 }).should("have.length.greaterThan", 0);
     cy.get('[data-cy="image-card"]').first().click();
-    cy.get('aside[aria-label="Selected image"]').should("be.visible");
+    cy.get('[data-cy="search-inspector"]').should("be.visible");
   });
 
   it("shows metadata for the selected image", () => {
-    cy.contains('aside[aria-label="Selected image"] button', "Metadata").click();
-    cy.get('aside[aria-label="Selected image"]').should("contain.text", "Media Type");
+    cy.contains('[data-cy="search-inspector"] button', "Metadata").click();
+    cy.get('[data-cy="search-inspector"]').should("contain.text", "Media Type");
   });
 
   it("generates AI historical context", () => {
@@ -27,7 +27,7 @@ describe("Image inspector", () => {
       });
     }).as("enrich");
 
-    cy.contains('aside[aria-label="Selected image"] button', /Generate context|Load cached context/).click();
+    cy.contains('[data-cy="search-inspector"] button', /Generate context|Load cached context/).click();
     cy.wait("@enrich");
     cy.contains("A pivotal moment in exploration history.").should("be.visible");
   });
@@ -39,7 +39,7 @@ describe("Image inspector", () => {
       body: "stub-binary"
     });
 
-    cy.contains('aside[aria-label="Selected image"] button', "Download").click();
+    cy.contains('[data-cy="search-inspector"] button', "Download").click();
     cy.contains("Image downloaded", { timeout: 20000 }).should("be.visible");
   });
 });

@@ -9,6 +9,7 @@ namespace NasaExplorer.Infrastructure.ExternalServices.NasaApi;
 public sealed class NasaApiService : INasaApiService
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+    private const int DateFilteredPageScanLimit = 8;
     private static readonly string[] KnownMissions =
     [
         "JWST",
@@ -51,23 +52,75 @@ public sealed class NasaApiService : INasaApiService
 
     public async Task<NasaSearchResult> SearchImagesAsync(NasaSearchCriteria criteria, CancellationToken cancellationToken = default)
     {
-        using HttpResponseMessage response = await _httpClient.GetAsync(BuildSearchUri(criteria), cancellationToken);
-        response.EnsureSuccessStatusCode();
+        if (HasLocalDateFilter(criteria))
+        {
+            return await SearchDateFilteredImagesAsync(criteria, cancellationToken);
+        }
 
-        await using Stream stream = await response.Content.ReadAsStreamAsync(cancellationToken);
-        NasaSearchResponse? nasaResponse = await JsonSerializer.DeserializeAsync<NasaSearchResponse>(stream, JsonOptions, cancellationToken);
+        NasaSearchResponse? nasaResponse = await FetchSearchResponseAsync(criteria, cancellationToken);
 
         IReadOnlyCollection<NasaImageAsset> images = (nasaResponse?.Collection?.Items ?? [])
             .Select(ToImageAsset)
             .OfType<NasaImageAsset>()
-            .Where(image => MatchesDateRange(image, criteria))
             .ToArray();
 
         return new NasaSearchResult(
             images,
-            HasLocalDateFilter(criteria) ? images.Count : (nasaResponse?.Collection?.Metadata?.TotalHits ?? images.Count),
+            nasaResponse?.Collection?.Metadata?.TotalHits ?? images.Count,
             criteria.Page,
             criteria.PageSize);
+    }
+
+    private async Task<NasaSearchResult> SearchDateFilteredImagesAsync(
+        NasaSearchCriteria criteria,
+        CancellationToken cancellationToken)
+    {
+        List<NasaImageAsset> matchedImages = [];
+        int requestedPage = Math.Max(1, criteria.Page);
+        int pageSize = Math.Max(1, criteria.PageSize);
+
+        for (int pageOffset = 0; pageOffset < DateFilteredPageScanLimit && matchedImages.Count < pageSize; pageOffset += 1)
+        {
+            NasaSearchCriteria pageCriteria = criteria with
+            {
+                Page = requestedPage + pageOffset
+            };
+            NasaSearchResponse? nasaResponse = await FetchSearchResponseAsync(pageCriteria, cancellationToken);
+            IReadOnlyCollection<NasaSearchItem> items = nasaResponse?.Collection?.Items ?? [];
+
+            if (items.Count == 0)
+            {
+                break;
+            }
+
+            matchedImages.AddRange(items
+                .Select(ToImageAsset)
+                .OfType<NasaImageAsset>()
+                .Where(image => MatchesDateRange(image, criteria)));
+        }
+
+        NasaImageAsset[] images = matchedImages
+            .DistinctBy(image => image.NasaImageId, StringComparer.OrdinalIgnoreCase)
+            .Take(pageSize)
+            .ToArray();
+
+        return new NasaSearchResult(
+            images,
+            images.Length,
+            requestedPage,
+            pageSize);
+    }
+
+    private async Task<NasaSearchResponse?> FetchSearchResponseAsync(
+        NasaSearchCriteria criteria,
+        CancellationToken cancellationToken)
+    {
+        using HttpResponseMessage response = await _httpClient.GetAsync(BuildSearchUri(criteria), cancellationToken);
+        response.EnsureSuccessStatusCode();
+
+        await using Stream stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+
+        return await JsonSerializer.DeserializeAsync<NasaSearchResponse>(stream, JsonOptions, cancellationToken);
     }
 
     public async Task<IReadOnlyCollection<NasaAssetFile>> GetAssetFilesAsync(string nasaImageId, CancellationToken cancellationToken = default)

@@ -1,6 +1,7 @@
 import { ArrowLeftRight, BookOpen, FlaskConical, Sparkles } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { parseComparisonSections, stripMarkdown } from "@/lib/comparisonAnalysis";
+import { m } from "@/paraglide/messages";
 
 type ComparatorAnalysisProps = {
   analysis: string;
@@ -26,14 +27,16 @@ export function ComparatorAnalysis({ analysis }: ComparatorAnalysisProps) {
         <p className="text-sm leading-7 text-foreground">{sections.summary}</p>
       ) : null}
       <div className="grid gap-4 sm:grid-cols-2">
-        <SectionList title="Similarities" tone="cyan" icon={Sparkles} items={sections.similarities} />
-        <SectionList title="Differences" tone="orange" icon={ArrowLeftRight} items={sections.differences} />
+        <SectionList title={m.compare_section_similarities()} tone="cyan" icon={Sparkles} items={sections.similarities} />
+        <SectionList title={m.compare_section_differences()} tone="orange" icon={ArrowLeftRight} items={sections.differences} />
       </div>
-      <SectionBlock title="Historical Context" icon={BookOpen} body={sections.historicalContext} />
-      <SectionBlock title="Scientific Value" icon={FlaskConical} body={sections.scientificValue} />
+      <SectionBlock title={m.compare_section_historical()} icon={BookOpen} body={sections.historicalContext} />
+      <SectionBlock title={m.compare_section_scientific()} icon={FlaskConical} body={sections.scientificValue} />
       {sections.conclusion.length > 0 ? (
         <div className="rounded-lg border border-space-orange/25 bg-space-orange/5 p-4">
-          <p className="mb-1.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-space-orange">Conclusion</p>
+          <p className="mb-1.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-space-orange">
+            {m.compare_section_conclusion()}
+          </p>
           <p className="text-sm leading-7 text-foreground">{sections.conclusion}</p>
         </div>
       ) : null}

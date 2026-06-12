@@ -1,41 +1,69 @@
-import { Link } from "@tanstack/react-router";
-import { ArrowLeft, Clock3, GitCompareArrows, ImageOff, Loader2 } from "lucide-react";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { ArrowLeft, Clock3, GitCompareArrows, ImageOff, Loader2, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuthSession } from "@/hooks/auth";
-import { useCollectionDetail } from "@/hooks/collections";
+import { useCollectionDetail, useCollectionsList } from "@/hooks/collections";
 import { formatCollectionCount, formatCollectionDate } from "@/lib/collectionMetrics";
 import { CollectionsAuthPrompt } from "@/components/collections/CollectionsAuthPrompt";
+import { DeleteCollectionDialog, type DeleteCollectionTarget } from "@/components/collections/DeleteCollectionDialog";
 import { CollectionImageTile } from "@/components/collections/detail/CollectionImageTile";
 import type { CollectionImage } from "@/types/collections";
+import { toast } from "sonner";
+import { m } from "@/paraglide/messages";
 
 type CollectionDetailProps = {
   collectionId: string;
 };
 
 export function CollectionDetail({ collectionId }: CollectionDetailProps) {
+  const navigate = useNavigate();
   const { isAuthenticated } = useAuthSession();
   const { collection, images, isLoading, error, removeImage, isRemovingImage } = useCollectionDetail({
     collectionId,
     enabled: isAuthenticated
   });
+  const { deleteCollection, isDeleting } = useCollectionsList({ enabled: false });
   const [removingImageId, setRemovingImageId] = useState<string | null>(null);
-  const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [collectionToDelete, setCollectionToDelete] = useState<DeleteCollectionTarget | null>(null);
 
   const handleRemoveImage = async (imageId: string) => {
     setRemovingImageId(imageId);
-    setStatusMessage(null);
 
     try {
       await removeImage(imageId);
-      setStatusMessage("Image removed from collection.");
+      toast.success(m.collections_detail_image_removed());
     } catch (removeError) {
-      setStatusMessage(removeError instanceof Error ? removeError.message : "Image could not be removed.");
+      toast.error(removeError instanceof Error ? removeError.message : m.collections_detail_image_remove_error());
     } finally {
       setRemovingImageId(null);
     }
+  };
+
+  const openDeleteCollectionDialog = (): void => {
+    if (collection === undefined) {
+      return;
+    }
+
+    setCollectionToDelete({
+      id: collection.id,
+      name: collection.name,
+      imageCount: images.length
+    });
+  };
+
+  const handleDeleteDialogChange = (open: boolean): void => {
+    if (!open) {
+      setCollectionToDelete(null);
+    }
+  };
+
+  const handleDeleteCollection = async (targetCollectionId: string): Promise<void> => {
+    await deleteCollection(targetCollectionId);
+    toast.success(m.collections_delete_success());
+    await navigate({ to: "/collections" });
   };
 
   const renderImageTile = (image: CollectionImage) => (
@@ -65,7 +93,7 @@ export function CollectionDetail({ collectionId }: CollectionDetailProps) {
       >
         <Link to="/collections">
           <ArrowLeft className="h-4 w-4" />
-          All collections
+          {m.collections_detail_all()}
         </Link>
       </Button>
 
@@ -73,7 +101,7 @@ export function CollectionDetail({ collectionId }: CollectionDetailProps) {
 
       {!isLoading && error !== null ? (
         <div className="rounded-lg border border-space-orange/25 bg-space-orange/10 px-5 py-4 text-sm text-space-orange">
-          This collection could not be loaded. It may have been deleted or belong to another account.
+          {m.collections_detail_load_error()}
         </div>
       ) : null}
 
@@ -83,29 +111,38 @@ export function CollectionDetail({ collectionId }: CollectionDetailProps) {
             <div className="min-w-0">
               <h1 className="truncate text-2xl font-semibold tracking-normal text-white sm:text-3xl">{collection.name}</h1>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-                {collection.description || "A curated set of NASA imagery ready for exploration."}
+                {collection.description || m.collections_card_default_description()}
               </p>
               <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
-                <span>{formatCollectionCount(images.length, "image", "images")}</span>
+                <span>{formatCollectionCount(images.length, m.common_image(), m.common_images())}</span>
                 <span className="inline-flex items-center gap-1.5">
                   <Clock3 className="h-3.5 w-3.5" />
-                  Updated {formatCollectionDate(collection.updatedAt)}
+                  {m.common_updated({ date: formatCollectionDate(collection.updatedAt) })}
                 </span>
               </div>
             </div>
-            <Button
-              asChild
-              variant="secondary"
-              className="h-10 shrink-0 rounded-full bg-white/10 px-5 hover:bg-white/15"
-            >
-              <Link to="/comparator">
-                <GitCompareArrows className="h-4 w-4" />
-                Compare images
-              </Link>
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                asChild
+                variant="secondary"
+                className="h-10 shrink-0 rounded-full bg-white/10 px-5 hover:bg-white/15"
+              >
+                <Link to="/comparator">
+                  <GitCompareArrows className="h-4 w-4" />
+                  {m.collections_detail_compare()}
+                </Link>
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={openDeleteCollectionDialog}
+                className="h-10 shrink-0 rounded-full bg-space-orange/10 px-5 text-space-orange hover:bg-space-orange/15"
+              >
+                <Trash2 className="h-4 w-4" />
+                {m.collections_detail_delete()}
+              </Button>
+            </div>
           </div>
-
-          {statusMessage !== null ? <p className="text-xs text-space-cyan">{statusMessage}</p> : null}
 
           {images.length === 0 ? (
             <CollectionDetailEmptyState />
@@ -118,9 +155,15 @@ export function CollectionDetail({ collectionId }: CollectionDetailProps) {
       {isRemovingImage ? (
         <p className="mt-4 inline-flex items-center gap-2 text-xs text-muted-foreground">
           <Loader2 className="h-3.5 w-3.5 animate-spin" />
-          Updating collection
+          {m.collections_detail_updating()}
         </p>
       ) : null}
+      <DeleteCollectionDialog
+        collection={collectionToDelete}
+        isDeleting={isDeleting}
+        onOpenChange={handleDeleteDialogChange}
+        onDeleteCollection={handleDeleteCollection}
+      />
     </section>
   );
 }
@@ -148,12 +191,12 @@ function CollectionDetailEmptyState() {
       <span className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-muted-foreground">
         <ImageOff className="h-7 w-7" />
       </span>
-      <h2 className="mt-5 text-lg font-semibold text-white">No images in this collection</h2>
+      <h2 className="mt-5 text-lg font-semibold text-white">{m.collections_empty_title()}</h2>
       <p className="mt-2 max-w-sm text-sm leading-6 text-muted-foreground">
-        Save NASA imagery from the Explore page to start building this collection.
+        {m.collections_empty_description()}
       </p>
       <Button asChild className="mt-6 h-10 rounded-full bg-space-orange px-5 text-space-void hover:bg-space-orange/90">
-        <Link to="/search">Explore NASA imagery</Link>
+        <Link to="/search">{m.collections_empty_cta()}</Link>
       </Button>
     </Card>
   );

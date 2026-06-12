@@ -1,9 +1,9 @@
 name: nasa-explorer
 
 services:
-  sql:
+  sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: sqlserver2022
+    container_name: nasaexplorer-sqlserver
     ports:
       - "${MSSQL_PORT:-1433}:1433"
     environment:
@@ -12,6 +12,8 @@ services:
       MSSQL_PID: "Developer"
     volumes:
       - sqlserverdata:/var/opt/mssql
+    networks:
+      - mindshore
     healthcheck:
       test:
         [
@@ -23,5 +25,63 @@ services:
       retries: 10
       start_period: 30s
 
+  api:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+    container_name: nasaexplorer-api
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    ports:
+      - "${API_PORT:-5000}:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: "${ASPNETCORE_ENVIRONMENT:-Development}"
+      ASPNETCORE_URLS: "http://+:8080"
+      ConnectionStrings__Default: "Server=sqlserver,1433;Database=NasaExplorer;User Id=sa;Password=${MSSQL_SA_PASSWORD:-MyStrongPass123};TrustServerCertificate=True"
+      CORS_ALLOWED_ORIGINS: "${CORS_ALLOWED_ORIGINS:-http://localhost:5173,http://localhost:8080}"
+      Jwt__Secret: "${Jwt__Secret:-local-development-secret-key-change-me-32-chars}"
+      Jwt__Issuer: "${Jwt__Issuer:-NasaExplorer}"
+      Jwt__Audience: "${Jwt__Audience:-NasaExplorerClient}"
+      Jwt__AccessTokenMinutes: "${Jwt__AccessTokenMinutes:-60}"
+      NASA_API_BASE_URL: "${NASA_API_BASE_URL:-https://images-api.nasa.gov}"
+      NASA_API_KEY: "${NASA_API_KEY:-}"
+      AI_API_KEY: "${AI_API_KEY:-}"
+      AI_BASE_URL: "${AI_BASE_URL:-https://generativelanguage.googleapis.com/v1beta/openai/}"
+      AI_MODEL: "${AI_MODEL:-gemini-2.5-flash}"
+    networks:
+      - mindshore
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 45s
+
+  frontend:
+    build:
+      context: .
+      dockerfile: apps/frontend/Dockerfile
+      args:
+        VITE_API_BASE_URL: "${DOCKER_VITE_API_BASE_URL:-http://localhost:5000}"
+    container_name: nasaexplorer-frontend
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "${FRONTEND_PORT:-8080}:8080"
+    networks:
+      - mindshore
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
 volumes:
   sqlserverdata:
+
+networks:
+  mindshore:
+    driver: bridge

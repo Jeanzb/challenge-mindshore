@@ -31,6 +31,12 @@ export const useAuthSession = () => {
     queryClient.clear();
   }, [clearSession, queryClient]);
 
+  const resetAuthError = useCallback((): void => {
+    registerMutation.reset();
+    loginMutation.reset();
+    refreshMutation.reset();
+  }, [loginMutation, refreshMutation, registerMutation]);
+
   return {
     user,
     isAuthenticated,
@@ -41,6 +47,7 @@ export const useAuthSession = () => {
     isRegistering: registerMutation.isPending,
     isLoggingIn: loginMutation.isPending,
     isRefreshing: refreshMutation.isPending,
-    authError: registerMutation.error ?? loginMutation.error ?? refreshMutation.error
+    authError: registerMutation.error ?? loginMutation.error ?? refreshMutation.error,
+    resetAuthError
   };
 };

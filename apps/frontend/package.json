@@ -4,13 +4,14 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
+    "dev": "bun run i18n:compile && vite",
+    "build": "bun run i18n:compile && tsc -b && vite build",
     "preview": "vite preview",
-    "typecheck": "tsc -b",
-    "test": "cypress run --component",
+    "typecheck": "bun run i18n:compile && tsc -b",
+    "i18n:compile": "paraglide-js compile --project ./project.inlang --outdir ./src/paraglide",
+    "test": "bun run i18n:compile && cypress run --component",
     "test:open": "cypress open --component",
-    "test:e2e": "cypress run",
+    "test:e2e": "bun run i18n:compile && cypress run",
     "test:e2e:open": "cypress open"
   },
   "dependencies": {
@@ -39,6 +40,7 @@
     "zustand": "^5.0.14"
   },
   "devDependencies": {
+    "@inlang/paraglide-js": "^2.19.0",
     "@tailwindcss/forms": "^0.5.10",
     "@tanstack/react-router-devtools": "^1.167.0",
     "@types/node": "^24.10.1",

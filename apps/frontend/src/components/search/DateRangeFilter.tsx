@@ -2,6 +2,7 @@ import { CalendarDays, Sparkles } from "lucide-react";
 import type { ChangeEvent } from "react";
 import { cn } from "@/lib/utils";
 import { formatFriendlyDateRange } from "@/lib/searchDateRange";
+import { m } from "@/paraglide/messages";
 
 type DatePreset = "any" | "custom" | "last-30" | "last-year";
 
@@ -18,15 +19,15 @@ type PresetChip = {
   label: string;
 };
 
-const presetChips: readonly PresetChip[] = [
-  { value: "any", label: "Any time" },
-  { value: "last-30", label: "Last 30 days" },
-  { value: "last-year", label: "Last year" },
-  { value: "custom", label: "Custom" }
+const getPresetChips = (): readonly PresetChip[] => [
+  { value: "any", label: m.search_any_time() },
+  { value: "last-30", label: m.search_last_30_days() },
+  { value: "last-year", label: m.search_last_year() },
+  { value: "custom", label: m.search_custom() }
 ];
 
 export function DateRangeFilter({ preset, dateFrom, dateTo, onPresetChange, onDateChange }: DateRangeFilterProps) {
-  const showCustomInputs = preset === "custom" || dateFrom.length > 0 || dateTo.length > 0;
+  const showCustomInputs = preset === "custom";
   const friendlyRange = formatFriendlyDateRange(dateFrom, dateTo);
 
   const renderChip = (chip: PresetChip) => {
@@ -52,11 +53,11 @@ export function DateRangeFilter({ preset, dateFrom, dateTo, onPresetChange, onDa
 
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap gap-1.5">{presetChips.map(renderChip)}</div>
+      <div className="flex flex-wrap gap-1.5">{getPresetChips().map(renderChip)}</div>
       {showCustomInputs ? (
         <div className="grid grid-cols-1 gap-2">
-          <DateInput label="From" value={dateFrom} onChange={onDateChange("dateFrom")} />
-          <DateInput label="To" value={dateTo} onChange={onDateChange("dateTo")} />
+          <DateInput label={m.search_from()} value={dateFrom} onChange={onDateChange("dateFrom")} />
+          <DateInput label={m.search_to()} value={dateTo} onChange={onDateChange("dateTo")} />
         </div>
       ) : null}
       <div className="flex items-center gap-2 rounded-lg border border-space-cyan/15 bg-space-cyan/5 px-3 py-2">

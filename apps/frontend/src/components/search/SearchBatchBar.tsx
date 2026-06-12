@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { useAddImageToCollection, useCollectionsList } from "@/hooks/collections";
 import { getBatchSaveFeedbackMessage, isDuplicateCollectionImageError } from "@/lib/collectionSaveFeedback";
 import { useUiStore, uiSelectors } from "@/store";
+import { m } from "@/paraglide/messages";
 import type { NasaImage } from "@/types/search";
 
 type SearchBatchBarProps = {
@@ -38,12 +39,12 @@ export function SearchBatchBar({ images }: SearchBatchBarProps) {
 
   const handleAddAll = async () => {
     if (!isAuthenticated) {
-      toast.error("Sign in to save images.");
+      toast.error(m.search_sign_in_to_save_images());
       return;
     }
 
     if (targetCollectionId === "none") {
-      toast.error("Choose a collection first.");
+      toast.error(m.search_choose_collection());
       return;
     }
 
@@ -97,7 +98,7 @@ export function SearchBatchBar({ images }: SearchBatchBarProps) {
             {selectedIds.length}
           </span>
           <p className="text-sm font-medium text-white">
-            {selectedIds.length === 1 ? "image selected" : "images selected"}
+            {selectedIds.length === 1 ? m.search_image_selected() : m.search_images_selected()}
           </p>
         </div>
         <div className="flex flex-1 items-center justify-end gap-2">
@@ -114,7 +115,7 @@ export function SearchBatchBar({ images }: SearchBatchBarProps) {
               className="z-[90] rounded-md border-white/10 bg-space-panel text-white shadow-2xl shadow-black/50"
             >
               <SelectItem value="none" className="cursor-pointer text-xs text-muted-foreground focus:bg-space-cyan/15">
-                {isAuthenticated ? "Select collection..." : "Sign in to save"}
+                {isAuthenticated ? m.search_select_collection() : m.search_sign_in_to_save()}
               </SelectItem>
               {collections.map((collection) => (
                 <SelectItem
@@ -136,14 +137,14 @@ export function SearchBatchBar({ images }: SearchBatchBarProps) {
             data-cy="batch-add-btn"
           >
             {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-            {isSaving ? "Saving" : "Add all"}
+            {isSaving ? m.search_saving() : m.search_add_all()}
           </Button>
           <Button
             type="button"
             variant="ghost"
             size="icon"
             className="h-9 w-9 shrink-0 rounded-md text-muted-foreground hover:bg-white/5 hover:text-white"
-            aria-label="Clear selection"
+            aria-label={m.search_clear_selection()}
             onClick={handleClear}
           >
             <X className="h-4 w-4" />

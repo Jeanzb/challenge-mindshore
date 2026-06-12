@@ -1,4 +1,5 @@
 import type { NasaImage, NasaSearchFilters } from "@/types/search";
+import { m } from "@/paraglide/messages";
 
 const getTimelineDate = (image: NasaImage): string | null => image.timeline?.date ?? image.displayDate ?? null;
 
@@ -12,6 +13,26 @@ const getTimelineYear = (image: NasaImage): number | null => {
 
   return Number.isNaN(year) ? null : year;
 };
+
+export const sortImagesByTimelineDate = (images: readonly NasaImage[]): NasaImage[] =>
+  [...images].sort((firstImage, secondImage) => {
+    const firstDate = getTimelineDate(firstImage);
+    const secondDate = getTimelineDate(secondImage);
+
+    if (firstDate === secondDate) {
+      return firstImage.title.localeCompare(secondImage.title);
+    }
+
+    if (firstDate === null) {
+      return 1;
+    }
+
+    if (secondDate === null) {
+      return -1;
+    }
+
+    return firstDate.localeCompare(secondDate);
+  });
 
 export const getTimelineYearMarkers = (images: readonly NasaImage[], maxMarkers: number): string[] => {
   const uniqueYears = [
@@ -34,11 +55,11 @@ export const getTimelineYearMarkers = (images: readonly NasaImage[], maxMarkers:
 
 export const formatTimelineRange = (filters: NasaSearchFilters, images: readonly NasaImage[]): string => {
   if (filters.dateFrom !== null && filters.dateFrom !== undefined) {
-    return `${filters.dateFrom} -> ${filters.dateTo ?? "present"}`;
+    return `${filters.dateFrom} -> ${filters.dateTo ?? m.timeline_range_present()}`;
   }
 
   if (filters.dateTo !== null && filters.dateTo !== undefined) {
-    return `earliest -> ${filters.dateTo}`;
+    return `${m.timeline_range_earliest()} -> ${filters.dateTo}`;
   }
 
   const visibleDates = images
@@ -47,7 +68,7 @@ export const formatTimelineRange = (filters: NasaSearchFilters, images: readonly
     .sort();
 
   if (visibleDates.length === 0) {
-    return "All available dates";
+    return m.timeline_range_all();
   }
 
   return `${visibleDates[0]} -> ${visibleDates[visibleDates.length - 1]}`;

@@ -43,12 +43,13 @@ public sealed class NasaApiServiceTests
         Assert.Equal(1, result.TotalHits);
         Assert.Equal(2, result.Page);
         Assert.Equal(2, result.PageSize);
-        Assert.Contains("q=mars%20perseverance%20mastcam", handler.RequestUri!.Query);
-        Assert.Contains("media_type=image", handler.RequestUri.Query);
-        Assert.Contains("year_start=2019", handler.RequestUri.Query);
-        Assert.Contains("year_end=2019", handler.RequestUri.Query);
-        Assert.Contains("page=2", handler.RequestUri.Query);
-        Assert.Contains("page_size=2", handler.RequestUri.Query);
+        Uri firstRequestUri = handler.RequestUris[0];
+        Assert.Contains("q=mars%20perseverance%20mastcam", firstRequestUri.Query);
+        Assert.Contains("media_type=image", firstRequestUri.Query);
+        Assert.Contains("year_start=2019", firstRequestUri.Query);
+        Assert.Contains("year_end=2019", firstRequestUri.Query);
+        Assert.Contains("page=2", firstRequestUri.Query);
+        Assert.Contains("page_size=2", firstRequestUri.Query);
     }
 
     [Fact]
@@ -68,7 +69,7 @@ public sealed class NasaApiServiceTests
             null,
             null,
             1,
-            2));
+            1));
 
         Assert.Equal(2, result.Images.Count);
         Assert.Equal(26719, result.TotalHits);
@@ -98,6 +99,36 @@ public sealed class NasaApiServiceTests
         Assert.Contains("page=7", handler.RequestUri.Query);
         Assert.Contains("page_size=24", handler.RequestUri.Query);
     }
+
+    [Fact]
+    public async Task SearchImagesAsync_scans_additional_pages_for_exact_date_filters()
+    {
+        StubHttpMessageHandler handler = new(
+            SearchResponseWithOlderDateJson,
+            SearchResponseJson);
+        NasaApiService service = new(new HttpClient(handler)
+        {
+            BaseAddress = new Uri("https://images-api.nasa.gov/")
+        });
+
+        NasaSearchResult result = await service.SearchImagesAsync(new NasaSearchCriteria(
+            "",
+            new DateOnly(2019, 6, 1),
+            new DateOnly(2019, 6, 30),
+            null,
+            null,
+            null,
+            1,
+            1));
+
+        NasaImageAsset image = Assert.Single(result.Images);
+
+        Assert.Equal("NHQ201906010007", image.NasaImageId);
+        Assert.Equal(2, handler.RequestUris.Count);
+        Assert.Contains("page=1", handler.RequestUris[0].Query);
+        Assert.Contains("page=2", handler.RequestUris[1].Query);
+    }
+
 
     [Fact]
     public async Task GetAssetFilesAsync_maps_asset_file_metadata()
@@ -215,24 +246,62 @@ public sealed class NasaApiServiceTests
         }
         """;
 
+    private const string SearchResponseWithOlderDateJson = """
+        {
+          "collection": {
+            "items": [
+              {
+                "data": [
+                  {
+                    "center": "HQ",
+                    "date_created": "2019-05-01T00:00:00Z",
+                    "description": "Older image outside the exact date window.",
+                    "keywords": ["Mars"],
+                    "media_type": "image",
+                    "nasa_id": "NHQ201905010001",
+                    "title": "Older Mars Image"
+                  }
+                ],
+                "links": [
+                  {
+                    "href": "https://images-assets.nasa.gov/image/NHQ201905010001/NHQ201905010001~large.jpg",
+                    "rel": "alternate",
+                    "render": "image"
+                  }
+                ]
+              }
+            ],
+            "metadata": {
+              "total_hits": 26719
+            }
+          }
+        }
+        """;
+
     private sealed class StubHttpMessageHandler : HttpMessageHandler
     {
-        private readonly string _responseJson;
+        private readonly Queue<string> _responseJsonQueue;
 
-        public StubHttpMessageHandler(string responseJson)
+        public StubHttpMessageHandler(params string[] responseJson)
         {
-            _responseJson = responseJson;
+            _responseJsonQueue = new Queue<string>(responseJson);
         }
 
         public Uri? RequestUri { get; private set; }
 
+        public List<Uri> RequestUris { get; } = [];
+
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             RequestUri = request.RequestUri;
+            RequestUris.Add(request.RequestUri!);
+            string responseJson = _responseJsonQueue.Count > 1
+                ? _responseJsonQueue.Dequeue()
+                : _responseJsonQueue.Peek();
 
             return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
             {
-                Content = new StringContent(_responseJson, Encoding.UTF8, "application/json")
+                Content = new StringContent(responseJson, Encoding.UTF8, "application/json")
             });
         }
     }

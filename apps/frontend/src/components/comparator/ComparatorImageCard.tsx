@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { formatCollectionDate } from "@/lib/collectionMetrics";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 import type { CollectionImage } from "@/types/collections";
 
 type ComparatorImageCardProps = {
@@ -14,7 +15,7 @@ type ComparatorImageCardProps = {
 
 export function ComparatorImageCard({ image, isSelected = true, label, onToggle }: ComparatorImageCardProps) {
   const imageDate = image.dateCreated === null || image.dateCreated === undefined
-    ? "Unknown date"
+    ? m.compare_unknown_date()
     : formatCollectionDate(image.dateCreated);
   const visibleTags = image.tags.slice(0, 3);
 
@@ -38,7 +39,9 @@ export function ComparatorImageCard({ image, isSelected = true, label, onToggle 
           <Button
             type="button"
             size="icon"
-            aria-label={`${isSelected ? "Remove" : "Select"} ${image.title}`}
+            aria-label={
+              isSelected ? m.compare_remove_image({ title: image.title }) : m.compare_select_image({ title: image.title })
+            }
             onClick={handleToggle}
             className={cn(
               "absolute right-3 top-3 h-8 w-8 rounded-full",
@@ -54,7 +57,9 @@ export function ComparatorImageCard({ image, isSelected = true, label, onToggle 
       <div className="space-y-3 p-4">
         <div>
           <h3 className="line-clamp-2 text-base font-semibold leading-6">{image.title}</h3>
-          <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{image.description ?? "NASA collection image"}</p>
+          <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
+            {image.description ?? m.compare_default_image_description()}
+          </p>
         </div>
         <div className="grid gap-2 text-xs text-muted-foreground sm:grid-cols-2">
           <span className="inline-flex items-center gap-2 font-mono tracking-wide">
@@ -63,7 +68,7 @@ export function ComparatorImageCard({ image, isSelected = true, label, onToggle 
           </span>
           <span className="inline-flex items-center gap-2">
             <Tags className="h-3.5 w-3.5 text-space-cyan" />
-            {visibleTags.length > 0 ? `${visibleTags.length} tags` : "NASA"}
+            {visibleTags.length > 0 ? m.compare_tags_count({ count: visibleTags.length }) : "NASA"}
           </span>
         </div>
         {visibleTags.length > 0 ? (

@@ -6,4 +6,5 @@ export { CollectionsEmptyState } from "@/components/collections/CollectionsEmpty
 export { CollectionsOverview } from "@/components/collections/CollectionsOverview";
 export { CollectionsPageSkeleton } from "@/components/collections/CollectionsPageSkeleton";
 export { CreateCollectionDialog } from "@/components/collections/CreateCollectionDialog";
+export { DeleteCollectionDialog } from "@/components/collections/DeleteCollectionDialog";
 export { CollectionDetail, CollectionImageTile } from "@/components/collections/detail";

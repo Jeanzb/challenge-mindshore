@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { defaultNasaSearchQuery } from "@/constants";
 import { cn } from "@/lib/utils";
 import { useUiStore, uiSelectors } from "@/store";
+import { m } from "@/paraglide/messages";
 import type { NasaSearchFilters } from "@/types/search";
 import { DateRangeFilter } from "@/components/search/DateRangeFilter";
 
@@ -50,71 +51,72 @@ const defaultDraft: SearchFilterDraft = {
 
 const emptySelectValue = "__all__";
 
-const suggestedSearchPool: readonly SuggestedSearch[] = [
+const getSuggestedSearchPool = (): readonly SuggestedSearch[] => [
   {
-    label: "Mars Curiosity - 2024",
+    label: m.search_suggestion_mars_curiosity(),
     filters: {
       query: "curiosity mars",
+      datePreset: "custom",
       dateFrom: "2024-01-01",
       dateTo: "2024-12-31",
       rover: "Curiosity"
     }
   },
   {
-    label: "James Webb Nebulae",
+    label: m.search_suggestion_jwst_nebulae(),
     filters: {
       query: "jwst nebula",
       mission: "JWST"
     }
   },
   {
-    label: "Lunar Surface Studies",
+    label: m.search_suggestion_lunar_surface(),
     filters: {
       query: "lunar surface",
       mission: "Apollo"
     }
   },
   {
-    label: "Earth at Night",
+    label: m.search_suggestion_earth_night(),
     filters: {
       query: "earth at night"
     }
   },
   {
-    label: "Apollo Moonwalk Archive",
+    label: m.search_suggestion_apollo_moonwalk(),
     filters: {
       query: "apollo moonwalk",
       mission: "Apollo"
     }
   },
   {
-    label: "Saturn Rings",
+    label: m.search_suggestion_saturn_rings(),
     filters: {
       query: "saturn rings",
       mission: "Cassini"
     }
   },
   {
-    label: "Solar Flares",
+    label: m.search_suggestion_solar_flares(),
     filters: {
       query: "solar flare"
     }
   },
   {
-    label: "International Space Station",
+    label: m.search_suggestion_space_station(),
     filters: {
       query: "international space station"
     }
   },
   {
-    label: "Jupiter Storms",
+    label: m.search_suggestion_jupiter_storms(),
     filters: {
       query: "jupiter storm",
       mission: "Juno"
     }
   },
   {
-    label: "Hubble Deep Field",
+    label: m.search_suggestion_hubble_deep_field(),
     filters: {
       query: "hubble deep field",
       mission: "Hubble"
@@ -124,8 +126,8 @@ const suggestedSearchPool: readonly SuggestedSearch[] = [
 
 const suggestedSearchCount = 4;
 
-const missionOptions: readonly FilterOption[] = [
-  { label: "All Missions", value: "" },
+const getMissionOptions = (): readonly FilterOption[] => [
+  { label: m.search_all_missions(), value: "" },
   { label: "JWST", value: "JWST" },
   { label: "Hubble", value: "Hubble" },
   { label: "Apollo", value: "Apollo" },
@@ -133,29 +135,27 @@ const missionOptions: readonly FilterOption[] = [
   { label: "Juno", value: "Juno" }
 ];
 
-const roverOptions: readonly FilterOption[] = [
-  { label: "All Rovers / Spacecraft", value: "" },
+const getRoverOptions = (): readonly FilterOption[] => [
+  { label: m.search_all_rovers(), value: "" },
   { label: "Curiosity", value: "Curiosity" },
   { label: "Perseverance", value: "Perseverance" },
   { label: "Opportunity", value: "Opportunity" },
   { label: "Spirit", value: "Spirit" }
 ];
 
-const cameraOptions: readonly FilterOption[] = [
-  { label: "All Cameras", value: "" },
+const getCameraOptions = (): readonly FilterOption[] => [
+  { label: m.search_all_cameras(), value: "" },
   { label: "NIRCam", value: "NIRCam" },
   { label: "Mastcam", value: "Mastcam" },
   { label: "JunoCam", value: "JunoCam" },
   { label: "WFC3", value: "WFC3" }
 ];
 
-const mediaTypeOptions: readonly FilterOption[] = [
-  { label: "Images", value: "image" }
-];
+const getMediaTypeOptions = (): readonly FilterOption[] => [{ label: m.search_images(), value: "image" }];
 
 const toDraft = (filters: Partial<NasaSearchFilters>, mediaType = "image"): SearchFilterDraft => ({
   query: filters.query ?? defaultDraft.query,
-  datePreset: filters.dateFrom !== undefined || filters.dateTo !== undefined ? "custom" : "any",
+  datePreset: filters.datePreset ?? (filters.dateFrom !== undefined || filters.dateTo !== undefined ? "custom" : "any"),
   dateFrom: filters.dateFrom ?? "",
   dateTo: filters.dateTo ?? "",
   mission: filters.mission ?? "",
@@ -170,10 +170,31 @@ const toNullable = (value: string): string | null => {
   return trimmedValue.length > 0 ? trimmedValue : null;
 };
 
+const normalizeDateRange = (dateFrom: string, dateTo: string): Pick<SearchFilterDraft, "dateFrom" | "dateTo"> => {
+  const normalizedDateFrom = dateFrom.trim();
+  const normalizedDateTo = dateTo.trim();
+
+  if (
+    normalizedDateFrom.length > 0
+    && normalizedDateTo.length > 0
+    && normalizedDateFrom > normalizedDateTo
+  ) {
+    return {
+      dateFrom: normalizedDateTo,
+      dateTo: normalizedDateFrom
+    };
+  }
+
+  return {
+    dateFrom: normalizedDateFrom,
+    dateTo: normalizedDateTo
+  };
+};
+
 const formatDateInput = (date: Date): string => date.toISOString().slice(0, 10);
 
 const pickSuggestedSearches = (): readonly SuggestedSearch[] => {
-  const pool = [...suggestedSearchPool];
+  const pool = [...getSuggestedSearchPool()];
 
   for (let index = pool.length - 1; index > 0; index -= 1) {
     const swapIndex = Math.floor(Math.random() * (index + 1));
@@ -262,10 +283,13 @@ export function SearchFiltersPanel({ filters, isFetching, onApplyFilters }: Sear
   };
 
   const applyDraft = (nextDraft: SearchFilterDraft) => {
+    const normalizedDates = normalizeDateRange(nextDraft.dateFrom, nextDraft.dateTo);
+
     onApplyFilters({
       query: nextDraft.query.trim(),
-      dateFrom: toNullable(nextDraft.dateFrom),
-      dateTo: toNullable(nextDraft.dateTo),
+      datePreset: nextDraft.datePreset,
+      dateFrom: toNullable(normalizedDates.dateFrom),
+      dateTo: toNullable(normalizedDates.dateTo),
       mission: toNullable(nextDraft.mission),
       rover: toNullable(nextDraft.rover),
       camera: toNullable(nextDraft.camera)
@@ -306,21 +330,21 @@ export function SearchFiltersPanel({ filters, isFetching, onApplyFilters }: Sear
           "min-h-0 border-r border-white/10 bg-space-shell/70 lg:block",
           mobileFiltersOpen ? "cosmara-mobile-drawer" : "hidden"
         )}
-        aria-label="Search filters"
+        aria-label={m.search_filters_aria()}
       >
         <form className="flex h-full min-h-0 flex-col" onSubmit={handleSubmit}>
           <div className="flex items-center justify-between border-b border-white/10 px-3 py-4">
-            <p className="text-xs font-semibold uppercase text-white">Filters</p>
+            <p className="text-xs font-semibold uppercase text-white">{m.search_filters_label()}</p>
             <div className="flex items-center gap-3">
               <button type="button" className="text-xs font-medium text-space-cyan hover:text-white" onClick={clearFilters}>
-                Clear all
+                {m.search_clear_all()}
               </button>
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
                 className="h-8 w-8 rounded-md text-muted-foreground hover:bg-white/5 hover:text-white lg:hidden"
-                aria-label="Close filters"
+                aria-label={m.search_close_filters()}
                 onClick={closeMobileFilters}
               >
                 <X className="h-4 w-4" />
@@ -329,21 +353,21 @@ export function SearchFiltersPanel({ filters, isFetching, onApplyFilters }: Sear
           </div>
           <ScrollArea className="min-h-0 flex-1">
           <div className="space-y-5 px-3 py-4 pr-4">
-            <FilterGroup label="Search Query">
+            <FilterGroup label={m.search_query_label()}>
               <label className="relative block">
-                <span className="sr-only">Search NASA imagery</span>
+                <span className="sr-only">{m.search_aria()}</span>
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   type="search"
                   value={draft.query}
                   onChange={updateDraftField("query")}
                   className="cosmara-control pl-9"
-                  placeholder="Search NASA imagery..."
+                  placeholder={m.search_placeholder()}
                   data-cy="search-input"
                 />
               </label>
             </FilterGroup>
-            <FilterGroup label="Date Range" hasInfo>
+            <FilterGroup label={m.search_date_range_label()} hasInfo>
               <DateRangeFilter
                 preset={draft.datePreset}
                 dateFrom={draft.dateFrom}
@@ -352,21 +376,21 @@ export function SearchFiltersPanel({ filters, isFetching, onApplyFilters }: Sear
                 onDateChange={updateDateDraftField}
               />
             </FilterGroup>
-            <FilterGroup label="Mission" hasInfo>
-              <FilterSelect value={draft.mission} options={missionOptions} onValueChange={updateSelectDraftField("mission")} />
+            <FilterGroup label={m.search_mission_label()} hasInfo>
+              <FilterSelect value={draft.mission} options={getMissionOptions()} onValueChange={updateSelectDraftField("mission")} />
             </FilterGroup>
-            <FilterGroup label="Rover / Spacecraft" hasInfo>
-              <FilterSelect value={draft.rover} options={roverOptions} onValueChange={updateSelectDraftField("rover")} />
+            <FilterGroup label={m.search_rover_label()} hasInfo>
+              <FilterSelect value={draft.rover} options={getRoverOptions()} onValueChange={updateSelectDraftField("rover")} />
             </FilterGroup>
-            <FilterGroup label="Camera" hasInfo>
-              <FilterSelect value={draft.camera} options={cameraOptions} onValueChange={updateSelectDraftField("camera")} />
+            <FilterGroup label={m.search_camera_label()} hasInfo>
+              <FilterSelect value={draft.camera} options={getCameraOptions()} onValueChange={updateSelectDraftField("camera")} />
             </FilterGroup>
-            <FilterGroup label="Media Type" hasInfo>
-              <FilterSelect value={draft.mediaType} options={mediaTypeOptions} onValueChange={updateSelectDraftField("mediaType")} />
+            <FilterGroup label={m.search_media_type_label()} hasInfo>
+              <FilterSelect value={draft.mediaType} options={getMediaTypeOptions()} onValueChange={updateSelectDraftField("mediaType")} />
             </FilterGroup>
             <div className="border-t border-white/10 pt-4">
               <div className="mb-2 flex items-center justify-between">
-                <p className="text-xs font-semibold uppercase text-white">Suggested Searches</p>
+                <p className="text-xs font-semibold uppercase text-white">{m.search_suggested_label()}</p>
               </div>
               <ul className="space-y-1">{suggestedSearches.map(renderSuggestedSearch)}</ul>
             </div>
@@ -381,7 +405,7 @@ export function SearchFiltersPanel({ filters, isFetching, onApplyFilters }: Sear
               onClick={closeMobileFilters}
             >
               <SlidersHorizontal className="h-4 w-4" />
-              {isFetching ? "Applying..." : "Apply Filters"}
+              {isFetching ? m.search_applying() : m.search_apply_filters()}
             </Button>
           </div>
         </form>

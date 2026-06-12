@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { LogIn, Orbit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { m } from "@/paraglide/messages";
 
 export function CollectionsAuthPrompt() {
   return (
@@ -9,14 +10,14 @@ export function CollectionsAuthPrompt() {
       <span className="flex h-12 w-12 items-center justify-center rounded-full bg-space-orange/10 text-space-orange">
         <Orbit className="h-6 w-6" />
       </span>
-      <h2 className="mt-5 text-xl font-semibold text-white">Sign in to view your collections</h2>
+      <h2 className="mt-5 text-xl font-semibold text-white">{m.collections_auth_title()}</h2>
       <p className="mt-2 text-sm leading-6 text-muted-foreground">
-        Personal archives are scoped to your account so saved NASA imagery stays organized and private.
+        {m.collections_auth_description()}
       </p>
       <Button asChild className="mt-6 h-10 rounded-full bg-space-orange px-5 text-space-void hover:bg-space-orange/90">
         <Link to="/auth">
           <LogIn className="h-4 w-4" />
-          Sign In
+          {m.auth_sign_in()}
         </Link>
       </Button>
     </Card>

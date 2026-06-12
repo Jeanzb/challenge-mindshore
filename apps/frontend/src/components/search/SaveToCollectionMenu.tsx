@@ -20,6 +20,7 @@ import {
   isDuplicateCollectionImageError
 } from "@/lib/collectionSaveFeedback";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 import type { CollectionSummary } from "@/types/collections";
 import type { NasaImage } from "@/types/search";
 
@@ -80,7 +81,7 @@ export function SaveToCollectionMenu({ image }: SaveToCollectionMenuProps) {
             "h-8 w-8 shrink-0 rounded-md text-muted-foreground hover:bg-white/5 hover:text-space-orange",
             isSaved && "text-space-orange"
           )}
-          aria-label={`Save ${image.title} to a collection`}
+          aria-label={m.search_save_image_to_collection({ title: image.title })}
           data-cy="bookmark-btn"
         >
           {isAddingImageToCollection ? (
@@ -96,16 +97,16 @@ export function SaveToCollectionMenu({ image }: SaveToCollectionMenuProps) {
         className="w-56 rounded-md border-white/10 bg-space-panel text-white shadow-2xl shadow-black/50"
       >
         <DropdownMenuLabel className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          Save to collection
+          {m.search_save_to_collection()}
         </DropdownMenuLabel>
         <DropdownMenuSeparator className="bg-white/10" />
         {!isAuthenticated ? (
           <DropdownMenuItem asChild className="cursor-pointer text-xs text-space-cyan focus:bg-space-cyan/15 focus:text-white">
-            <Link to="/auth">Sign in to save images</Link>
+            <Link to="/auth">{m.search_sign_in_to_save_images()}</Link>
           </DropdownMenuItem>
         ) : collections.length === 0 ? (
           <DropdownMenuItem asChild className="cursor-pointer text-xs text-space-cyan focus:bg-space-cyan/15 focus:text-white">
-            <Link to="/collections">Create a collection first</Link>
+            <Link to="/collections">{m.search_create_collection_first()}</Link>
           </DropdownMenuItem>
         ) : (
           collections.map(renderCollectionItem)

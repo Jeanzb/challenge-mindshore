@@ -3,6 +3,8 @@ import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useUiStore, uiSelectors } from "@/store";
+import { getCurrentAppLanguage } from "@/lib/i18n";
+import { m } from "@/paraglide/messages";
 import type { NasaImage } from "@/types/search";
 import { SearchBatchBar } from "@/components/search/SearchBatchBar";
 import { SearchImageCard } from "@/components/search/SearchImageCard";
@@ -20,8 +22,6 @@ type SearchResultsGridProps = {
   onLoadMore: () => void;
   onResetSearch: () => void;
 };
-
-const formatResultsCount = new Intl.NumberFormat("en-US");
 
 const skeletonKeys = ["sk-1", "sk-2", "sk-3", "sk-4", "sk-5", "sk-6", "sk-7", "sk-8"];
 
@@ -47,6 +47,7 @@ export function SearchResultsGrid({
   const openMobileFilters = useUiStore(uiSelectors.openMobileFiltersAction);
   const showSkeletons = isLoading || (isFetching && images.length === 0);
   const hasNoResults = !showSkeletons && images.length === 0 && !isUsingFallback;
+  const formatResultsCount = new Intl.NumberFormat(getCurrentAppLanguage() === "es" ? "es-CO" : "en-US");
 
   const toggleSemanticSearch = () => {
     setSemanticSearchEnabled(!semanticSearchEnabled);
@@ -84,23 +85,25 @@ export function SearchResultsGrid({
   }, [hasNextPage, isFetchingNextPage, isLoading, onLoadMore]);
 
   return (
-    <section className="relative min-h-0 overflow-hidden border-white/10 lg:border-r" aria-label="NASA search results">
+    <section className="relative min-h-0 overflow-hidden border-white/10 lg:border-r" aria-label={m.search_results_aria()}>
       <div className="flex h-full min-h-0 flex-col">
         <div className="flex min-h-16 shrink-0 flex-wrap items-center justify-between gap-3 border-b border-white/10 px-4 py-3">
           <div>
             <p className="text-sm font-semibold text-space-cyan">
-              {isLoading ? "Searching NASA..." : `${formatResultsCount.format(totalHits)} results`}
+              {isLoading
+                ? m.search_searching()
+                : m.search_results_count({ count: formatResultsCount.format(totalHits) })}
             </p>
             <p className="text-xs text-muted-foreground">
               {isUsingFallback
-                ? "Showing a saved preview while NASA is unavailable"
+                ? m.search_fallback_notice()
                 : isFetching
-                  ? "Refreshing NASA imagery"
-                  : "NASA imagery ready to explore"}
+                  ? m.search_refreshing()
+                  : m.search_ready()}
             </p>
             {error !== null && (
               <p className="mt-1 max-w-xl text-xs text-space-orange">
-                NASA imagery is temporarily unavailable. A saved preview is shown instead.
+                {m.search_unavailable()}
               </p>
             )}
           </div>
@@ -117,14 +120,14 @@ export function SearchResultsGrid({
               onClick={toggleSemanticSearch}
             >
               <SlidersHorizontal className="h-4 w-4" />
-              Semantic Search
+              {m.search_semantic()}
             </Button>
             <Button
               type="button"
               variant="ghost"
               size="icon"
               className="h-9 w-9 rounded-full border border-white/10 bg-space-panel text-muted-foreground hover:bg-white/5 hover:text-white lg:hidden"
-              aria-label="Open filters"
+              aria-label={m.search_open_filters()}
               onClick={openMobileFilters}
             >
               <SlidersHorizontal className="h-4 w-4" />
@@ -147,7 +150,7 @@ export function SearchResultsGrid({
           </div>
           {!hasNoResults && !isLoading && !isUsingFallback && (
             <div ref={loadMoreRef} className="flex h-16 items-center justify-center text-xs text-muted-foreground">
-              {isFetchingNextPage ? "Loading more NASA imagery..." : hasNextPage ? "Scroll for more imagery" : "End of results"}
+              {isFetchingNextPage ? m.search_loading_more() : hasNextPage ? m.search_scroll_more() : m.search_end_results()}
             </div>
           )}
         </div>
@@ -164,9 +167,9 @@ type SearchEmptyStateProps = {
 function SearchEmptyState({ onReset }: SearchEmptyStateProps) {
   return (
     <div className="max-w-sm rounded-lg border border-white/10 bg-space-panel px-6 py-8 text-center shadow-sm shadow-black/20">
-      <p className="text-sm font-semibold text-white">No NASA images found</p>
+      <p className="text-sm font-semibold text-white">{m.search_empty_title()}</p>
       <p className="mt-2 text-sm leading-6 text-muted-foreground">
-        Try a broader mission, camera, date range, or search query.
+        {m.search_empty_description()}
       </p>
       <Button
         type="button"
@@ -174,7 +177,7 @@ function SearchEmptyState({ onReset }: SearchEmptyStateProps) {
         className="mt-5 h-9 rounded-full bg-space-orange px-5 text-space-void hover:bg-space-orange/90"
         onClick={onReset}
       >
-        Reset search
+        {m.search_reset()}
       </Button>
     </div>
   );

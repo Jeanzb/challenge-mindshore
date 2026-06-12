@@ -2,6 +2,8 @@ import type { UiStore } from "@/store/ui/useUiStore";
 
 const currentLanguage = (state: UiStore) => state.currentLanguage;
 
+const setLanguageAction = (state: UiStore) => state.setLanguage;
+
 const selectedImage = (state: UiStore) => state.selectedImage;
 
 const selectedImageId = (state: UiStore) => state.selectedImage?.nasaImageId ?? null;
@@ -67,6 +69,7 @@ const removeCompareImageAction = (state: UiStore) => state.removeCompareImage;
 
 export const uiSelectors = {
   currentLanguage,
+  setLanguageAction,
   selectedImage,
   selectedImageId,
   inspectorOpen,

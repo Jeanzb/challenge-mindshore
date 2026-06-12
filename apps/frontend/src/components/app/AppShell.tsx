@@ -21,12 +21,14 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { AppToaster } from "@/components/app/AppToaster";
 import { defaultNasaSearchQuery } from "@/constants";
 import { useAuthSession } from "@/hooks/auth";
 import { useUiStore, uiSelectors } from "@/store";
 import { cn } from "@/lib/utils";
 import { fallbackExplorerName, getUserDisplayName, getUserInitials } from "@/lib/userProfile";
+import { m } from "@/paraglide/messages";
+import { setAppLanguage } from "@/lib/i18n";
+import type { AppLanguage } from "@/types/ui";
 
 type AppShellProps = {
   children: ReactNode;
@@ -60,28 +62,28 @@ export function AppShell({ children, contentClassName }: AppShellProps) {
                 <Orbit className="h-5 w-5" />
               </span>
               <span className="hidden min-w-0 sm:block">
-                <span className="block text-base font-semibold leading-4 tracking-normal text-white">Cosmara</span>
+                <span className="block text-base font-semibold leading-4 tracking-normal text-white">{m.app_brand()}</span>
                 <span className="block text-[10px] font-medium uppercase tracking-normal text-muted-foreground">
-                  AI Space Archive
+                  {m.app_tagline()}
                 </span>
               </span>
             </Link>
-            <nav className="hidden items-center gap-1 md:flex" aria-label="Primary navigation">
+            <nav className="hidden items-center gap-1 md:flex" aria-label={m.nav_primary()}>
               <AppNavLink
                 to="/search"
-                label="Explore"
+                label={m.nav_explore()}
                 icon={Grid2X2}
                 isActive={isRouteActive(pathname, "/search")}
               />
               <AppNavLink
                 to="/collections"
-                label="Collections"
+                label={m.nav_collections()}
                 icon={Library}
                 isActive={isRouteActive(pathname, "/collections")}
               />
               <AppNavLink
                 to="/comparator"
-                label="Compare"
+                label={m.nav_compare()}
                 icon={GitCompareArrows}
                 isActive={isRouteActive(pathname, "/comparator")}
               />
@@ -89,6 +91,7 @@ export function AppShell({ children, contentClassName }: AppShellProps) {
           </div>
           <ShellSearchField />
           <div className="flex items-center gap-2 justify-end">
+            <LanguageMenu />
             <MobileSearchLink />
             <UserMenu />
           </div>
@@ -96,7 +99,6 @@ export function AppShell({ children, contentClassName }: AppShellProps) {
       </header>
       <main className={cn("min-h-[calc(100vh-3.5rem)] pb-14 md:pb-0", contentClassName)}>{children}</main>
       <MobileBottomNav pathname={pathname} />
-      <AppToaster />
     </div>
   );
 }
@@ -123,7 +125,7 @@ function UserMenu() {
           <Avatar className="h-7 w-7 border border-space-orange/30">
             <AvatarFallback className="bg-space-orange text-xs font-semibold text-space-void">KJ</AvatarFallback>
           </Avatar>
-          <span className="hidden font-medium sm:inline">Sign In</span>
+          <span className="hidden font-medium sm:inline">{m.auth_sign_in()}</span>
         </Link>
       </Button>
     );
@@ -159,7 +161,54 @@ function UserMenu() {
           className="cursor-pointer rounded-md text-muted-foreground focus:bg-white/10 focus:text-white"
         >
           <LogOut className="h-4 w-4" />
-          Sign out
+          {m.auth_sign_out()}
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+function LanguageMenu() {
+  const currentLanguage = useUiStore(uiSelectors.currentLanguage);
+  const setLanguage = useUiStore(uiSelectors.setLanguageAction);
+
+  const handleLanguageSelect = (language: AppLanguage) => () => {
+    setLanguage(language);
+    setAppLanguage(language);
+  };
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="h-9 rounded-full border border-white/10 bg-space-panel px-3 text-xs uppercase tracking-wide text-muted-foreground hover:bg-space-panelStrong hover:text-white"
+          aria-label={m.language_label()}
+        >
+          {currentLanguage}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        align="end"
+        className="w-40 border-white/10 bg-space-panel p-1 text-foreground shadow-2xl shadow-black/35"
+      >
+        <DropdownMenuLabel className="px-2 py-1.5 text-xs text-muted-foreground">
+          {m.language_label()}
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator className="bg-white/10" />
+        <DropdownMenuItem
+          onSelect={handleLanguageSelect("en")}
+          className="cursor-pointer rounded-md text-muted-foreground focus:bg-white/10 focus:text-white"
+        >
+          {m.language_english()}
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onSelect={handleLanguageSelect("es")}
+          className="cursor-pointer rounded-md text-muted-foreground focus:bg-white/10 focus:text-white"
+        >
+          {m.language_spanish()}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -225,9 +274,9 @@ function ShellSearchField() {
           type="search"
           value={query}
           onChange={handleChange}
-          placeholder="Search NASA imagery..."
+          placeholder={m.search_placeholder()}
           className="h-9 rounded-full border-white/10 bg-space-void/60 pl-10 pr-4 text-sm text-foreground shadow-inner shadow-black/20 placeholder:text-muted-foreground focus-visible:ring-space-cyan/70"
-          aria-label="Search NASA imagery"
+          aria-label={m.search_aria()}
         />
       </div>
     </form>
@@ -267,15 +316,15 @@ type MobileNavItem = {
   icon: LucideIcon;
 };
 
-const mobileNavItems: readonly MobileNavItem[] = [
-  { to: "/search", label: "Explore", icon: Grid2X2 },
-  { to: "/collections", label: "Collections", icon: Library },
-  { to: "/comparator", label: "Compare", icon: GitCompareArrows }
-];
-
 function MobileBottomNav({ pathname }: MobileBottomNavProps) {
+  const mobileNavItems: readonly MobileNavItem[] = [
+    { to: "/search", label: m.nav_explore(), icon: Grid2X2 },
+    { to: "/collections", label: m.nav_collections(), icon: Library },
+    { to: "/comparator", label: m.nav_compare(), icon: GitCompareArrows }
+  ];
+
   return (
-    <nav className="cosmara-mobile-nav" aria-label="Mobile navigation">
+    <nav className="cosmara-mobile-nav" aria-label={m.nav_mobile()}>
       {mobileNavItems.map((item) => {
         const active = isRouteActive(pathname, item.to);
         return (

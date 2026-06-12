@@ -11,7 +11,7 @@ describe("Search dashboard", () => {
   it("selects a card and shows it in the inspector", () => {
     cy.get('[data-cy="image-card"]', { timeout: 30000 }).should("have.length.greaterThan", 0);
     cy.get('[data-cy="image-card"]').first().click();
-    cy.get('aside[aria-label="Selected image"]').should("be.visible").find("h2").should("not.be.empty");
+    cy.get('[data-cy="search-inspector"]').should("be.visible").find("h2").should("not.be.empty");
   });
 
   it("activates a date-range preset", () => {

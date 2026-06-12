@@ -35,6 +35,7 @@ export type NasaImage = {
 
 export type NasaSearchFilters = {
   query: string;
+  datePreset?: "any" | "custom" | "last-30" | "last-year";
   dateFrom?: string | null;
   dateTo?: string | null;
   rover?: string | null;

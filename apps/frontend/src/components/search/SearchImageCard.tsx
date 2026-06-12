@@ -4,6 +4,7 @@ import { SaveToCollectionMenu } from "@/components/search/SaveToCollectionMenu";
 import { useUiStore, uiSelectors } from "@/store";
 import type { NasaImage } from "@/types/search";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 
 type SearchImageCardProps = {
   image: NasaImage;
@@ -69,7 +70,11 @@ export function SearchImageCard({ image, onPreviewIntent }: SearchImageCardProps
               ? "border-white/40 bg-space-void/60 text-white/80 opacity-100 backdrop-blur hover:border-space-orange hover:text-space-orange"
               : "border-white/40 bg-space-void/60 text-white/80 opacity-0 backdrop-blur hover:border-space-orange hover:text-space-orange group-hover:opacity-100"
         )}
-        aria-label={isMultiSelected ? `Deselect ${image.title}` : `Select ${image.title} for batch actions`}
+        aria-label={
+          isMultiSelected
+            ? m.search_deselect_image({ title: image.title })
+            : m.search_select_batch_image({ title: image.title })
+        }
         aria-pressed={isMultiSelected}
         data-cy="multi-select-toggle"
         onClick={handleToggleMultiSelect}
@@ -80,7 +85,9 @@ export function SearchImageCard({ image, onPreviewIntent }: SearchImageCardProps
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <h3 className="line-clamp-1 text-sm font-semibold text-white">{image.title}</h3>
-            <p className="mt-1 font-mono text-[11px] tracking-wide text-muted-foreground">{image.displayDate ?? "Unknown date"}</p>
+            <p className="mt-1 font-mono text-[11px] tracking-wide text-muted-foreground">
+              {image.displayDate ?? m.search_unknown_date()}
+            </p>
           </div>
           <SaveToCollectionMenu image={image} />
         </div>

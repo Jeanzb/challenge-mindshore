@@ -1,3 +1,6 @@
+import { getCurrentAppLanguage } from "@/lib/i18n";
+import { m } from "@/paraglide/messages";
+
 const monthYearFormatter = new Intl.DateTimeFormat("en-US", {
   month: "short",
   year: "numeric",
@@ -13,7 +16,19 @@ const parseIsoDate = (value: string): Date | null => {
 export const formatFriendlyDateLabel = (value: string): string => {
   const parsed = parseIsoDate(value);
 
-  return parsed === null ? value : monthYearFormatter.format(parsed);
+  if (parsed === null) {
+    return value;
+  }
+
+  if (getCurrentAppLanguage() === "en") {
+    return monthYearFormatter.format(parsed);
+  }
+
+  return new Intl.DateTimeFormat("es", {
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC"
+  }).format(parsed);
 };
 
 export const formatFriendlyDateRange = (dateFrom: string, dateTo: string): string => {
@@ -21,11 +36,11 @@ export const formatFriendlyDateRange = (dateFrom: string, dateTo: string): strin
   const hasTo = dateTo.trim().length > 0;
 
   if (!hasFrom && !hasTo) {
-    return "Spanning the entire NASA archive";
+    return m.search_date_range_full();
   }
 
-  const fromLabel = hasFrom ? formatFriendlyDateLabel(dateFrom) : "the earliest archives";
-  const toLabel = hasTo ? formatFriendlyDateLabel(dateTo) : "today";
+  const fromLabel = hasFrom ? formatFriendlyDateLabel(dateFrom) : m.timeline_range_earliest();
+  const toLabel = hasTo ? formatFriendlyDateLabel(dateTo) : m.timeline_range_present();
 
   return `${fromLabel} → ${toLabel}`;
 };

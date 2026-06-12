@@ -1,5 +1,5 @@
 import { useNavigate } from "@tanstack/react-router";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useNasaSearch } from "@/hooks";
 import { defaultNasaSearchPageSize, defaultNasaSearchQuery, sampleSearchImages, sampleSearchTotalHits } from "@/constants";
 import { useUiStore, uiSelectors } from "@/store";
@@ -17,6 +17,8 @@ type SearchDashboardProps = {
 
 export function SearchDashboard({ initialQuery }: SearchDashboardProps) {
   const navigate = useNavigate();
+  const initialRouteQuery = initialQuery?.trim() ?? defaultNasaSearchQuery;
+  const lastAppliedRouteQueryRef = useRef(initialRouteQuery);
   const selectedImage = useUiStore(uiSelectors.selectedImage);
   const inspectorOpen = useUiStore(uiSelectors.inspectorOpen);
   const selectImage = useUiStore(uiSelectors.selectImageAction);
@@ -59,10 +61,21 @@ export function SearchDashboard({ initialQuery }: SearchDashboardProps) {
   useEffect(() => {
     const nextQuery = initialQuery?.trim() ?? defaultNasaSearchQuery;
 
-    if (filters.query !== nextQuery) {
-      updateFilters({ query: nextQuery });
+    if (lastAppliedRouteQueryRef.current === nextQuery) {
+      return;
     }
-  }, [filters.query, initialQuery, updateFilters]);
+
+    lastAppliedRouteQueryRef.current = nextQuery;
+    updateFilters({
+      query: nextQuery,
+      datePreset: "any",
+      dateFrom: null,
+      dateTo: null,
+      rover: null,
+      camera: null,
+      mission: null
+    });
+  }, [initialQuery, updateFilters]);
 
   useEffect(() => {
     if (displayImages.length === 0) {
@@ -97,6 +110,7 @@ export function SearchDashboard({ initialQuery }: SearchDashboardProps) {
   const handleResetSearch = useCallback(() => {
     updateFilters({
       query: defaultNasaSearchQuery,
+      datePreset: "any",
       dateFrom: null,
       dateTo: null,
       rover: null,

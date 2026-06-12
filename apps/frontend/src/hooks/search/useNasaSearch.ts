@@ -14,6 +14,7 @@ type UseNasaSearchOptions = {
 
 const defaultSearchFilters: NasaSearchFilters = {
   query: defaultNasaSearchQuery,
+  datePreset: "any",
   pageSize: defaultNasaSearchPageSize
 };
 

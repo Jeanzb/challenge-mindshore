@@ -10,6 +10,7 @@ import { useAuthSession } from "@/hooks/auth";
 import { useCollectionDetail, useCollectionsList } from "@/hooks/collections";
 import { toast } from "sonner";
 import { useUiStore, uiSelectors } from "@/store";
+import { m } from "@/paraglide/messages";
 import { ComparatorAnalysis } from "@/components/comparator/ComparatorAnalysis";
 import { ComparatorAuthPrompt } from "@/components/comparator/ComparatorAuthPrompt";
 import { ComparatorImageCard } from "@/components/comparator/ComparatorImageCard";
@@ -121,7 +122,7 @@ export function ImageComparator() {
 
   const handleCompare = async () => {
     if (selectedImages.length < 2) {
-      setStatusMessage("Select at least two saved images.");
+      setStatusMessage(m.compare_select_two());
       return;
     }
 
@@ -132,9 +133,9 @@ export function ImageComparator() {
         imageIds: selectedImageIds,
         title: comparisonTitle
       });
-      toast.success("Comparative analysis ready");
+      toast.success(m.compare_ready());
     } catch {
-      toast.error("Comparison could not be generated");
+      toast.error(m.compare_error());
     }
   };
 
@@ -150,15 +151,15 @@ export function ImageComparator() {
     <section className="mx-auto w-full max-w-6xl px-5 py-8 sm:px-8 lg:py-10">
       <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-normal text-white sm:text-3xl">Compare Images</h1>
+          <h1 className="text-2xl font-semibold tracking-normal text-white sm:text-3xl">{m.compare_title()}</h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-            Select two or more saved images and generate an AI comparative analysis across missions, visual details, and context.
+            {m.compare_description()}
           </p>
         </div>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <Select value={activeCollectionId} onValueChange={handleCollectionChange} disabled={collections.length === 0}>
             <SelectTrigger className="cosmara-control h-10 min-w-64 px-3 text-left text-white shadow-inner shadow-black/20 [&>svg]:text-muted-foreground [&>svg]:opacity-100">
-              <SelectValue placeholder="Select collection" />
+              <SelectValue placeholder={m.compare_select_collection()} />
             </SelectTrigger>
             <SelectContent
               position="popper"
@@ -166,7 +167,7 @@ export function ImageComparator() {
             >
               {collections.map((item) => (
                 <SelectItem key={item.id} value={item.id} className="cursor-pointer text-xs focus:bg-space-cyan/15">
-                  {item.name} - {item.imageCount} images
+                  {item.name} - {m.compare_images_count({ count: item.imageCount })}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -178,7 +179,7 @@ export function ImageComparator() {
             className="h-10 rounded-full bg-space-orange px-5 text-space-void hover:bg-space-orange/90 disabled:opacity-50"
           >
             {isComparing ? <Loader2 className="h-4 w-4 animate-spin" /> : <WandSparkles className="h-4 w-4" />}
-            {isComparing ? "Analyzing" : "Run comparison"}
+            {isComparing ? m.compare_analyzing() : m.compare_run()}
           </Button>
         </div>
       </div>
@@ -199,19 +200,19 @@ export function ImageComparator() {
             <Card className="rounded-lg border-white/10 bg-space-panel p-4 shadow-xl shadow-black/25">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <p className="text-xs font-semibold uppercase text-space-cyan">Saved Image Pool</p>
+                  <p className="text-xs font-semibold uppercase text-space-cyan">{m.compare_saved_pool()}</p>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    {collection?.name ?? "Collection"} - {selectedImages.length} selected
+                    {collection?.name ?? m.common_collection()} - {m.compare_selected_count({ count: selectedImages.length })}
                   </p>
                 </div>
-                <p className="text-xs text-muted-foreground">Up to {maximumComparedImages} images</p>
+                <p className="text-xs text-muted-foreground">{m.compare_up_to({ count: maximumComparedImages })}</p>
               </div>
               <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                 {images.map((image) => (
                   <ComparatorImageCard
                     key={image.id}
                     image={image}
-                    label={selectedImageIds.includes(image.id) ? "Selected" : "Available"}
+                    label={selectedImageIds.includes(image.id) ? m.compare_selected() : m.compare_available()}
                     isSelected={selectedImageIds.includes(image.id)}
                     onToggle={toggleImageSelection}
                   />
@@ -236,12 +237,12 @@ function EmptyCollectionsState() {
   return (
     <Card className="flex min-h-72 flex-col items-center justify-center rounded-lg border border-dashed border-white/15 bg-space-void/25 p-8 text-center shadow-none">
       <Images className="h-10 w-10 text-space-cyan" />
-      <h2 className="mt-5 text-lg font-semibold text-white">No saved collections yet</h2>
+      <h2 className="mt-5 text-lg font-semibold text-white">{m.compare_empty_collections_title()}</h2>
       <p className="mt-2 max-w-sm text-sm leading-6 text-muted-foreground">
-        Save NASA imagery into a collection before asking AI to compare it.
+        {m.compare_empty_collections_description()}
       </p>
       <Button asChild className="mt-6 h-10 rounded-full bg-space-orange px-5 text-space-void hover:bg-space-orange/90">
-        <Link to="/search">Explore NASA imagery</Link>
+        <Link to="/search">{m.compare_empty_collections_cta()}</Link>
       </Button>
     </Card>
   );
@@ -251,12 +252,12 @@ function NotEnoughImagesState() {
   return (
     <Card className="flex min-h-72 flex-col items-center justify-center rounded-lg border border-dashed border-white/15 bg-space-void/25 p-8 text-center shadow-none">
       <GitCompareArrows className="h-10 w-10 text-space-cyan" />
-      <h2 className="mt-5 text-lg font-semibold text-white">Add at least two images</h2>
+      <h2 className="mt-5 text-lg font-semibold text-white">{m.compare_not_enough_title()}</h2>
       <p className="mt-2 max-w-sm text-sm leading-6 text-muted-foreground">
-        This collection needs two saved images before a comparative analysis can run.
+        {m.compare_not_enough_description()}
       </p>
       <Button asChild variant="secondary" className="mt-6 h-10 rounded-full bg-white/10 px-5 hover:bg-white/15">
-        <Link to="/search">Find more images</Link>
+        <Link to="/search">{m.compare_not_enough_cta()}</Link>
       </Button>
     </Card>
   );
@@ -266,7 +267,7 @@ function AddImageSlot() {
   return (
     <Card className="flex min-h-80 flex-col items-center justify-center rounded-lg border border-dashed border-white/15 bg-space-void/25 p-8 text-center shadow-none">
       <Sparkles className="h-8 w-8 text-space-cyan" />
-      <p className="mt-4 text-sm font-medium text-white">Select another saved image</p>
+      <p className="mt-4 text-sm font-medium text-white">{m.compare_add_slot()}</p>
     </Card>
   );
 }
@@ -286,15 +287,15 @@ function ComparisonPanel({ analysis, errorMessage, isComparing, title }: Compari
           <Sparkles className="h-5 w-5" />
         </span>
         <div>
-          <h2 className="text-lg font-semibold text-white">AI Comparative Analysis</h2>
-          <p className="mt-1 text-sm text-muted-foreground">{title.length > 0 ? title : "Selected NASA images"}</p>
+          <h2 className="text-lg font-semibold text-white">{m.compare_analysis_title()}</h2>
+          <p className="mt-1 text-sm text-muted-foreground">{title.length > 0 ? title : m.compare_selected_nasa_images()}</p>
         </div>
       </div>
       <Separator className="my-5 bg-white/10" />
       {isComparing ? (
         <div className="flex items-center gap-3 rounded-lg border border-space-cyan/20 bg-space-cyan/10 px-4 py-3 text-sm text-space-cyan">
           <Loader2 className="h-4 w-4 animate-spin" />
-          Generating comparative context...
+          {m.compare_generating()}
         </div>
       ) : null}
       {!isComparing && errorMessage !== null && errorMessage !== undefined ? (
@@ -306,7 +307,7 @@ function ComparisonPanel({ analysis, errorMessage, isComparing, title }: Compari
       {!isComparing && analysis !== undefined ? <ComparatorAnalysis analysis={analysis} /> : null}
       {!isComparing && analysis === undefined && (errorMessage === null || errorMessage === undefined) ? (
         <p className="text-sm leading-7 text-muted-foreground">
-          The generated analysis will appear here after comparing two or more saved images.
+          {m.compare_analysis_empty()}
         </p>
       ) : null}
     </Card>

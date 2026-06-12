@@ -49,6 +49,28 @@ public sealed class SemanticSearchNasaImagesQueryHandlerTests
         Assert.Equal(1, result.TotalHits);
         Assert.Equal("mars-1", Assert.Single(result.Images).NasaImageId);
     }
+
+    [Fact]
+    public async Task Handle_translates_spanish_space_terms_before_searching_nasa()
+    {
+        StubAiEnrichmentService aiService = new(semanticSearchResult: "telescopio espacial");
+        StubNasaApiService nasaApiService = new(new NasaSearchResult([], 0, 1, 24));
+        SemanticSearchNasaImagesQueryHandler handler = new(nasaApiService, aiService);
+
+        await handler.Handle(
+            new SemanticSearchNasaImagesQuery(
+                "telescopio espacial",
+                null,
+                null,
+                null,
+                null,
+                null,
+                1,
+                24),
+            CancellationToken.None);
+
+        Assert.Equal("telescope space", nasaApiService.LastCriteria?.Query);
+    }
 }
 
 internal sealed class StubNasaApiService : INasaApiService

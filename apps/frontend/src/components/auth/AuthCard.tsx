@@ -19,28 +19,39 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuthSession } from "@/hooks/auth";
 import { extractApiErrorMessages } from "@/lib/apiErrorMessages";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import { m } from "@/paraglide/messages";
 
-const loginSchema = z.object({
-  email: z.string().email("Enter a valid email."),
-  password: z.string().min(8, "Password must be at least 8 characters.")
-});
+const createLoginSchema = () =>
+  z.object({
+    email: z.string().email(m.auth_validation_email()),
+    password: z.string().min(8, m.auth_validation_password_min())
+  });
 
-const registerSchema = z.object({
-  displayName: z.string().min(2, "Display name is required."),
-  email: z.string().email("Enter a valid email."),
-  password: z
-    .string()
-    .min(8, "Password must be at least 8 characters.")
-    .regex(/[A-Z]/, "Include at least one uppercase letter.")
-    .regex(/[a-z]/, "Include at least one lowercase letter.")
-    .regex(/[0-9]/, "Include at least one number.")
-});
+const createRegisterSchema = () =>
+  z.object({
+    displayName: z.string().min(2, m.auth_validation_display_name()),
+    email: z.string().email(m.auth_validation_email()),
+    password: z
+      .string()
+      .min(8, m.auth_validation_password_min())
+      .regex(/[A-Z]/, m.auth_validation_password_uppercase())
+      .regex(/[a-z]/, m.auth_validation_password_lowercase())
+      .regex(/[0-9]/, m.auth_validation_password_number())
+  });
 
-type LoginFormValues = z.infer<typeof loginSchema>;
-type RegisterFormValues = z.infer<typeof registerSchema>;
-type AuthMode = "signin" | "register";
+const createRecoverPasswordSchema = () =>
+  z.object({
+    email: z.string().email(m.auth_validation_email())
+  });
 
-const renderAuthError = (message: string) => <li key={message}>{message}</li>;
+type LoginFormValues = z.infer<ReturnType<typeof createLoginSchema>>;
+type RegisterFormValues = z.infer<ReturnType<typeof createRegisterSchema>>;
+type RecoverPasswordFormValues = z.infer<ReturnType<typeof createRecoverPasswordSchema>>;
+type AuthMode = "signin" | "register" | "recovery";
+
+const getAuthErrorMessage = (message: string): string =>
+  message === "Email is already registered." ? m.auth_duplicate_email() : message;
 
 export function AuthCard() {
   const navigate = useNavigate();
@@ -50,13 +61,26 @@ export function AuthCard() {
   const [showRegisterPassword, setShowRegisterPassword] = useState(false);
   const signInPanelRef = useRef<HTMLDivElement>(null);
   const registerPanelRef = useRef<HTMLDivElement>(null);
-  const { login, register, isLoggingIn, isRegistering, authError } = useAuthSession();
-  const authErrorMessages = extractApiErrorMessages(authError);
+  const recoveryPanelRef = useRef<HTMLDivElement>(null);
+  const { login, register, isLoggingIn, isRegistering, resetAuthError } = useAuthSession();
+  const loginSchema = createLoginSchema();
+  const registerSchema = createRegisterSchema();
+  const recoverPasswordSchema = createRecoverPasswordSchema();
+
+  const showAuthErrorToast = (error: unknown): void => {
+    const messages = extractApiErrorMessages(error);
+
+    if (messages.length === 0) {
+      return;
+    }
+
+    toast.error(messages.map(getAuthErrorMessage).join(" "));
+  };
 
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: "demo@nasaexplorer.com",
+      email: m.auth_demo_email(),
       password: "Demo1234!"
     }
   });
@@ -70,11 +94,19 @@ export function AuthCard() {
     }
   });
 
+  const recoverPasswordForm = useForm<RecoverPasswordFormValues>({
+    resolver: zodResolver(recoverPasswordSchema),
+    defaultValues: {
+      email: ""
+    }
+  });
+
   const handleLoginSubmit = async (values: LoginFormValues): Promise<void> => {
     try {
       await login(values);
       await navigate({ to: "/search" });
-    } catch {
+    } catch (error) {
+      showAuthErrorToast(error);
       return;
     }
   };
@@ -83,9 +115,16 @@ export function AuthCard() {
     try {
       await register(values);
       await navigate({ to: "/search" });
-    } catch {
+    } catch (error) {
+      showAuthErrorToast(error);
       return;
     }
+  };
+
+  const handleRecoverPasswordSubmit = (values: RecoverPasswordFormValues): void => {
+    toast.success(m.auth_recovery_sent({ email: values.email }));
+    recoverPasswordForm.reset();
+    setAuthMode("signin");
   };
 
   const toggleLoginPassword = (): void => {
@@ -97,19 +136,33 @@ export function AuthCard() {
   };
 
   const handleAuthModeChange = (value: string): void => {
+    resetAuthError();
     setAuthMode(value === "register" ? "register" : "signin");
   };
 
   const showRegisterTab = (): void => {
+    resetAuthError();
     setAuthMode("register");
   };
 
   const showSignInTab = (): void => {
+    resetAuthError();
     setAuthMode("signin");
   };
 
+  const showRecoveryPanel = (): void => {
+    resetAuthError();
+    recoverPasswordForm.setValue("email", loginForm.getValues("email"));
+    setAuthMode("recovery");
+  };
+
   useLayoutEffect(() => {
-    const activePanel = authMode === "signin" ? signInPanelRef.current : registerPanelRef.current;
+    const activePanel =
+      authMode === "signin"
+        ? signInPanelRef.current
+        : authMode === "register"
+          ? registerPanelRef.current
+          : recoveryPanelRef.current;
 
     if (!activePanel) {
       return undefined;
@@ -140,14 +193,14 @@ export function AuthCard() {
           <Orbit className="h-7 w-7" />
         </span>
         <div>
-          <h1 className="text-2xl font-semibold leading-none text-white">Cosmara</h1>
+          <h1 className="text-2xl font-semibold leading-none text-white">{m.app_brand()}</h1>
           <p className="mt-1 text-[10px] font-medium uppercase tracking-normal text-muted-foreground">
-            AI Space Archive
+            {m.app_tagline()}
           </p>
         </div>
       </div>
       <p className="mb-6 text-center text-sm text-muted-foreground">
-        Welcome back, explorer. Sign in to your cosmic archive.
+        {m.auth_welcome()}
       </p>
       <Tabs value={authMode} onValueChange={handleAuthModeChange} className="w-full">
         <TabsList className="relative grid h-11 w-full grid-cols-2 overflow-hidden rounded-full border border-white/10 bg-space-void/35 p-1 shadow-inner shadow-black/35">
@@ -162,18 +215,21 @@ export function AuthCard() {
             value="signin"
             className="relative z-10 h-9 rounded-full bg-transparent text-xs text-muted-foreground shadow-none transition-colors duration-200 hover:text-white data-[state=active]:bg-transparent data-[state=active]:text-space-void data-[state=active]:shadow-none"
           >
-            Sign In
+            {m.auth_sign_in()}
           </TabsTrigger>
           <TabsTrigger
             value="register"
             className="relative z-10 h-9 rounded-full bg-transparent text-xs text-muted-foreground shadow-none transition-colors duration-200 hover:text-white data-[state=active]:bg-transparent data-[state=active]:text-space-void data-[state=active]:shadow-none"
           >
-            Create Account
+            {m.auth_create_account()}
           </TabsTrigger>
         </TabsList>
         <div
-          className="relative overflow-hidden transition-[height] duration-500 ease-out will-change-[height]"
-          style={{ height: panelHeight === null ? undefined : `${panelHeight}px` }}
+          className={cn(
+            "relative transition-[height] duration-500 ease-out will-change-[height]",
+            authMode === "recovery" ? "overflow-visible" : "overflow-hidden"
+          )}
+          style={{ height: panelHeight === null || authMode === "recovery" ? undefined : `${panelHeight}px` }}
         >
           <TabsContent
             ref={signInPanelRef}
@@ -193,7 +249,7 @@ export function AuthCard() {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs text-white">Email</FormLabel>
+                      <FormLabel className="text-xs text-white">{m.auth_email()}</FormLabel>
                       <div className="relative">
                         <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                         <FormControl>
@@ -214,7 +270,7 @@ export function AuthCard() {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs text-white">Password</FormLabel>
+                      <FormLabel className="text-xs text-white">{m.auth_password()}</FormLabel>
                       <div className="relative">
                         <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                         <FormControl>
@@ -229,7 +285,7 @@ export function AuthCard() {
                           type="button"
                           onClick={toggleLoginPassword}
                           className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-white"
-                          aria-label={showLoginPassword ? "Hide password" : "Show password"}
+                          aria-label={showLoginPassword ? m.auth_hide_password() : m.auth_show_password()}
                         >
                           {showLoginPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </button>
@@ -238,6 +294,15 @@ export function AuthCard() {
                     </FormItem>
                   )}
                 />
+                <div className="-mt-2 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={showRecoveryPanel}
+                    className="text-xs font-semibold text-space-cyan transition-colors hover:text-white"
+                  >
+                    {m.auth_forgot_password()}
+                  </button>
+                </div>
                 <Button
                   type="submit"
                   data-cy="save-btn"
@@ -245,11 +310,64 @@ export function AuthCard() {
                   className="h-11 w-full rounded-xl bg-space-orange text-sm font-semibold text-space-void transition-[background-color,transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:bg-space-orange/90 hover:shadow-lg hover:shadow-space-orange/15"
                 >
                   <ArrowRight className="h-4 w-4" />
-                  Sign In
+                  {m.auth_sign_in()}
                 </Button>
               </form>
             </Form>
           </TabsContent>
+          <div
+            ref={recoveryPanelRef}
+            className={cn(
+              "pt-6 transition-[opacity,transform] duration-300 ease-out",
+              authMode === "recovery"
+                ? "relative opacity-100 translate-y-0"
+                : "pointer-events-none absolute inset-x-0 top-0 translate-y-2 opacity-0"
+            )}
+          >
+            <Form {...recoverPasswordForm}>
+              <form
+                noValidate
+                onSubmit={recoverPasswordForm.handleSubmit(handleRecoverPasswordSubmit)}
+                className="space-y-5"
+              >
+                <div className="rounded-xl border border-space-cyan/20 bg-space-cyan/10 px-4 py-3">
+                  <p className="text-sm font-semibold text-white">{m.auth_recover_title()}</p>
+                  <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                    {m.auth_recover_description()}
+                  </p>
+                </div>
+                <FormField
+                  control={recoverPasswordForm.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-xs text-white">{m.auth_email()}</FormLabel>
+                      <div className="relative">
+                        <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <FormControl>
+                          <Input
+                            type="email"
+                            autoComplete="email"
+                            className="h-10 rounded-xl border-white/15 bg-space-void/30 pl-10 text-sm text-white placeholder:text-muted-foreground focus-visible:ring-space-cyan/60"
+                            {...field}
+                          />
+                        </FormControl>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button
+                  type="submit"
+                  data-cy="save-btn"
+                  className="h-11 w-full rounded-xl bg-space-orange text-sm font-semibold text-space-void transition-[background-color,transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:bg-space-orange/90 hover:shadow-lg hover:shadow-space-orange/15"
+                >
+                  <ArrowRight className="h-4 w-4" />
+                  {m.auth_send_recovery_link()}
+                </Button>
+              </form>
+            </Form>
+          </div>
           <TabsContent
             ref={registerPanelRef}
             forceMount
@@ -268,14 +386,14 @@ export function AuthCard() {
                   name="displayName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs text-white">Name</FormLabel>
+                      <FormLabel className="text-xs text-white">{m.auth_name()}</FormLabel>
                       <div className="relative">
                         <User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                         <FormControl>
                           <Input
                             type="text"
                             autoComplete="name"
-                            placeholder="Katherine Johnson"
+                            placeholder={m.auth_display_name_placeholder()}
                             className="h-10 rounded-xl border-white/15 bg-space-void/30 pl-10 text-sm text-white placeholder:text-muted-foreground focus-visible:ring-space-cyan/60"
                             {...field}
                           />
@@ -290,14 +408,14 @@ export function AuthCard() {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs text-white">Email</FormLabel>
+                      <FormLabel className="text-xs text-white">{m.auth_email()}</FormLabel>
                       <div className="relative">
                         <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                         <FormControl>
                           <Input
                             type="email"
                             autoComplete="email"
-                            placeholder="explorer@cosmara.io"
+                            placeholder={m.auth_register_email_placeholder()}
                             className="h-10 rounded-xl border-white/15 bg-space-void/30 pl-10 text-sm text-white placeholder:text-muted-foreground focus-visible:ring-space-cyan/60"
                             {...field}
                           />
@@ -312,7 +430,7 @@ export function AuthCard() {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs text-white">Password</FormLabel>
+                      <FormLabel className="text-xs text-white">{m.auth_password()}</FormLabel>
                       <div className="relative">
                         <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                         <FormControl>
@@ -327,7 +445,7 @@ export function AuthCard() {
                           type="button"
                           onClick={toggleRegisterPassword}
                           className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-white"
-                          aria-label={showRegisterPassword ? "Hide password" : "Show password"}
+                          aria-label={showRegisterPassword ? m.auth_hide_password() : m.auth_show_password()}
                         >
                           {showRegisterPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </button>
@@ -343,18 +461,13 @@ export function AuthCard() {
                   className="h-11 w-full rounded-xl bg-space-orange text-sm font-semibold text-space-void transition-[background-color,transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:bg-space-orange/90 hover:shadow-lg hover:shadow-space-orange/15"
                 >
                   <ArrowRight className="h-4 w-4" />
-                  Create Account
+                  {m.auth_create_account()}
                 </Button>
               </form>
             </Form>
           </TabsContent>
         </div>
       </Tabs>
-      {authErrorMessages.length > 0 ? (
-        <ul className="mt-4 space-y-1 text-center text-xs text-destructive" data-cy="auth-error">
-          {authErrorMessages.map(renderAuthError)}
-        </ul>
-      ) : null}
       <div className="my-6 flex w-full min-w-0 items-center gap-3 overflow-hidden">
         <Separator className="min-w-0 flex-1 bg-white/10" />
         <span className="text-xs text-muted-foreground">OR</span>
@@ -362,16 +475,23 @@ export function AuthCard() {
       </div>
       {authMode === "signin" ? (
         <p className="text-center text-sm text-muted-foreground">
-          New to Cosmara?{" "}
+          {m.auth_new_to_cosmara()}{" "}
           <button type="button" onClick={showRegisterTab} className="font-semibold text-space-orange">
-            Create an account
+            {m.auth_create_account()}
+          </button>
+        </p>
+      ) : authMode === "register" ? (
+        <p className="text-center text-sm text-muted-foreground">
+          {m.auth_already_have_account()}{" "}
+          <button type="button" onClick={showSignInTab} className="font-semibold text-space-orange">
+            {m.auth_sign_in()}
           </button>
         </p>
       ) : (
         <p className="text-center text-sm text-muted-foreground">
-          Already have an account?{" "}
+          {m.auth_remembered_password()}{" "}
           <button type="button" onClick={showSignInTab} className="font-semibold text-space-orange">
-            Sign in
+            {m.auth_sign_in()}
           </button>
         </p>
       )}

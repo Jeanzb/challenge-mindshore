@@ -35,4 +35,24 @@ describe("Auth", () => {
     cy.contains("Enter a valid email").should("be.visible");
     cy.location("pathname").should("eq", "/auth");
   });
+
+  it("opens password recovery from sign in", () => {
+    cy.contains("button", "Forgot password?").click();
+    cy.contains("Recover your password").should("be.visible");
+    cy.get('[data-cy="save-btn"]').filter(":visible").should("contain.text", "Send recovery link");
+  });
+
+  it("shows duplicate email feedback and clears it when returning to sign in", () => {
+    cy.contains('[role="tab"]', "Create Account").click();
+    cy.get('input[placeholder="Katherine Johnson"]').clear().type("Demo User");
+    cy.get('input[placeholder="explorer@cosmara.io"]').clear().type(demoCredentials.email);
+    cy.get('input[autocomplete="new-password"]').clear().type("Demo1234!", { log: false });
+    cy.get('[data-cy="save-btn"]').filter(":visible").click();
+
+    cy.get("[data-sonner-toast]", { timeout: 20000 })
+      .should("be.visible")
+      .and("contain.text", "Email is already registered.");
+    cy.contains("button", "Sign In").click();
+    cy.get('[data-cy="auth-error"]').should("not.exist");
+  });
 });

@@ -1,10 +1,11 @@
-import type { CSSProperties } from "react";
+import { useMemo, type CSSProperties } from "react";
 import { EyeOff, Maximize2, Minimize2, Timer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { getTimelineYearMarkers } from "@/lib/searchTimeline";
+import { getTimelineYearMarkers, sortImagesByTimelineDate } from "@/lib/searchTimeline";
 import { timelineDensityHeights, timelineMaxYearMarkers } from "@/constants";
 import { useUiStore, uiSelectors } from "@/store";
+import { m } from "@/paraglide/messages";
 import type { NasaImage } from "@/types/search";
 import type { TimelineDensity } from "@/types/ui";
 
@@ -29,6 +30,7 @@ export function SearchTimeline({ images, dateRangeLabel }: SearchTimelineProps) 
   const setTimelinePanelState = useUiStore(uiSelectors.setTimelinePanelStateAction);
   const selectedImageId = useUiStore(uiSelectors.selectedImageId);
   const selectImage = useUiStore(uiSelectors.selectImageAction);
+  const timelineImages = useMemo(() => sortImagesByTimelineDate(images), [images]);
 
   const hideTimeline = () => {
     setTimelinePanelState("hidden");
@@ -53,7 +55,7 @@ export function SearchTimeline({ images, dateRangeLabel }: SearchTimelineProps) 
           onClick={showCompactTimeline}
         >
           <Timer className="h-4 w-4 text-space-orange" />
-          Show timeline
+          {m.timeline_show()}
         </Button>
       </div>
     );
@@ -67,7 +69,7 @@ export function SearchTimeline({ images, dateRangeLabel }: SearchTimelineProps) 
     "--timeline-height": timelineDensityHeights[baseDensity],
     "--timeline-height-lg": timelineDensityHeights[desktopDensity]
   };
-  const yearMarkers = getTimelineYearMarkers(images, timelineMaxYearMarkers);
+  const yearMarkers = getTimelineYearMarkers(timelineImages, timelineMaxYearMarkers);
   const renderTimelineImage = (image: NasaImage) => (
     <TimelineImageButton
       key={image.nasaImageId}
@@ -82,13 +84,13 @@ export function SearchTimeline({ images, dateRangeLabel }: SearchTimelineProps) 
     <section
       className="min-h-0 border-t border-white/10 bg-space-shell/95 transition-[height] duration-300 ease-out lg:col-span-3 h-[var(--timeline-height)] lg:h-[var(--timeline-height-lg)]"
       style={timelineHeightStyle}
-      aria-label="Timeline"
+      aria-label={m.timeline_label()}
     >
       <div className="flex h-full min-h-0 flex-col px-3 py-2.5 sm:px-4">
         <div className="flex shrink-0 items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-2">
             <Timer className="h-4 w-4 shrink-0 text-space-orange" />
-            <span className="text-xs font-semibold uppercase text-white">Timeline</span>
+            <span className="text-xs font-semibold uppercase text-white">{m.timeline_label()}</span>
             <span className="hidden truncate font-mono text-[11px] text-muted-foreground sm:inline">{dateRangeLabel}</span>
           </div>
           <div className="flex shrink-0 items-center gap-1">
@@ -97,7 +99,7 @@ export function SearchTimeline({ images, dateRangeLabel }: SearchTimelineProps) 
               variant="ghost"
               size="icon"
               className="h-7 w-7 rounded-md text-muted-foreground hover:bg-white/5 hover:text-white focus-visible:ring-space-cyan"
-              aria-label={expanded ? "Compact timeline" : "Expand timeline"}
+              aria-label={expanded ? m.timeline_compact() : m.timeline_expand()}
               onClick={expandOrCompact}
             >
               {expanded ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
@@ -107,7 +109,7 @@ export function SearchTimeline({ images, dateRangeLabel }: SearchTimelineProps) 
               variant="ghost"
               size="icon"
               className="h-7 w-7 rounded-md text-muted-foreground hover:bg-white/5 hover:text-white focus-visible:ring-space-cyan"
-              aria-label="Hide timeline"
+              aria-label={m.timeline_hide()}
               onClick={hideTimeline}
             >
               <EyeOff className="h-4 w-4" />
@@ -120,12 +122,12 @@ export function SearchTimeline({ images, dateRangeLabel }: SearchTimelineProps) 
           </div>
         )}
         <div className="cosmara-scrollbar mt-2 min-h-0 flex-1 overflow-x-auto overflow-y-hidden rounded-lg border border-white/10 bg-space-panel/50 p-1.5">
-          {images.length === 0 ? (
+          {timelineImages.length === 0 ? (
             <div className="flex h-full min-w-full items-center justify-center px-4">
-              <p className="text-xs text-muted-foreground">No images to display on the timeline.</p>
+              <p className="text-xs text-muted-foreground">{m.timeline_empty()}</p>
             </div>
           ) : (
-            <div className="flex h-full min-w-max items-stretch gap-2">{images.map(renderTimelineImage)}</div>
+            <div className="flex h-full min-w-max items-stretch gap-2">{timelineImages.map(renderTimelineImage)}</div>
           )}
         </div>
       </div>
@@ -155,8 +157,8 @@ function TimelineImageButton({ image, selected, expanded, onSelect }: TimelineIm
           ? "border-space-orange shadow-[0_0_16px_-2px_rgba(249,160,63,0.55)]"
           : "border-white/10"
       )}
-      title={image.displayDate === null || image.displayDate === undefined ? image.title : `${image.title} — ${image.displayDate}`}
-      aria-label={`Select ${image.title}`}
+      title={image.displayDate === null || image.displayDate === undefined ? image.title : `${image.title} - ${image.displayDate}`}
+      aria-label={m.timeline_select_image({ title: image.title })}
       aria-pressed={selected}
       onClick={handleSelect}
     >

@@ -17,6 +17,7 @@ import {
 } from "@/lib/collectionSaveFeedback";
 import { toast } from "sonner";
 import { useUiStore, uiSelectors } from "@/store";
+import { m } from "@/paraglide/messages";
 import type { CollectionSummary } from "@/types/collections";
 import type { NasaImage } from "@/types/search";
 
@@ -69,14 +70,15 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
     return (
       <aside
         className="hidden min-h-0 overflow-hidden border-l border-white/10 bg-space-shell/70 lg:block"
-        aria-label="Selected image"
+        aria-label={m.search_selected_image()}
+        data-cy="search-inspector"
       >
         <div className="flex h-full items-center justify-center px-6 text-center">
           <div>
-            <p className="text-xs font-semibold uppercase text-muted-foreground">Selected Image</p>
-            <h2 className="mt-2 text-base font-semibold text-white">No image selected</h2>
+            <p className="text-xs font-semibold uppercase text-muted-foreground">{m.search_selected_image()}</p>
+            <h2 className="mt-2 text-base font-semibold text-white">{m.search_no_image_selected()}</h2>
             <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              Adjust the filters or choose a suggested search to load NASA imagery.
+              {m.search_no_image_selected_description()}
             </p>
           </div>
         </div>
@@ -86,7 +88,7 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
 
   const handleCompare = () => {
     addCompareImage(selectedImage.nasaImageId);
-    setCompareStatusMessage("Marked for comparison. Saved images are analyzed on the Compare page.");
+    setCompareStatusMessage(m.search_marked_compare());
   };
 
   const handleDownload = async () => {
@@ -108,10 +110,10 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
       anchor.click();
       anchor.remove();
       URL.revokeObjectURL(objectUrl);
-      toast.success("Image downloaded");
+      toast.success(m.search_image_downloaded());
     } catch {
       window.open(downloadUrl, "_blank", "noopener,noreferrer");
-      toast.info("Opened the full image in a new tab");
+      toast.info(m.search_image_opened());
     }
   };
 
@@ -131,9 +133,9 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
 
     try {
       await navigator.clipboard.writeText(shareUrl);
-      toast.success("Link copied to clipboard");
+      toast.success(m.search_link_copied());
     } catch {
-      toast.error("Sharing is not available in this browser");
+      toast.error(m.search_share_unavailable());
     }
   };
 
@@ -143,7 +145,7 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
 
   const handleGenerateEnrichment = async () => {
     if (!isAuthenticated) {
-      setAiStatusMessage("Sign in before generating AI context.");
+      setAiStatusMessage(m.search_ai_sign_in());
       return;
     }
 
@@ -160,20 +162,20 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
         dateCreated: selectedImage.dateCreated
       });
 
-      setAiStatusMessage(result.fromCache ? "AI context ready." : "AI context generated.");
+      setAiStatusMessage(result.fromCache ? m.search_ai_ready() : m.search_ai_generated());
     } catch (error) {
-      setAiStatusMessage(error instanceof Error ? error.message : "AI context could not be generated.");
+      setAiStatusMessage(error instanceof Error ? error.message : m.search_ai_error());
     }
   };
 
   const handleAddToCollection = async () => {
     if (!isAuthenticated) {
-      toast.error("Sign in before saving images.");
+      toast.error(m.search_sign_in_to_save_images());
       return;
     }
 
     if (selectedCollectionId === "none") {
-      toast.error("Select a collection first.");
+      toast.error(m.search_select_collection_first());
       return;
     }
 
@@ -207,15 +209,16 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
   return (
     <aside
       className="hidden min-h-0 overflow-hidden border-l border-white/10 bg-space-shell/80 opacity-100 shadow-[-16px_0_40px_rgba(0,0,0,0.18)] transition-opacity duration-300 lg:block"
-      aria-label="Selected image"
+      aria-label={m.search_selected_image()}
+      data-cy="search-inspector"
     >
       <div className="flex h-full min-h-0 flex-col">
         <div className="flex items-start justify-between gap-4 px-4 py-4">
           <div className="min-w-0">
-            <p className="mb-3 text-xs font-semibold uppercase text-muted-foreground">Selected Image</p>
+            <p className="mb-3 text-xs font-semibold uppercase text-muted-foreground">{m.search_selected_image()}</p>
             <h2 className="line-clamp-2 text-base font-semibold text-white">{selectedImage.title}</h2>
             <p className="mt-1 font-mono text-[11px] tracking-wide text-muted-foreground">
-              {selectedImage.displayDate ?? "Unknown date"} -{" "}
+              {selectedImage.displayDate ?? m.search_unknown_date()} -{" "}
               <span className="font-medium text-space-cyan">{selectedImage.camera ?? selectedImage.mission ?? "NASA"}</span>
             </p>
           </div>
@@ -224,7 +227,7 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
             variant="ghost"
             size="icon"
             className="h-8 w-8 shrink-0 rounded-md text-muted-foreground hover:bg-white/5 hover:text-white"
-            aria-label="Close selected image panel"
+            aria-label={m.search_close_inspector()}
             onClick={closeInspector}
           >
             <X className="h-4 w-4" />
@@ -244,7 +247,7 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
                 onClick={handleDownload}
               >
                 <Download className="h-4 w-4" />
-                Download
+                {m.search_download()}
               </Button>
               <Button
                 type="button"
@@ -254,7 +257,7 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
                 onClick={handleShare}
               >
                 <Share2 className="h-4 w-4" />
-                Share
+                {m.search_share()}
               </Button>
               <Button
                 type="button"
@@ -265,7 +268,7 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
                 data-cy="compare-btn"
               >
                 <GitCompareArrows className="h-4 w-4" />
-                Compare
+                {m.search_compare()}
               </Button>
               <Button
                 type="button"
@@ -276,14 +279,14 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
                 onClick={handleAddToCollection}
               >
                 <ImagePlus className="h-4 w-4" />
-                {isAddingImageToCollection ? "Adding" : "Add"}
+                {isAddingImageToCollection ? m.search_adding() : m.search_add()}
               </Button>
             </div>
             {compareStatusMessage !== null ? (
               <p className="mt-2 text-xs text-space-cyan">
                 {compareStatusMessage}{" "}
                 <Link to="/comparator" className="font-medium underline underline-offset-2 hover:text-white">
-                  Open Compare
+                  {m.search_open_compare()}
                 </Link>
               </p>
             ) : null}
@@ -294,30 +297,30 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
                   className="gap-1 rounded text-[11px] data-[state=active]:bg-space-cyan data-[state=active]:text-space-void"
                 >
                   <Sparkles className="h-3.5 w-3.5" />
-                  AI Context
+                  {m.search_ai_context()}
                 </TabsTrigger>
                 <TabsTrigger
                   value="metadata"
                   className="gap-1 rounded text-[11px] data-[state=active]:bg-space-cyan data-[state=active]:text-space-void"
                 >
                   <Database className="h-3.5 w-3.5" />
-                  Metadata
+                  {m.search_metadata()}
                 </TabsTrigger>
                 <TabsTrigger
                   value="source"
                   className="gap-1 rounded text-[11px] data-[state=active]:bg-space-cyan data-[state=active]:text-space-void"
                 >
                   <ExternalLink className="h-3.5 w-3.5" />
-                  Source
+                  {m.search_source()}
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="ai" className="space-y-4">
                 <div className="rounded-lg border border-white/10 bg-space-panel/70 p-3">
                   <div className="flex flex-col gap-3">
                     <div>
-                      <p className="text-xs font-semibold uppercase text-space-orange">AI Enrichment</p>
+                      <p className="text-xs font-semibold uppercase text-space-orange">{m.search_ai_enrichment()}</p>
                       <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                        Generate historical context for this NASA image.
+                        {m.search_ai_generate_description()}
                       </p>
                     </div>
                     <Button
@@ -328,7 +331,7 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
                       onClick={handleGenerateEnrichment}
                     >
                       {isEnriching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                      {isEnriching ? "Generating" : "Generate context"}
+                      {isEnriching ? m.search_generating() : m.search_generate_context()}
                     </Button>
                   </div>
                   {aiStatusMessage !== null ? (
@@ -336,32 +339,32 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
                   ) : null}
                 </div>
                 <div className="rounded-lg border border-white/10 bg-space-panel/70 p-3">
-                  <p className="mb-2 text-xs font-semibold uppercase text-space-orange">Historical Context</p>
+                  <p className="mb-2 text-xs font-semibold uppercase text-space-orange">{m.search_historical_context()}</p>
                   <p className="whitespace-pre-line text-sm leading-6 text-muted-foreground">
                     {activeEnrichment?.historicalContext ??
-                      "Generate AI context to connect this image with mission and exploration history."}
+                      m.search_historical_empty()}
                   </p>
                 </div>
                 <div>
-                  <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">Tags</p>
+                  <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">{m.search_tags()}</p>
                   <div className="flex flex-wrap gap-2">{selectedImage.keywords.slice(0, 6).map(renderKeyword)}</div>
                 </div>
               </TabsContent>
               <TabsContent value="metadata" className="space-y-3 text-sm text-muted-foreground">
-                <MetadataRow label="Center" value={selectedImage.center ?? "NASA"} />
-                <MetadataRow label="Mission" value={selectedImage.mission ?? "Unspecified"} />
-                <MetadataRow label="Camera" value={selectedImage.camera ?? "Unspecified"} />
-                <MetadataRow label="Media Type" value={selectedImage.mediaType} />
+                <MetadataRow label={m.search_center()} value={selectedImage.center ?? "NASA"} />
+                <MetadataRow label={m.search_mission_label()} value={selectedImage.mission ?? m.search_unspecified()} />
+                <MetadataRow label={m.search_camera_label()} value={selectedImage.camera ?? m.search_unspecified()} />
+                <MetadataRow label={m.search_media_type()} value={selectedImage.mediaType} />
               </TabsContent>
               <TabsContent value="source" className="space-y-3">
                 <p className="text-sm leading-6 text-muted-foreground">
-                  Open the original asset page to review full NASA attribution and media files.
+                  {m.search_source_description()}
                 </p>
                 {selectedImage.sourceUrl && (
                   <Button asChild variant="secondary" size="sm" className="rounded-md bg-white/10 hover:bg-white/15">
                     <a href={selectedImage.sourceUrl} target="_blank" rel="noreferrer">
                       <ExternalLink className="h-4 w-4" />
-                      View NASA Source
+                      {m.search_view_nasa_source()}
                     </a>
                   </Button>
                 )}
@@ -369,7 +372,7 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
             </Tabs>
             <Separator className="my-4 bg-white/10" />
             <div>
-              <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">Add to Collection</p>
+              <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">{m.search_add_to_collection()}</p>
               <Select
                 value={selectedCollectionId}
                 onValueChange={handleCollectionChange}
@@ -383,7 +386,7 @@ export function SearchInspector({ fallbackImage }: SearchInspectorProps) {
                   className="z-[80] rounded-md border-white/10 bg-space-panel text-white shadow-2xl shadow-black/50"
                 >
                   <SelectItem value="none" className="cursor-pointer text-xs text-muted-foreground focus:bg-space-cyan/15">
-                    {isAuthenticated ? "Select collection..." : "Sign in to save"}
+                    {isAuthenticated ? m.search_select_collection() : m.search_sign_in_to_save()}
                   </SelectItem>
                   {collections.map(renderCollectionOption)}
                 </SelectContent>
