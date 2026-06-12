@@ -1,6 +1,6 @@
 import { DateRangeFilter } from "@/components/search/DateRangeFilter";
 
-const noopDateChange = () => () => {};
+const noopDateChange = () => () => undefined;
 
 describe("<DateRangeFilter />", () => {
   it("renders the four quick presets", () => {
@@ -42,16 +42,32 @@ describe("<DateRangeFilter />", () => {
     cy.contains("From").should("not.exist");
   });
 
-  it("reveals the from/to inputs in custom mode and reports edits", () => {
-    const onDateChange = cy.stub().as("onDateChange").returns(() => {});
+  it("reveals from/to controls in custom mode", () => {
     cy.mount(
-      <DateRangeFilter preset="custom" dateFrom="" dateTo="" onPresetChange={() => {}} onDateChange={onDateChange} />
+      <DateRangeFilter preset="custom" dateFrom="" dateTo="" onPresetChange={() => {}} onDateChange={noopDateChange} />
     );
 
     cy.contains("From").should("be.visible");
     cy.contains("To").should("be.visible");
-    cy.get("@onDateChange").should("have.been.calledWith", "dateFrom");
-    cy.get("@onDateChange").should("have.been.calledWith", "dateTo");
+    cy.contains("button", "yyyy-mm-dd").should("be.visible");
+  });
+
+  it("opens the calendar and reports selected dates", () => {
+    const onDateChange = cy.stub().as("onDateChange");
+    cy.mount(
+      <DateRangeFilter
+        preset="custom"
+        dateFrom="2024-01-01"
+        dateTo=""
+        onPresetChange={() => {}}
+        onDateChange={(field) => (value) => onDateChange(field, value)}
+      />
+    );
+
+    cy.contains("button", "01/01/2024").click();
+    cy.contains("January 2024").should("be.visible");
+    cy.contains("button", /^15$/).click();
+    cy.get("@onDateChange").should("have.been.calledWith", "dateFrom", "2024-01-15");
   });
 
   it("describes a closed range in plain language", () => {

@@ -229,11 +229,11 @@ export function SearchFiltersPanel({ filters, isFetching, onApplyFilters }: Sear
 
   const updateDateDraftField =
     (field: "dateFrom" | "dateTo") =>
-    (event: ChangeEvent<HTMLInputElement>) => {
+    (value: string) => {
       setDraft((currentDraft) => ({
         ...currentDraft,
         datePreset: "custom",
-        [field]: event.target.value
+        [field]: value
       }));
     };
 

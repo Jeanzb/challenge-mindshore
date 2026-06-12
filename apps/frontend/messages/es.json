@@ -105,6 +105,8 @@
   "search_last_30_days": "Últimos 30 días",
   "search_last_year": "Último año",
   "search_custom": "Personalizado",
+  "search_previous_month": "Mes anterior",
+  "search_next_month": "Mes siguiente",
   "search_from": "Desde",
   "search_to": "Hasta",
   "search_all_missions": "Todas las misiones",
