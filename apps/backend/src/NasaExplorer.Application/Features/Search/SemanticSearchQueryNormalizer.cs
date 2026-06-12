@@ -16,6 +16,8 @@ internal static partial class SemanticSearchQueryNormalizer
         ["cohetes"] = "rocket",
         ["cometa"] = "comet",
         ["cometas"] = "comet",
+        ["crater"] = "crater",
+        ["crateres"] = "craters",
         ["eclipse"] = "eclipse",
         ["eclipses"] = "eclipse",
         ["espacial"] = "space",
@@ -42,6 +44,36 @@ internal static partial class SemanticSearchQueryNormalizer
         ["telescopio"] = "telescope",
         ["telescopios"] = "telescopes",
         ["tierra"] = "earth"
+    };
+
+    private static readonly IReadOnlySet<string> StopWords = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+    {
+        "a",
+        "al",
+        "capturada",
+        "capturadas",
+        "capturado",
+        "capturados",
+        "con",
+        "de",
+        "del",
+        "el",
+        "en",
+        "la",
+        "las",
+        "los",
+        "mostrame",
+        "mostrar",
+        "muestrame",
+        "por",
+        "que",
+        "quiero",
+        "show",
+        "me",
+        "please",
+        "with",
+        "by",
+        "from"
     };
 
     private static readonly IReadOnlyDictionary<string, string> PhraseTranslations = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
@@ -79,6 +111,7 @@ internal static partial class SemanticSearchQueryNormalizer
         string[] terms = SearchTermSeparator()
             .Split(normalizedQuery)
             .Where(term => !string.IsNullOrWhiteSpace(term))
+            .Where(term => !StopWords.Contains(term))
             .Select(term => TokenTranslations.GetValueOrDefault(term, term))
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToArray();

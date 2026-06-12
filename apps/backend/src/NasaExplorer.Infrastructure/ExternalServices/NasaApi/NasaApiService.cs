@@ -10,6 +10,7 @@ public sealed class NasaApiService : INasaApiService
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
     private const int DateFilteredPageScanLimit = 8;
+    private const int RecentDateRangeRelaxationDays = 45;
     private static readonly string[] KnownMissions =
     [
         "JWST",
@@ -76,8 +77,10 @@ public sealed class NasaApiService : INasaApiService
         CancellationToken cancellationToken)
     {
         List<NasaImageAsset> matchedImages = [];
+        List<NasaImageAsset> yearScopedImages = [];
         int requestedPage = Math.Max(1, criteria.Page);
         int pageSize = Math.Max(1, criteria.PageSize);
+        int nasaTotalHits = 0;
 
         for (int pageOffset = 0; pageOffset < DateFilteredPageScanLimit && matchedImages.Count < pageSize; pageOffset += 1)
         {
@@ -87,22 +90,40 @@ public sealed class NasaApiService : INasaApiService
             };
             NasaSearchResponse? nasaResponse = await FetchSearchResponseAsync(pageCriteria, cancellationToken);
             IReadOnlyCollection<NasaSearchItem> items = nasaResponse?.Collection?.Items ?? [];
+            nasaTotalHits = nasaResponse?.Collection?.Metadata?.TotalHits ?? nasaTotalHits;
 
             if (items.Count == 0)
             {
                 break;
             }
 
-            matchedImages.AddRange(items
+            NasaImageAsset[] pageImages = items
                 .Select(ToImageAsset)
                 .OfType<NasaImageAsset>()
-                .Where(image => MatchesDateRange(image, criteria)));
+                .ToArray();
+
+            yearScopedImages.AddRange(pageImages);
+            matchedImages.AddRange(pageImages.Where(image => MatchesDateRange(image, criteria)));
         }
 
         NasaImageAsset[] images = matchedImages
             .DistinctBy(image => image.NasaImageId, StringComparer.OrdinalIgnoreCase)
             .Take(pageSize)
             .ToArray();
+
+        if (images.Length == 0 && ShouldRelaxRecentDateRange(criteria))
+        {
+            NasaImageAsset[] relaxedImages = yearScopedImages
+                .DistinctBy(image => image.NasaImageId, StringComparer.OrdinalIgnoreCase)
+                .Take(pageSize)
+                .ToArray();
+
+            return new NasaSearchResult(
+                relaxedImages,
+                nasaTotalHits > 0 ? nasaTotalHits : relaxedImages.Length,
+                requestedPage,
+                pageSize);
+        }
 
         return new NasaSearchResult(
             images,
@@ -336,6 +357,21 @@ public sealed class NasaApiService : INasaApiService
     private static bool HasLocalDateFilter(NasaSearchCriteria criteria)
     {
         return criteria.DateFrom.HasValue || criteria.DateTo.HasValue;
+    }
+
+    private static bool ShouldRelaxRecentDateRange(NasaSearchCriteria criteria)
+    {
+        if (!criteria.DateFrom.HasValue || !criteria.DateTo.HasValue)
+        {
+            return false;
+        }
+
+        int rangeDays = criteria.DateTo.Value.DayNumber - criteria.DateFrom.Value.DayNumber;
+        DateOnly today = DateOnly.FromDateTime(DateTimeOffset.UtcNow.UtcDateTime);
+
+        return rangeDays >= 0
+            && rangeDays <= RecentDateRangeRelaxationDays
+            && criteria.DateTo.Value >= today.AddDays(-2);
     }
 
     private static bool IsImageRender(NasaSearchLink link)

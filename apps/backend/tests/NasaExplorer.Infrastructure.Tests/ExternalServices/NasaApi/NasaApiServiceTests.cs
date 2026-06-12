@@ -129,6 +129,34 @@ public sealed class NasaApiServiceTests
         Assert.Contains("page=2", handler.RequestUris[1].Query);
     }
 
+    [Fact]
+    public async Task SearchImagesAsync_relaxes_recent_short_date_ranges_when_exact_matches_are_empty()
+    {
+        StubHttpMessageHandler handler = new(SearchResponseWithCurrentYearDateJson);
+        NasaApiService service = new(new HttpClient(handler)
+        {
+            BaseAddress = new Uri("https://images-api.nasa.gov/")
+        });
+        DateOnly today = DateOnly.FromDateTime(DateTimeOffset.UtcNow.UtcDateTime);
+
+        NasaSearchResult result = await service.SearchImagesAsync(new NasaSearchCriteria(
+            "",
+            today.AddDays(-30),
+            today,
+            null,
+            null,
+            null,
+            1,
+            1));
+
+        NasaImageAsset image = Assert.Single(result.Images);
+
+        Assert.Equal("RECENT-YEAR-IMAGE", image.NasaImageId);
+        Assert.Equal(43, result.TotalHits);
+        Assert.Contains($"year_start={today.Year}", handler.RequestUri!.Query);
+        Assert.Contains($"year_end={today.Year}", handler.RequestUri.Query);
+    }
+
 
     [Fact]
     public async Task GetAssetFilesAsync_maps_asset_file_metadata()
@@ -273,6 +301,38 @@ public sealed class NasaApiServiceTests
             ],
             "metadata": {
               "total_hits": 26719
+            }
+          }
+        }
+        """;
+
+    private const string SearchResponseWithCurrentYearDateJson = """
+        {
+          "collection": {
+            "items": [
+              {
+                "data": [
+                  {
+                    "center": "JPL",
+                    "date_created": "2025-01-15T00:00:00Z",
+                    "description": "Current year image outside the last thirty days.",
+                    "keywords": ["Mars", "Curiosity", "Navcam"],
+                    "media_type": "image",
+                    "nasa_id": "RECENT-YEAR-IMAGE",
+                    "title": "Recent Year Mars Image"
+                  }
+                ],
+                "links": [
+                  {
+                    "href": "https://images-assets.nasa.gov/image/RECENT-YEAR-IMAGE/RECENT-YEAR-IMAGE~large.jpg",
+                    "rel": "alternate",
+                    "render": "image"
+                  }
+                ]
+              }
+            ],
+            "metadata": {
+              "total_hits": 43
             }
           }
         }

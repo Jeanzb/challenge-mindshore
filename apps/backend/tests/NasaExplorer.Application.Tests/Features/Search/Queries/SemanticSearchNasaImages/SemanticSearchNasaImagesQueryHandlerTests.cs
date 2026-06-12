@@ -71,6 +71,28 @@ public sealed class SemanticSearchNasaImagesQueryHandlerTests
 
         Assert.Equal("telescope space", nasaApiService.LastCriteria?.Query);
     }
+
+    [Fact]
+    public async Task Handle_normalizes_spanish_rover_camera_and_crater_query_without_ai_translation()
+    {
+        StubAiEnrichmentService aiService = new(semanticSearchResult: "Mostrame cráteres de Marte capturados por Curiosity con Navcam");
+        StubNasaApiService nasaApiService = new(new NasaSearchResult([], 0, 1, 24));
+        SemanticSearchNasaImagesQueryHandler handler = new(nasaApiService, aiService);
+
+        await handler.Handle(
+            new SemanticSearchNasaImagesQuery(
+                "Mostrame cráteres de Marte capturados por Curiosity con Navcam",
+                null,
+                null,
+                null,
+                null,
+                null,
+                1,
+                24),
+            CancellationToken.None);
+
+        Assert.Equal("craters mars curiosity navcam", nasaApiService.LastCriteria?.Query);
+    }
 }
 
 internal sealed class StubNasaApiService : INasaApiService
