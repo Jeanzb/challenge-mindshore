@@ -25,7 +25,6 @@ type SearchFilterDraft = {
   mission: string;
   rover: string;
   camera: string;
-  mediaType: string;
 };
 
 type SuggestedSearch = {
@@ -45,8 +44,7 @@ const defaultDraft: SearchFilterDraft = {
   dateTo: "",
   mission: "",
   rover: "",
-  camera: "",
-  mediaType: "image"
+  camera: ""
 };
 
 const emptySelectValue = "__all__";
@@ -151,17 +149,14 @@ const getCameraOptions = (): readonly FilterOption[] => [
   { label: "WFC3", value: "WFC3" }
 ];
 
-const getMediaTypeOptions = (): readonly FilterOption[] => [{ label: m.search_images(), value: "image" }];
-
-const toDraft = (filters: Partial<NasaSearchFilters>, mediaType = "image"): SearchFilterDraft => ({
+const toDraft = (filters: Partial<NasaSearchFilters>): SearchFilterDraft => ({
   query: filters.query ?? defaultDraft.query,
   datePreset: filters.datePreset ?? (filters.dateFrom !== undefined || filters.dateTo !== undefined ? "custom" : "any"),
   dateFrom: filters.dateFrom ?? "",
   dateTo: filters.dateTo ?? "",
   mission: filters.mission ?? "",
   rover: filters.rover ?? "",
-  camera: filters.camera ?? "",
-  mediaType
+  camera: filters.camera ?? ""
 });
 
 const toNullable = (value: string): string | null => {
@@ -211,7 +206,7 @@ export function SearchFiltersPanel({ filters, isFetching, onApplyFilters }: Sear
   const closeMobileFilters = useUiStore(uiSelectors.closeMobileFiltersAction);
 
   useEffect(() => {
-    setDraft((currentDraft) => toDraft(filters, currentDraft.mediaType));
+    setDraft(toDraft(filters));
   }, [filters]);
 
   const updateDraftField =
@@ -224,7 +219,7 @@ export function SearchFiltersPanel({ filters, isFetching, onApplyFilters }: Sear
     };
 
   const updateSelectDraftField =
-    (field: "mission" | "rover" | "camera" | "mediaType") =>
+    (field: "mission" | "rover" | "camera") =>
     (value: string) => {
       setDraft((currentDraft) => ({
         ...currentDraft,
@@ -384,9 +379,6 @@ export function SearchFiltersPanel({ filters, isFetching, onApplyFilters }: Sear
             </FilterGroup>
             <FilterGroup label={m.search_camera_label()} hasInfo>
               <FilterSelect value={draft.camera} options={getCameraOptions()} onValueChange={updateSelectDraftField("camera")} />
-            </FilterGroup>
-            <FilterGroup label={m.search_media_type_label()} hasInfo>
-              <FilterSelect value={draft.mediaType} options={getMediaTypeOptions()} onValueChange={updateSelectDraftField("mediaType")} />
             </FilterGroup>
             <div className="border-t border-white/10 pt-4">
               <div className="mb-2 flex items-center justify-between">
