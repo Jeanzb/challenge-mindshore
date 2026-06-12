@@ -1,12 +1,9 @@
 import { apiClient } from "@/api";
 import type {
   AuthSession,
-  ForgotPasswordRequest,
-  ForgotPasswordResponse,
   LoginUserRequest,
   RefreshTokenRequest,
-  RegisterUserRequest,
-  ResetPasswordRequest
+  RegisterUserRequest
 } from "@/types/auth";
 
 export class AuthService {
@@ -25,19 +22,6 @@ export class AuthService {
   public static refresh(request: RefreshTokenRequest): Promise<AuthSession> {
     return apiClient.post<AuthSession, RefreshTokenRequest>("/api/auth/refresh", request, {
       authenticated: false
-    });
-  }
-
-  public static forgotPassword(request: ForgotPasswordRequest): Promise<ForgotPasswordResponse> {
-    return apiClient.post<ForgotPasswordResponse, ForgotPasswordRequest>("/api/auth/forgot-password", request, {
-      authenticated: false
-    });
-  }
-
-  public static resetPassword(request: ResetPasswordRequest): Promise<void> {
-    return apiClient.post<void, ResetPasswordRequest>("/api/auth/reset-password", request, {
-      authenticated: false,
-      responseType: "void"
     });
   }
 }

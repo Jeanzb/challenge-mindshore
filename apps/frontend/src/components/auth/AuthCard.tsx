@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, ArrowRight, Eye, EyeOff, KeyRound, Lock, Mail, Orbit, User } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, Lock, Mail, Orbit, User } from "lucide-react";
 import { useLayoutEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -28,37 +28,21 @@ const createLoginSchema = () =>
     password: z.string().min(8, m.auth_validation_password_min())
   });
 
-const createStrongPasswordSchema = () =>
-  z
-    .string()
-    .min(8, m.auth_validation_password_min())
-    .regex(/[A-Z]/, m.auth_validation_password_uppercase())
-    .regex(/[a-z]/, m.auth_validation_password_lowercase())
-    .regex(/[0-9]/, m.auth_validation_password_number());
-
 const createRegisterSchema = () =>
   z.object({
     displayName: z.string().min(2, m.auth_validation_display_name()),
     email: z.string().email(m.auth_validation_email()),
-    password: createStrongPasswordSchema()
-  });
-
-const createRecoverRequestSchema = () =>
-  z.object({
-    email: z.string().email(m.auth_validation_email())
-  });
-
-const createResetPasswordSchema = () =>
-  z.object({
-    newPassword: createStrongPasswordSchema()
+    password: z
+      .string()
+      .min(8, m.auth_validation_password_min())
+      .regex(/[A-Z]/, m.auth_validation_password_uppercase())
+      .regex(/[a-z]/, m.auth_validation_password_lowercase())
+      .regex(/[0-9]/, m.auth_validation_password_number())
   });
 
 type LoginFormValues = z.infer<ReturnType<typeof createLoginSchema>>;
 type RegisterFormValues = z.infer<ReturnType<typeof createRegisterSchema>>;
-type RecoverRequestFormValues = z.infer<ReturnType<typeof createRecoverRequestSchema>>;
-type ResetPasswordFormValues = z.infer<ReturnType<typeof createResetPasswordSchema>>;
-type AuthMode = "signin" | "register" | "recover";
-type RecoveryStep = "request" | "reset";
+type AuthMode = "signin" | "register";
 
 const getAuthErrorMessage = (message: string): string =>
   message === "Email is already registered." ? m.auth_duplicate_email() : message;
@@ -69,26 +53,11 @@ export function AuthCard() {
   const [panelHeight, setPanelHeight] = useState<number | null>(null);
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [showRegisterPassword, setShowRegisterPassword] = useState(false);
-  const [showResetPassword, setShowResetPassword] = useState(false);
   const signInPanelRef = useRef<HTMLDivElement>(null);
   const registerPanelRef = useRef<HTMLDivElement>(null);
-  const [recoveryStep, setRecoveryStep] = useState<RecoveryStep>("request");
-  const [resetToken, setResetToken] = useState<string | null>(null);
-  const {
-    login,
-    register,
-    forgotPassword,
-    resetPassword,
-    isLoggingIn,
-    isRegistering,
-    isRequestingReset,
-    isResettingPassword,
-    resetAuthError
-  } = useAuthSession();
+  const { login, register, isLoggingIn, isRegistering, resetAuthError } = useAuthSession();
   const loginSchema = createLoginSchema();
   const registerSchema = createRegisterSchema();
-  const recoverRequestSchema = createRecoverRequestSchema();
-  const resetPasswordSchema = createResetPasswordSchema();
 
   const showAuthErrorToast = (error: unknown): void => {
     const messages = extractApiErrorMessages(error);
@@ -117,16 +86,6 @@ export function AuthCard() {
     }
   });
 
-  const recoverRequestForm = useForm<RecoverRequestFormValues>({
-    resolver: zodResolver(recoverRequestSchema),
-    defaultValues: { email: "" }
-  });
-
-  const resetPasswordForm = useForm<ResetPasswordFormValues>({
-    resolver: zodResolver(resetPasswordSchema),
-    defaultValues: { newPassword: "" }
-  });
-
   const handleLoginSubmit = async (values: LoginFormValues): Promise<void> => {
     try {
       await login(values);
@@ -147,61 +106,12 @@ export function AuthCard() {
     }
   };
 
-  const handleRecoverRequestSubmit = async (values: RecoverRequestFormValues): Promise<void> => {
-    try {
-      const response = await forgotPassword({ email: values.email });
-      setResetToken(response.resetToken);
-      setRecoveryStep("reset");
-    } catch (error) {
-      const messages = extractApiErrorMessages(error);
-      const message = messages.includes("No account is registered with that email.")
-        ? m.auth_recover_not_found()
-        : (messages[0] ?? m.auth_reset_error());
-      toast.error(message);
-    }
-  };
-
-  const handleResetPasswordSubmit = async (values: ResetPasswordFormValues): Promise<void> => {
-    if (resetToken === null) {
-      return;
-    }
-
-    try {
-      await resetPassword({ token: resetToken, newPassword: values.newPassword });
-      toast.success(m.auth_reset_success());
-      loginForm.setValue("password", "");
-      closeRecovery();
-    } catch (error) {
-      const messages = extractApiErrorMessages(error);
-      toast.error(messages[0] ?? m.auth_reset_error());
-    }
-  };
-
-  const openRecovery = (): void => {
-    resetAuthError();
-    recoverRequestForm.reset({ email: loginForm.getValues("email") });
-    resetPasswordForm.reset({ newPassword: "" });
-    setResetToken(null);
-    setRecoveryStep("request");
-    setAuthMode("recover");
-  };
-
-  const closeRecovery = (): void => {
-    setResetToken(null);
-    setRecoveryStep("request");
-    setAuthMode("signin");
-  };
-
   const toggleLoginPassword = (): void => {
     setShowLoginPassword((currentValue) => !currentValue);
   };
 
   const toggleRegisterPassword = (): void => {
     setShowRegisterPassword((currentValue) => !currentValue);
-  };
-
-  const toggleResetPassword = (): void => {
-    setShowResetPassword((currentValue) => !currentValue);
   };
 
   const handleAuthModeChange = (value: string): void => {
@@ -257,112 +167,6 @@ export function AuthCard() {
           </p>
         </div>
       </div>
-      {authMode === "recover" ? (
-        <div className="mt-2" data-cy="recovery-panel">
-          <div className="mb-6 flex flex-col items-center gap-3 text-center">
-            <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-space-cyan/25 bg-space-cyan/10 text-space-cyan">
-              <KeyRound className="h-5 w-5" />
-            </span>
-            <div>
-              <h2 className="text-base font-semibold text-white">
-                {recoveryStep === "request" ? m.auth_recover_title() : m.auth_reset_title()}
-              </h2>
-              <p className="mt-1 text-xs text-muted-foreground">
-                {recoveryStep === "request" ? m.auth_recover_subtitle() : m.auth_reset_subtitle()}
-              </p>
-            </div>
-          </div>
-          {recoveryStep === "request" ? (
-            <Form key="recover-request" {...recoverRequestForm}>
-              <form noValidate onSubmit={recoverRequestForm.handleSubmit(handleRecoverRequestSubmit)} className="space-y-5">
-                <FormField
-                  control={recoverRequestForm.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-xs text-white">{m.auth_email()}</FormLabel>
-                      <div className="relative">
-                        <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                        <FormControl>
-                          <Input
-                            type="email"
-                            autoComplete="email"
-                            placeholder={m.auth_register_email_placeholder()}
-                            className="h-10 rounded-xl border-white/15 bg-space-void/30 pl-10 text-sm text-white placeholder:text-muted-foreground focus-visible:ring-space-cyan/60"
-                            {...field}
-                          />
-                        </FormControl>
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <Button
-                  type="submit"
-                  data-cy="save-btn"
-                  disabled={isRequestingReset}
-                  className="h-11 w-full rounded-xl bg-space-orange text-sm font-semibold text-space-void transition-[background-color,transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:bg-space-orange/90 hover:shadow-lg hover:shadow-space-orange/15"
-                >
-                  <ArrowRight className="h-4 w-4" />
-                  {m.auth_recover_continue()}
-                </Button>
-              </form>
-            </Form>
-          ) : (
-            <Form key="recover-reset" {...resetPasswordForm}>
-              <form noValidate onSubmit={resetPasswordForm.handleSubmit(handleResetPasswordSubmit)} className="space-y-5">
-                <FormField
-                  control={resetPasswordForm.control}
-                  name="newPassword"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-xs text-white">{m.auth_reset_new_password()}</FormLabel>
-                      <div className="relative">
-                        <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                        <FormControl>
-                          <Input
-                            type={showResetPassword ? "text" : "password"}
-                            autoComplete="new-password"
-                            className="h-10 rounded-xl border-white/15 bg-space-void/30 pl-10 pr-10 text-sm text-white placeholder:text-muted-foreground focus-visible:ring-space-cyan/60"
-                            {...field}
-                          />
-                        </FormControl>
-                        <button
-                          type="button"
-                          onClick={toggleResetPassword}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-white"
-                          aria-label={showResetPassword ? m.auth_hide_password() : m.auth_show_password()}
-                        >
-                          {showResetPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                        </button>
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <Button
-                  type="submit"
-                  data-cy="save-btn"
-                  disabled={isResettingPassword}
-                  className="h-11 w-full rounded-xl bg-space-orange text-sm font-semibold text-space-void transition-[background-color,transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:bg-space-orange/90 hover:shadow-lg hover:shadow-space-orange/15"
-                >
-                  <KeyRound className="h-4 w-4" />
-                  {m.auth_reset_submit()}
-                </Button>
-              </form>
-            </Form>
-          )}
-          <button
-            type="button"
-            onClick={closeRecovery}
-            className="mt-5 flex w-full items-center justify-center gap-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-white"
-          >
-            <ArrowLeft className="h-3.5 w-3.5" />
-            {m.auth_recover_back()}
-          </button>
-        </div>
-      ) : (
-        <>
       <p className="mb-6 text-center text-sm text-muted-foreground">
         {m.auth_welcome()}
       </p>
@@ -455,16 +259,6 @@ export function AuthCard() {
                     </FormItem>
                   )}
                 />
-                <div className="flex justify-end">
-                  <button
-                    type="button"
-                    data-cy="forgot-password-btn"
-                    onClick={openRecovery}
-                    className="text-xs font-medium text-space-cyan transition-colors hover:text-white"
-                  >
-                    {m.auth_forgot_password()}
-                  </button>
-                </div>
                 <Button
                   type="submit"
                   data-cy="save-btn"
@@ -596,8 +390,6 @@ export function AuthCard() {
             {m.auth_sign_in()}
           </button>
         </p>
-      )}
-        </>
       )}
     </div>
   );

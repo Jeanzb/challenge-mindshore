@@ -8,7 +8,6 @@ public static class DomainConstraints
         public const int PasswordHashMaxLength = 512;
         public const int DisplayNameMaxLength = 120;
         public const int RefreshTokenMaxLength = 512;
-        public const int PasswordResetTokenMaxLength = 512;
     }
 
     public static class Collections

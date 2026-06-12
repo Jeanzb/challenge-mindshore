@@ -2,13 +2,7 @@ import { useCallback } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AuthService } from "@/services/auth";
 import { authSelectors, useAuthStore } from "@/store";
-import type {
-  ForgotPasswordRequest,
-  LoginUserRequest,
-  RefreshTokenRequest,
-  RegisterUserRequest,
-  ResetPasswordRequest
-} from "@/types/auth";
+import type { LoginUserRequest, RefreshTokenRequest, RegisterUserRequest } from "@/types/auth";
 
 export const useAuthSession = () => {
   const queryClient = useQueryClient();
@@ -32,14 +26,6 @@ export const useAuthSession = () => {
     onSuccess: setSession
   });
 
-  const forgotPasswordMutation = useMutation({
-    mutationFn: (request: ForgotPasswordRequest) => AuthService.forgotPassword(request)
-  });
-
-  const resetPasswordMutation = useMutation({
-    mutationFn: (request: ResetPasswordRequest) => AuthService.resetPassword(request)
-  });
-
   const logout = useCallback((): void => {
     clearSession();
     queryClient.clear();
@@ -57,14 +43,10 @@ export const useAuthSession = () => {
     register: registerMutation.mutateAsync,
     login: loginMutation.mutateAsync,
     refresh: refreshMutation.mutateAsync,
-    forgotPassword: forgotPasswordMutation.mutateAsync,
-    resetPassword: resetPasswordMutation.mutateAsync,
     logout,
     isRegistering: registerMutation.isPending,
     isLoggingIn: loginMutation.isPending,
     isRefreshing: refreshMutation.isPending,
-    isRequestingReset: forgotPasswordMutation.isPending,
-    isResettingPassword: resetPasswordMutation.isPending,
     authError: registerMutation.error ?? loginMutation.error ?? refreshMutation.error,
     resetAuthError
   };

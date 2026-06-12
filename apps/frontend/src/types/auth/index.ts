@@ -24,17 +24,3 @@ export type LoginUserRequest = {
 export type RefreshTokenRequest = {
   refreshToken: string;
 };
-
-export type ForgotPasswordRequest = {
-  email: string;
-};
-
-export type ForgotPasswordResponse = {
-  resetToken: string;
-  expiresAt: string;
-};
-
-export type ResetPasswordRequest = {
-  token: string;
-  newPassword: string;
-};

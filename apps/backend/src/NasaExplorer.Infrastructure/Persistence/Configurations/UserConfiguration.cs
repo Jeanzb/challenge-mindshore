@@ -42,12 +42,6 @@ public sealed class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(user => user.RefreshTokenExpiresAt)
             .HasColumnType("datetimeoffset");
 
-        builder.Property(user => user.PasswordResetTokenHash)
-            .HasMaxLength(DomainConstraints.Users.PasswordResetTokenMaxLength);
-
-        builder.Property(user => user.PasswordResetTokenExpiresAt)
-            .HasColumnType("datetimeoffset");
-
         builder.HasMany(user => user.Collections)
             .WithOne()
             .HasForeignKey(collection => collection.UserId)

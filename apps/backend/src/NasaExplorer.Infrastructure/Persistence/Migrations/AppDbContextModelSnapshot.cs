@@ -427,13 +427,6 @@ namespace NasaExplorer.Infrastructure.Persistence.Migrations
                         .HasMaxLength(512)
                         .HasColumnType("nvarchar(512)");
 
-                    b.Property<DateTimeOffset?>("PasswordResetTokenExpiresAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("PasswordResetTokenHash")
-                        .HasMaxLength(512)
-                        .HasColumnType("nvarchar(512)");
-
                     b.Property<string>("RefreshToken")
                         .HasMaxLength(512)
                         .HasColumnType("nvarchar(512)");

@@ -1,4 +1,4 @@
-import { apiBaseUrl, demoCredentials } from "../../support/commands";
+import { demoCredentials } from "../../support/commands";
 
 describe("Auth", () => {
   beforeEach(() => {
@@ -48,36 +48,5 @@ describe("Auth", () => {
       .and("contain.text", "Email is already registered.");
     cy.contains("button", "Sign In").click();
     cy.get('[data-cy="auth-error"]').should("not.exist");
-  });
-
-  it("recovers a password without email and signs in with the new one", () => {
-    const email = `recover.${Date.now()}@cosmara.dev`;
-    const newPassword = "Recovered2026";
-
-    cy.request("POST", `${apiBaseUrl}/api/auth/register`, {
-      displayName: "Recover Flow",
-      email,
-      password: "Original123"
-    });
-
-    cy.reload();
-    cy.get('[data-cy="forgot-password-btn"]').click();
-    cy.get('[data-cy="recovery-panel"]').should("be.visible").and("contain.text", "Recover your password");
-
-    cy.get('[data-cy="recovery-panel"] input[type="email"]').clear().type(email);
-    cy.get('[data-cy="recovery-panel"] [data-cy="save-btn"]').click();
-
-    cy.get('[data-cy="recovery-panel"]').should("contain.text", "Set a new password");
-    cy.get('[data-cy="recovery-panel"] input[autocomplete="new-password"]').clear().type(newPassword, { log: false });
-    cy.get('[data-cy="recovery-panel"] [data-cy="save-btn"]').click();
-
-    cy.get("[data-sonner-toast]", { timeout: 20000 }).should("contain.text", "Password updated");
-    cy.get('[data-cy="recovery-panel"]').should("not.exist");
-
-    cy.get('input[type="email"]').filter(":visible").clear().type(email);
-    cy.get('input[type="password"]').filter(":visible").clear().type(newPassword, { log: false });
-    cy.get('[data-cy="save-btn"]').filter(":visible").click();
-
-    cy.location("pathname").should("eq", "/search");
   });
 });
