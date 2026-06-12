@@ -10,6 +10,8 @@ public interface IUserRepository
 
     Task<User?> GetByRefreshTokenAsync(string refreshTokenHash, CancellationToken cancellationToken = default);
 
+    Task<User?> GetByPasswordResetTokenAsync(string passwordResetTokenHash, CancellationToken cancellationToken = default);
+
     Task AddAsync(User user, CancellationToken cancellationToken = default);
 
     Task UpdateAsync(User user, CancellationToken cancellationToken = default);

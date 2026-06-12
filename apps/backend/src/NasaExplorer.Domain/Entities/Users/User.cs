@@ -38,6 +38,10 @@ public sealed class User
 
     public DateTimeOffset? RefreshTokenExpiresAt { get; private set; }
 
+    public string? PasswordResetTokenHash { get; private set; }
+
+    public DateTimeOffset? PasswordResetTokenExpiresAt { get; private set; }
+
     public ICollection<Collection> Collections { get; private set; }
 
     public static User Create(string email, string passwordHash, string displayName, DateTimeOffset createdAt)
@@ -55,5 +59,30 @@ public sealed class User
     {
         RefreshToken = null;
         RefreshTokenExpiresAt = null;
+    }
+
+    public void SetPasswordResetToken(string passwordResetTokenHash, DateTimeOffset expiresAt)
+    {
+        PasswordResetTokenHash = Guard.AgainstNullOrWhiteSpace(
+            passwordResetTokenHash,
+            nameof(passwordResetTokenHash),
+            DomainConstraints.Users.PasswordResetTokenMaxLength);
+        PasswordResetTokenExpiresAt = Guard.AgainstDefault(expiresAt, nameof(expiresAt));
+    }
+
+    public void ClearPasswordResetToken()
+    {
+        PasswordResetTokenHash = null;
+        PasswordResetTokenExpiresAt = null;
+    }
+
+    public void ResetPassword(string passwordHash)
+    {
+        PasswordHash = Guard.AgainstNullOrWhiteSpace(
+            passwordHash,
+            nameof(passwordHash),
+            DomainConstraints.Users.PasswordHashMaxLength);
+        ClearPasswordResetToken();
+        ClearRefreshToken();
     }
 }
