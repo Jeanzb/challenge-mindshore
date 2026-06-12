@@ -36,12 +36,6 @@ describe("Auth", () => {
     cy.location("pathname").should("eq", "/auth");
   });
 
-  it("opens password recovery from sign in", () => {
-    cy.contains("button", "Forgot password?").click();
-    cy.contains("Recover your password").should("be.visible");
-    cy.get('[data-cy="save-btn"]').filter(":visible").should("contain.text", "Send recovery link");
-  });
-
   it("shows duplicate email feedback and clears it when returning to sign in", () => {
     cy.contains('[role="tab"]', "Create Account").click();
     cy.get('input[placeholder="Katherine Johnson"]').clear().type("Demo User");

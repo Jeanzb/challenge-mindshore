@@ -1,4 +1,4 @@
-{
+﻿{
   "$schema": "https://inlang.com/schema/inlang-message-format",
   "app_brand": "Cosmara",
   "app_tagline": "AI Space Archive",
@@ -14,14 +14,8 @@
   "auth_email": "Email",
   "auth_password": "Password",
   "auth_name": "Name",
-  "auth_forgot_password": "Forgot password?",
-  "auth_recover_title": "Recover your password",
-  "auth_recover_description": "Enter your account email and we will send recovery instructions.",
-  "auth_send_recovery_link": "Send recovery link",
-  "auth_recovery_sent": "Password recovery instructions were sent to {email}.",
   "auth_new_to_cosmara": "New to Cosmara?",
   "auth_already_have_account": "Already have an account?",
-  "auth_remembered_password": "Remembered your password?",
   "auth_duplicate_email": "Email is already registered.",
   "auth_demo_email": "demo@nasaexplorer.com",
   "auth_display_name_placeholder": "Katherine Johnson",

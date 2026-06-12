@@ -40,15 +40,9 @@ const createRegisterSchema = () =>
       .regex(/[0-9]/, m.auth_validation_password_number())
   });
 
-const createRecoverPasswordSchema = () =>
-  z.object({
-    email: z.string().email(m.auth_validation_email())
-  });
-
 type LoginFormValues = z.infer<ReturnType<typeof createLoginSchema>>;
 type RegisterFormValues = z.infer<ReturnType<typeof createRegisterSchema>>;
-type RecoverPasswordFormValues = z.infer<ReturnType<typeof createRecoverPasswordSchema>>;
-type AuthMode = "signin" | "register" | "recovery";
+type AuthMode = "signin" | "register";
 
 const getAuthErrorMessage = (message: string): string =>
   message === "Email is already registered." ? m.auth_duplicate_email() : message;
@@ -61,11 +55,9 @@ export function AuthCard() {
   const [showRegisterPassword, setShowRegisterPassword] = useState(false);
   const signInPanelRef = useRef<HTMLDivElement>(null);
   const registerPanelRef = useRef<HTMLDivElement>(null);
-  const recoveryPanelRef = useRef<HTMLDivElement>(null);
   const { login, register, isLoggingIn, isRegistering, resetAuthError } = useAuthSession();
   const loginSchema = createLoginSchema();
   const registerSchema = createRegisterSchema();
-  const recoverPasswordSchema = createRecoverPasswordSchema();
 
   const showAuthErrorToast = (error: unknown): void => {
     const messages = extractApiErrorMessages(error);
@@ -94,13 +86,6 @@ export function AuthCard() {
     }
   });
 
-  const recoverPasswordForm = useForm<RecoverPasswordFormValues>({
-    resolver: zodResolver(recoverPasswordSchema),
-    defaultValues: {
-      email: ""
-    }
-  });
-
   const handleLoginSubmit = async (values: LoginFormValues): Promise<void> => {
     try {
       await login(values);
@@ -119,12 +104,6 @@ export function AuthCard() {
       showAuthErrorToast(error);
       return;
     }
-  };
-
-  const handleRecoverPasswordSubmit = (values: RecoverPasswordFormValues): void => {
-    toast.success(m.auth_recovery_sent({ email: values.email }));
-    recoverPasswordForm.reset();
-    setAuthMode("signin");
   };
 
   const toggleLoginPassword = (): void => {
@@ -150,19 +129,8 @@ export function AuthCard() {
     setAuthMode("signin");
   };
 
-  const showRecoveryPanel = (): void => {
-    resetAuthError();
-    recoverPasswordForm.setValue("email", loginForm.getValues("email"));
-    setAuthMode("recovery");
-  };
-
   useLayoutEffect(() => {
-    const activePanel =
-      authMode === "signin"
-        ? signInPanelRef.current
-        : authMode === "register"
-          ? registerPanelRef.current
-          : recoveryPanelRef.current;
+    const activePanel = authMode === "signin" ? signInPanelRef.current : registerPanelRef.current;
 
     if (!activePanel) {
       return undefined;
@@ -225,11 +193,8 @@ export function AuthCard() {
           </TabsTrigger>
         </TabsList>
         <div
-          className={cn(
-            "relative transition-[height] duration-500 ease-out will-change-[height]",
-            authMode === "recovery" ? "overflow-visible" : "overflow-hidden"
-          )}
-          style={{ height: panelHeight === null || authMode === "recovery" ? undefined : `${panelHeight}px` }}
+          className="relative overflow-hidden transition-[height] duration-500 ease-out will-change-[height]"
+          style={{ height: panelHeight === null ? undefined : `${panelHeight}px` }}
         >
           <TabsContent
             ref={signInPanelRef}
@@ -294,15 +259,6 @@ export function AuthCard() {
                     </FormItem>
                   )}
                 />
-                <div className="-mt-2 flex justify-end">
-                  <button
-                    type="button"
-                    onClick={showRecoveryPanel}
-                    className="text-xs font-semibold text-space-cyan transition-colors hover:text-white"
-                  >
-                    {m.auth_forgot_password()}
-                  </button>
-                </div>
                 <Button
                   type="submit"
                   data-cy="save-btn"
@@ -315,59 +271,6 @@ export function AuthCard() {
               </form>
             </Form>
           </TabsContent>
-          <div
-            ref={recoveryPanelRef}
-            className={cn(
-              "pt-6 transition-[opacity,transform] duration-300 ease-out",
-              authMode === "recovery"
-                ? "relative opacity-100 translate-y-0"
-                : "pointer-events-none absolute inset-x-0 top-0 translate-y-2 opacity-0"
-            )}
-          >
-            <Form {...recoverPasswordForm}>
-              <form
-                noValidate
-                onSubmit={recoverPasswordForm.handleSubmit(handleRecoverPasswordSubmit)}
-                className="space-y-5"
-              >
-                <div className="rounded-xl border border-space-cyan/20 bg-space-cyan/10 px-4 py-3">
-                  <p className="text-sm font-semibold text-white">{m.auth_recover_title()}</p>
-                  <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                    {m.auth_recover_description()}
-                  </p>
-                </div>
-                <FormField
-                  control={recoverPasswordForm.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-xs text-white">{m.auth_email()}</FormLabel>
-                      <div className="relative">
-                        <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                        <FormControl>
-                          <Input
-                            type="email"
-                            autoComplete="email"
-                            className="h-10 rounded-xl border-white/15 bg-space-void/30 pl-10 text-sm text-white placeholder:text-muted-foreground focus-visible:ring-space-cyan/60"
-                            {...field}
-                          />
-                        </FormControl>
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <Button
-                  type="submit"
-                  data-cy="save-btn"
-                  className="h-11 w-full rounded-xl bg-space-orange text-sm font-semibold text-space-void transition-[background-color,transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:bg-space-orange/90 hover:shadow-lg hover:shadow-space-orange/15"
-                >
-                  <ArrowRight className="h-4 w-4" />
-                  {m.auth_send_recovery_link()}
-                </Button>
-              </form>
-            </Form>
-          </div>
           <TabsContent
             ref={registerPanelRef}
             forceMount
@@ -480,16 +383,9 @@ export function AuthCard() {
             {m.auth_create_account()}
           </button>
         </p>
-      ) : authMode === "register" ? (
-        <p className="text-center text-sm text-muted-foreground">
-          {m.auth_already_have_account()}{" "}
-          <button type="button" onClick={showSignInTab} className="font-semibold text-space-orange">
-            {m.auth_sign_in()}
-          </button>
-        </p>
       ) : (
         <p className="text-center text-sm text-muted-foreground">
-          {m.auth_remembered_password()}{" "}
+          {m.auth_already_have_account()}{" "}
           <button type="button" onClick={showSignInTab} className="font-semibold text-space-orange">
             {m.auth_sign_in()}
           </button>

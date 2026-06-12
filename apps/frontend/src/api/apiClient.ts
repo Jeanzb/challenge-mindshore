@@ -1,5 +1,7 @@
 import { ApiError, type ApiErrorDetails } from "@/api/apiError";
 import { authTokenStorage } from "@/api/authTokenStorage";
+import { sessionEvents } from "@/api/sessionEvents";
+import type { AuthSession } from "@/types/auth";
 
 type ApiQueryParamValue = string | number | boolean | Date | null | undefined;
 
@@ -20,6 +22,8 @@ const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:5207";
 
 export class ApiClient {
   private readonly baseUrl: string;
+
+  private refreshPromise: Promise<boolean> | null = null;
 
   public constructor(baseUrl: string) {
     this.baseUrl = baseUrl.replace(/\/$/, "");
@@ -60,7 +64,8 @@ export class ApiClient {
   private async request<TResponse>(
     path: string,
     method: string,
-    options: ApiRequestOptions = {}
+    options: ApiRequestOptions = {},
+    isRetryAfterRefresh = false
   ): Promise<TResponse> {
     const { body, query, authenticated, responseType, ...requestInit } = options;
     const headers = new Headers(options.headers);
@@ -88,6 +93,22 @@ export class ApiClient {
     }
 
     const response = await fetch(this.buildUrl(path, query), init);
+
+    if (
+      response.status === 401 &&
+      authenticated !== false &&
+      !isRetryAfterRefresh &&
+      !path.startsWith("/api/auth/")
+    ) {
+      const refreshed = await this.refreshSession();
+
+      if (refreshed) {
+        return this.request<TResponse>(path, method, options, true);
+      }
+
+      authTokenStorage.clear();
+      sessionEvents.emitSessionExpired();
+    }
 
     if (!response.ok) {
       const details = await this.parseErrorDetails(response);
@@ -172,6 +193,42 @@ export class ApiClient {
     }
 
     return fallback.length > 0 ? fallback : "Request failed";
+  }
+
+  private refreshSession(): Promise<boolean> {
+    this.refreshPromise ??= this.requestSessionRefresh().finally(() => {
+      this.refreshPromise = null;
+    });
+
+    return this.refreshPromise;
+  }
+
+  private async requestSessionRefresh(): Promise<boolean> {
+    const refreshToken = authTokenStorage.getRefreshToken();
+
+    if (refreshToken === null) {
+      return false;
+    }
+
+    const response = await fetch(this.buildUrl("/api/auth/refresh"), {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ refreshToken })
+    });
+
+    if (!response.ok) {
+      return false;
+    }
+
+    const session = (await response.json()) as AuthSession;
+
+    authTokenStorage.setSession(session);
+    sessionEvents.emitSessionRefreshed(session);
+
+    return true;
   }
 }
 

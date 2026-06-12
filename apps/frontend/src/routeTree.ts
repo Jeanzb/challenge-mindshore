@@ -4,10 +4,7 @@ import { Route as AuthIndexRouteImport } from "./routes/auth";
 import { Route as CollectionsIndexRouteImport } from "./routes/collections";
 import { Route as CollectionDetailRouteImport } from "./routes/collections/detail";
 import { Route as ComparatorIndexRouteImport } from "./routes/comparator";
-import { Route as ExportIndexRouteImport } from "./routes/export";
-import { Route as ImagesIndexRouteImport } from "./routes/images";
 import { Route as SearchIndexRouteImport } from "./routes/search";
-import { Route as TimelineIndexRouteImport } from "./routes/timeline";
 
 const IndexRoute = IndexRouteImport.update({
   id: "/",
@@ -39,27 +36,9 @@ const ComparatorIndexRoute = ComparatorIndexRouteImport.update({
   getParentRoute: () => rootRouteImport
 } as never);
 
-const ExportIndexRoute = ExportIndexRouteImport.update({
-  id: "/export/",
-  path: "/export",
-  getParentRoute: () => rootRouteImport
-} as never);
-
-const ImagesIndexRoute = ImagesIndexRouteImport.update({
-  id: "/images/",
-  path: "/images",
-  getParentRoute: () => rootRouteImport
-} as never);
-
 const SearchIndexRoute = SearchIndexRouteImport.update({
   id: "/search/",
   path: "/search",
-  getParentRoute: () => rootRouteImport
-} as never);
-
-const TimelineIndexRoute = TimelineIndexRouteImport.update({
-  id: "/timeline/",
-  path: "/timeline",
   getParentRoute: () => rootRouteImport
 } as never);
 
@@ -69,10 +48,7 @@ type RootRouteChildren = {
   CollectionsIndexRoute: typeof CollectionsIndexRoute;
   CollectionDetailRoute: typeof CollectionDetailRoute;
   ComparatorIndexRoute: typeof ComparatorIndexRoute;
-  ExportIndexRoute: typeof ExportIndexRoute;
-  ImagesIndexRoute: typeof ImagesIndexRoute;
   SearchIndexRoute: typeof SearchIndexRoute;
-  TimelineIndexRoute: typeof TimelineIndexRoute;
 };
 
 type FileRouteTypes = {
@@ -82,10 +58,7 @@ type FileRouteTypes = {
     "/collections/": typeof CollectionsIndexRoute;
     "/collections/$collectionId": typeof CollectionDetailRoute;
     "/comparator/": typeof ComparatorIndexRoute;
-    "/export/": typeof ExportIndexRoute;
-    "/images/": typeof ImagesIndexRoute;
     "/search/": typeof SearchIndexRoute;
-    "/timeline/": typeof TimelineIndexRoute;
   };
   fullPaths:
     | "/"
@@ -93,20 +66,14 @@ type FileRouteTypes = {
     | "/collections/"
     | "/collections/$collectionId"
     | "/comparator/"
-    | "/export/"
-    | "/images/"
-    | "/search/"
-    | "/timeline/";
+    | "/search/";
   fileRoutesByTo: {
     "/": typeof IndexRoute;
     "/auth": typeof AuthIndexRoute;
     "/collections": typeof CollectionsIndexRoute;
     "/collections/$collectionId": typeof CollectionDetailRoute;
     "/comparator": typeof ComparatorIndexRoute;
-    "/export": typeof ExportIndexRoute;
-    "/images": typeof ImagesIndexRoute;
     "/search": typeof SearchIndexRoute;
-    "/timeline": typeof TimelineIndexRoute;
   };
   to:
     | "/"
@@ -114,10 +81,7 @@ type FileRouteTypes = {
     | "/collections"
     | "/collections/$collectionId"
     | "/comparator"
-    | "/export"
-    | "/images"
-    | "/search"
-    | "/timeline";
+    | "/search";
   id:
     | "__root__"
     | "/"
@@ -125,10 +89,7 @@ type FileRouteTypes = {
     | "/collections/"
     | "/collections/$collectionId"
     | "/comparator/"
-    | "/export/"
-    | "/images/"
-    | "/search/"
-    | "/timeline/";
+    | "/search/";
   fileRoutesById: {
     __root__: typeof rootRouteImport;
     "/": typeof IndexRoute;
@@ -136,10 +97,7 @@ type FileRouteTypes = {
     "/collections/": typeof CollectionsIndexRoute;
     "/collections/$collectionId": typeof CollectionDetailRoute;
     "/comparator/": typeof ComparatorIndexRoute;
-    "/export/": typeof ExportIndexRoute;
-    "/images/": typeof ImagesIndexRoute;
     "/search/": typeof SearchIndexRoute;
-    "/timeline/": typeof TimelineIndexRoute;
   };
 };
 
@@ -180,32 +138,11 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof ComparatorIndexRouteImport;
       parentRoute: typeof rootRouteImport;
     };
-    "/export/": {
-      id: "/export/";
-      path: "/export";
-      fullPath: "/export/";
-      preLoaderRoute: typeof ExportIndexRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/images/": {
-      id: "/images/";
-      path: "/images";
-      fullPath: "/images/";
-      preLoaderRoute: typeof ImagesIndexRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
     "/search/": {
       id: "/search/";
       path: "/search";
       fullPath: "/search/";
       preLoaderRoute: typeof SearchIndexRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/timeline/": {
-      id: "/timeline/";
-      path: "/timeline";
-      fullPath: "/timeline/";
-      preLoaderRoute: typeof TimelineIndexRouteImport;
       parentRoute: typeof rootRouteImport;
     };
   }
@@ -217,10 +154,7 @@ const rootRouteChildren: RootRouteChildren = {
   CollectionsIndexRoute,
   CollectionDetailRoute,
   ComparatorIndexRoute,
-  ExportIndexRoute,
-  ImagesIndexRoute,
-  SearchIndexRoute,
-  TimelineIndexRoute
+  SearchIndexRoute
 };
 
 export const routeTree = rootRouteImport
